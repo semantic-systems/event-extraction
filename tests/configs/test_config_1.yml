@@ -1,0 +1,11 @@
+model:
+  from_pretrained: "bert-base-cased"
+  layers:
+    layer1:
+      n_in: 256
+      n_out: 128
+    layer2:
+      n_in: 128
+      n_out: 12
+  learning_rate: 0.001
+  dropout_rate: 0.1
