@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 from abc import abstractmethod
 from omegaconf import DictConfig
 from torch.nn import Module, Linear, Dropout, ModuleList
@@ -12,8 +12,8 @@ class SingleLabelSequenceClassification(Module):
         super(SingleLabelSequenceClassification, self).__init__()
         self.cfg = cfg
         self.bert: PreTrainedTokenizer = BertModel.from_pretrained(cfg.from_pretrained)
+        self.bert = ModuleList([self.bert.encoder.layer[i] for i in range(cfg.n_layers)])
         # TODO: overwrite the last layer n_out to the number of classes from the data loader.
-        print(f"cfg.layers {cfg.layers} of type {type(cfg.layers)}")
         cfg_layers: DictConfig = cfg.layers
         self.classification_layers = self.get_layers(cfg_layers)
         self.optimizer = AdamW(self.parameters(), lr=cfg.learning_rate)

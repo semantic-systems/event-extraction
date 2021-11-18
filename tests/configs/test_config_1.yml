@@ -7,5 +7,6 @@ model:
     layer2:
       n_in: 128
       n_out: 12
+  n_layers: 1
   learning_rate: 0.001
   dropout_rate: 0.1
