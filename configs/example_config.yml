@@ -1,3 +1,4 @@
+name: "trec_is_many_shot_cohort_1"
 model:
   from_pretrained: "bert-base-cased"
   layers:
@@ -12,5 +13,4 @@ model:
   dropout_rate: 0.1
 data:
   training_data_path: "../data/trec_is/train.csv"
-  testing_data_path: null
-  train_test_split: 0.75
+  testing_data_path: "../data/trec_is/test.csv"
