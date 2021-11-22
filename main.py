@@ -1,5 +1,5 @@
 from torch.utils.data import DataLoader
-from datasets import load_dataset
+from custom_datasets import load_dataset
 from models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
 from hydra import initialize, compose
 

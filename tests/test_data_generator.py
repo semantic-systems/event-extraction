@@ -1,10 +1,11 @@
-from data_generators.data_generator import DataGenerator
-import pandas as pd
+from torch.utils.data import DataLoader
+
+from data_generators import DataGenerator, DataGeneratorTRECIS
 
 
 def test_initialize_data_generator(hydra_config):
     cfg = hydra_config
-    generator = DataGenerator(cfg.data)
-    assert generator
-    assert isinstance(generator.testing_data, pd.DataFrame)
-    assert isinstance(generator.training_data, pd.DataFrame)
+    generator = DataGeneratorTRECIS(cfg)
+    assert isinstance(generator, DataGenerator)
+    assert isinstance(generator(mode="train", batch_size=cfg.data.batch_size), DataLoader)
+    assert isinstance(generator(mode="test", batch_size=cfg.data.batch_size), DataLoader)

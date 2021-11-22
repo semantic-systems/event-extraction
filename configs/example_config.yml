@@ -14,4 +14,8 @@ model:
 data:
   training_data_path: "../../data/trec_is/train.csv"
   testing_data_path: "../../data/trec_is/test.csv"
+  label_column: "label"
+  sentence_column: "sentence"
+  batch_size: 8
+
 
