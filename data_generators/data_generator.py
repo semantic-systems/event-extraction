@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset, Sampler, RandomSampler
 
 
-class Preprocessor(object):
+class DataGenerator(object):
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
         self.training_data = self.load_csv(Path(cfg.training_data_path).absolute())

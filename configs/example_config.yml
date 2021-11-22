@@ -3,7 +3,7 @@ model:
   from_pretrained: "bert-base-cased"
   layers:
     layer1:
-      n_in: 256
+      n_in: 768
       n_out: 128
     layer2:
       n_in: 128
@@ -14,3 +14,4 @@ model:
 data:
   training_data_path: "../../data/trec_is/train.csv"
   testing_data_path: "../../data/trec_is/test.csv"
+
