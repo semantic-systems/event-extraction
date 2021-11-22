@@ -12,5 +12,5 @@ model:
   learning_rate: 0.001
   dropout_rate: 0.1
 data:
-  training_data_path: "../data/trec_is/train.csv"
-  testing_data_path: "../data/trec_is/test.csv"
+  training_data_path: "../../data/trec_is/train.csv"
+  testing_data_path: "../../data/trec_is/test.csv"
