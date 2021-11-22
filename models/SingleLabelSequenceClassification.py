@@ -1,8 +1,9 @@
 import copy
-from typing import List
+from typing import List, Optional
 from abc import abstractmethod
 from omegaconf import DictConfig
 from torch.nn import Module, Linear, Dropout, ModuleList
+from torch import tensor
 from transformers import AutoModel, AdamW, PreTrainedTokenizer, PreTrainedModel, BertTokenizer
 import torch.nn.functional as F
 import torch
@@ -12,7 +13,7 @@ class SingleLabelSequenceClassification(Module):
     def __init__(self, cfg: DictConfig):
         super(SingleLabelSequenceClassification, self).__init__()
         self.cfg = cfg
-        self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.from_pretrained)
+        # self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.from_pretrained)
         self.bert: PreTrainedModel = AutoModel.from_pretrained(cfg.from_pretrained)
         self.bert = self.trim_encoder_layers(cfg.n_layers)
         # TODO: overwrite the last layer n_out to the number of classes from the data loader.
@@ -21,15 +22,16 @@ class SingleLabelSequenceClassification(Module):
         self.optimizer = AdamW(self.parameters(), lr=cfg.learning_rate)
         self.dropout = Dropout(p=cfg.dropout_rate)
 
-    def forward(self, input_ids, attention_mask):
-        output = self.bert(input_ids=input_ids, attention_mask=attention_mask).pooler_output
-        for i, layer in enumerate(self.classification_layers):
-            if i < len(self.classification_layers) - 1:
-                output = F.relu(layer(output))
-                output = self.dropout(output)
-            else:
-                output = F.softmax(layer(output))
-        return output
+    def forward(self, input_ids: tensor, attention_mask: tensor, labels: Optional[tensor] = None):
+        if labels is None:
+            output = self.bert(input_ids=input_ids, attention_mask=attention_mask).pooler_output
+            for i, layer in enumerate(self.classification_layers):
+                if i < len(self.classification_layers) - 1:
+                    output = F.relu(layer(output))
+                    output = self.dropout(output)
+                else:
+                    output = F.softmax(layer(output))
+            return output
 
     @staticmethod
     def get_layers(cfg_layers: DictConfig) -> ModuleList:

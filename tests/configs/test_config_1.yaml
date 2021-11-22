@@ -1,3 +1,4 @@
+name: "trec_is_many_shot_cohort_1"
 model:
   from_pretrained: "bert-base-cased"
   layers:
@@ -11,9 +12,9 @@ model:
   learning_rate: 0.001
   dropout_rate: 0.1
 data:
-  training_data_path: "../../../data/trec_is/train.csv"
+  training_data_path: "../../data/trec_is/train.csv"
   testing_data_path: null
   train_test_split: 0.75
   label_column: "label"
   sentence_column: "sentence"
-  batch_size: 8
+  batch_size: 1

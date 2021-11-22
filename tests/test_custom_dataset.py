@@ -11,4 +11,4 @@ def test_dataset_creation(hydra_config):
     assert "token_type_ids" in dataset.encodings
     assert "attention_mask" in dataset.encodings
     assert len(dataset.encodings["input_ids"]) == 1 == len(dataset.encodings["token_type_ids"]) == len(dataset.encodings["attention_mask"])
-
+    assert len(dataset.labels) == len(dataset.encodings["input_ids"])

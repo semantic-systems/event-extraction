@@ -14,6 +14,7 @@ class CustomDataset(Dataset):
         self.sentence_column = sentence_column
         self.label_column = label_column
         self.from_pretrained = from_pretrained
+        self.labels = []
         self.encodings: tensor = self.preprocess()
 
     @abc.abstractmethod
@@ -21,15 +22,12 @@ class CustomDataset(Dataset):
         raise NotImplementedError
 
     def __getitem__(self, idx):
-        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        wanted_keys = ["input_ids", "attention_mask"]
+        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items() if key in wanted_keys}
         item['labels'] = torch.tensor(self.labels[idx])
         return item
 
     def __len__(self):
         return len(self.df)
 
-    # @property
-    # @abc.abstractmethod
-    # def tokenizer(self):
-    #     raise NotImplementedError
 

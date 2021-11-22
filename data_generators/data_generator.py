@@ -34,9 +34,9 @@ class DataGenerator(object):
 
     def __call__(self,
                  mode: str,
-                 batch_size: int,
+                 batch_size: Optional[int] = None,
                  shuffle: Optional[bool] = False,
-                 sampler: Optional[Sampler] = RandomSampler) -> DataLoader:
+                 sampler: Optional[Sampler] = None) -> DataLoader:
         """
         :param mode: train, valid or test
         :param batch_size:
@@ -44,11 +44,12 @@ class DataGenerator(object):
         :param sampler:
         :return:
         """
+        batch_size = batch_size or self.cfg.data.batch_size
         if mode == "train":
             dataset = self.training_dataset
         elif mode == "test":
             dataset = self.testing_dataset
         else:
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
-        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
