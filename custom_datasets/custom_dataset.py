@@ -16,6 +16,7 @@ class CustomDataset(Dataset):
         self.from_pretrained = from_pretrained
         self.labels = []
         self.encodings: tensor = self.preprocess()
+        self.label_index_map = []
 
     @abc.abstractmethod
     def preprocess(self):

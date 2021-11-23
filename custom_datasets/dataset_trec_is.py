@@ -15,4 +15,8 @@ class DatasetTRECIS(CustomDataset):
                                                 return_tensors="pt")
         le = preprocessing.LabelEncoder()
         self.labels = tensor(le.fit_transform(self.df[self.label_column].tolist()))
+        index = le.fit_transform(self.df[self.label_column].unique())
+        label = le.inverse_transform(index)
+        self.label_index_map = dict(zip(label, index))
+
         return tokenized_sentences

@@ -4,18 +4,16 @@ model:
   layers:
     layer1:
       n_in: 768
-      n_out: 128
-    layer2:
-      n_in: 128
       n_out: 20
-  n_layers: 1
-  learning_rate: 0.001
-  dropout_rate: 0.1
+  num_transformer_layers: 2
+  learning_rate: 0.0001
+  dropout_rate: 0.5
+  epochs: 10
 data:
   training_data_path: "../../data/trec_is/train.csv"
   testing_data_path: "../../data/trec_is/test.csv"
   label_column: "label"
   sentence_column: "sentence"
-  batch_size: 8
+  batch_size: 16
 
 

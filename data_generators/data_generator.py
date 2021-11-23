@@ -17,6 +17,7 @@ class DataGenerator(object):
         else:
             self.training_dataframe, self.testing_dataframe = train_test_split(
                 self.training_dataframe, train_size=cfg.data.train_test_split)
+        self.num_labels = self.training_dataframe[cfg.data.label_column].nunique()
 
     @property
     @abc.abstractmethod
