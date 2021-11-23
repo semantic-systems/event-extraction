@@ -40,7 +40,8 @@ class SingleLabelSequenceClassification(Module):
         for i, layer in enumerate(self.classification_layers):
             if i < len(self.classification_layers) - 1:
                 output = F.relu(layer(output))
-                output = self.dropout(output)
+                if labels is None:
+                    output = self.dropout(output)
             else:
                 output = F.softmax(layer(output))
         if labels is not None:
@@ -103,12 +104,12 @@ class SingleLabelSequenceClassification(Module):
                 acc = (prediction == labels).sum().item() / prediction.size(0)
                 # log metric
                 mlflow.log_metric("loss", loss.item(), step=1)
-                mlflow.log_metric("acc", acc, step=1)
+                mlflow.log_metric("train_acc", acc, step=1)
                 # if n % 1 == 0:
                 logger.warning(f"Epoch: {n}, Average loss: {loss.item()}")
                 ConfusionMatrixDisplay.from_predictions(y_true=y_true, y_pred=y_predict)
-                plt.savefig("./outputs/test_confusion_matrix_train.png")
-                mlflow.log_artifact("./outputs/test_confusion_matrix_train.png")
+                plt.savefig(f"./outputs/confusion_matrix_train_epoch_{n}.png")
+                mlflow.log_artifact(f"./outputs/confusion_matrix_train_epoch_{n}.png")
                 plt.close()
         torch.save(self, "./outputs/test_model.pt")
 
@@ -130,10 +131,10 @@ class SingleLabelSequenceClassification(Module):
                     prediction = outputs.prediction_logits.max(1).indices
                     y_predict.extend(prediction.tolist())
                 acc = (prediction == labels).sum().item() / prediction.size(0)
-                mlflow.log_metric("acc", acc, step=1)
+                mlflow.log_metric("test_acc", acc, step=1)
                 ConfusionMatrixDisplay.from_predictions(y_true=y_true, y_pred=y_predict)
-                plt.savefig("./outputs/test_confusion_matrix_test.png")
-                mlflow.log_artifact("./outputs/test_confusion_matrix_test.png")
+                plt.savefig("./outputs/confusion_matrix_test.png")
+                mlflow.log_artifact("./outputs/confusion_matrix_test.png")
                 plt.close()
 
     @property
