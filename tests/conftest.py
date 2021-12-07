@@ -1,7 +1,6 @@
 import pytest
 from hydra import initialize, compose
 from models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
-import pandas as pd
 
 
 @pytest.fixture()
@@ -14,12 +13,5 @@ def hydra_config():
 
 @pytest.fixture()
 def model_instance(hydra_config):
-    model = SingleLabelSequenceClassification(hydra_config.model)
+    model = SingleLabelSequenceClassification(hydra_config, num_classes=14)
     return model
-
-
-@pytest.fixture()
-def mocked_df():
-    sequences = ["Hallo ich bin zuhause."]
-    df = pd.DataFrame({"sentence": sequences, "label": ["gold"]})
-    return df

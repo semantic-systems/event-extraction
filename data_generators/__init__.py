@@ -1,2 +1,1 @@
 from data_generators.data_generator import DataGenerator
-from data_generators.data_generator_trec_is import DataGeneratorTRECIS

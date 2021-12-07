@@ -1,4 +1,3 @@
-import torch
 
 
 def test_initialize_model(model_instance):

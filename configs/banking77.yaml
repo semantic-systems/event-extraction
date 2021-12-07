@@ -1,4 +1,4 @@
-name: "trec_is_many_shot_cohort_1"
+name: "banking77_many_shot_cohort_1"
 model:
   from_pretrained: "bert-base-cased"
   layers:
@@ -10,7 +10,7 @@ model:
   dropout_rate: 0.5
   epochs: 10
 data:
-  name: "./custom_datasets/TRECIS.py"
+  name: "banking77"
   batch_size: 32
 
 

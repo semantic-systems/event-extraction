@@ -8,13 +8,10 @@ model:
     layer2:
       n_in: 128
       n_out: 20
-  n_layers: 2
+  num_transformer_layers: 2
   learning_rate: 0.001
   dropout_rate: 0.1
+  epochs: 10
 data:
-  training_data_path: "../../data/trec_is/train.csv"
-  testing_data_path: null
-  train_test_split: 0.75
-  label_column: "label"
-  sentence_column: "sentence"
+  name: "./custom_datasets/TRECIS.py"
   batch_size: 1

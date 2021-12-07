@@ -9,7 +9,8 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from torch.nn import Module, Linear, Dropout, ModuleList, CrossEntropyLoss
 from torch import tensor
 from torch.utils.data import DataLoader
-from transformers import AutoModel, AdamW, PreTrainedModel
+from tqdm import tqdm
+from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, BertTokenizer
 from schema import SingleLabelClassificationForwardOutput
 import torch.nn.functional as F
 import torch
@@ -31,6 +32,7 @@ class SingleLabelSequenceClassification(Module):
         self.optimizer = AdamW(self.parameters(), lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()
         self.dropout = Dropout(p=cfg.model.dropout_rate)
+        self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.model.from_pretrained)
 
     def forward(self,
                 input_ids: tensor,
@@ -40,8 +42,7 @@ class SingleLabelSequenceClassification(Module):
         for i, layer in enumerate(self.classification_layers):
             if i < len(self.classification_layers) - 1:
                 output = F.relu(layer(output))
-                if labels is None:
-                    output = self.dropout(output)
+                output = self.dropout(output)
             else:
                 output = F.softmax(layer(output))
         if labels is not None:
@@ -79,6 +80,9 @@ class SingleLabelSequenceClassification(Module):
         trimmed_encoder.encoder.layer = trimmed_layers
         return trimmed_encoder
 
+    def preprocess(self, batch):
+        return self.tokenizer(batch["text"], padding=True, truncation=True, max_length=512, return_tensors="pt")
+
     def train_model(self, data_loader: DataLoader):
         self.to(self.device)
         self.train()
@@ -91,11 +95,12 @@ class SingleLabelSequenceClassification(Module):
             mlflow.set_experiment(self.cfg.name+"_training")
             log_params_from_omegaconf_dict(self.cfg)
             # start new run
-            for n in range(self.cfg.model.epochs):
-                for batch in data_loader:
+            for n in tqdm(range(self.cfg.model.epochs)):
+                for i, batch in enumerate(data_loader):
+                    labels: tensor = batch["label"].to(self.device)
+                    batch = self.preprocess(batch)
                     input_ids: tensor = batch["input_ids"].to(self.device)
                     attention_masks: tensor = batch["attention_mask"].to(self.device)
-                    labels: tensor = batch["labels"].to(self.device)
                     y_true.extend(labels.tolist())
                     outputs: SingleLabelClassificationForwardOutput = self(input_ids, attention_masks, labels)
                     loss = outputs.loss
@@ -123,9 +128,10 @@ class SingleLabelSequenceClassification(Module):
             log_params_from_omegaconf_dict(self.cfg)
             with torch.no_grad():
                 for batch in data_loader:
+                    labels: tensor = batch["label"].to(self.device)
+                    batch = self.preprocess(batch)
                     input_ids: tensor = batch["input_ids"].to(self.device)
                     attention_masks: tensor = batch["attention_mask"].to(self.device)
-                    labels: tensor = batch["labels"]
                     outputs: SingleLabelClassificationForwardOutput = self(input_ids, attention_masks)
                     y_true.extend(labels.tolist())
                     prediction = outputs.prediction_logits.max(1).indices
