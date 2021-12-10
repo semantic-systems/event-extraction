@@ -1,18 +1,15 @@
 # coding=utf-8
+from collections import Sized
+
 import numpy as np
 import torch
+from torch.utils.data.sampler import Sampler
 
 
-class PrototypicalBatchSampler(object):
-    '''
-    PrototypicalBatchSampler: yield a batch of indexes at each iteration.
-    Indexes are calculated by keeping in account 'classes_per_it' and 'num_samples',
-    In fact at every iteration the batch indexes will refer to  'num_support' + 'num_query' samples
-    for 'classes_per_it' random classes.
-    __len__ returns the number of episodes per epoch (same as 'self.iterations').
-    '''
+class EpisodicBatchSampler(Sampler[int]):
+    data_source: Sized
 
-    def __init__(self, labels, classes_per_it, num_samples, iterations):
+    def __init__(self, data_source, labels, n_way, k_shot, iterations):
         '''
         Initialize the PrototypicalBatchSampler object
         Args:
@@ -22,14 +19,14 @@ class PrototypicalBatchSampler(object):
         - num_samples: number of samples for each iteration for each class (support + query)
         - iterations: number of iterations (episodes) per epoch
         '''
-        super(PrototypicalBatchSampler, self).__init__()
+        super(EpisodicBatchSampler, self).__init__(data_source)
         self.labels = labels
-        self.classes_per_it = classes_per_it
-        self.sample_per_class = num_samples
+        self.classes_per_it = n_way
+        self.sample_per_class = k_shot
         self.iterations = iterations
 
         self.classes, self.counts = np.unique(self.labels, return_counts=True)
-        self.classes = torch.LongTensor(self.classes)
+        self.classes = torch.from_numpy(np.asarray(self.classes))
 
         # create a matrix, indexes, of dim: classes X max(elements per class)
         # fill it with nans

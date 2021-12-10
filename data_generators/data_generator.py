@@ -2,7 +2,7 @@ from typing import Optional, Dict
 
 from datasets import load_dataset
 from omegaconf import DictConfig
-from torch.utils.data import DataLoader, Sampler
+from torch.utils.data import DataLoader, Sampler, RandomSampler
 
 
 class DataGenerator(object):
@@ -23,7 +23,7 @@ class DataGenerator(object):
     def __call__(self,
                  mode: str,
                  batch_size: Optional[int] = None,
-                 shuffle: Optional[bool] = False,
+                 shuffle: Optional[bool] = True,
                  sampler: Optional[Sampler] = None) -> DataLoader:
         """
         :param mode: train, valid or test
@@ -39,5 +39,7 @@ class DataGenerator(object):
             dataset = self.testing_dataset
         else:
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
-        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle) #TODO: add sampler option
+        # default sampler is a random sampler over all entries in the dataset.
+        sampler = sampler or RandomSampler(dataset)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler) #TODO: add sampler option
 
