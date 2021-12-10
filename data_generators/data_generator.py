@@ -23,7 +23,6 @@ class DataGenerator(object):
     def __call__(self,
                  mode: str,
                  batch_size: Optional[int] = None,
-                 shuffle: Optional[bool] = True,
                  sampler: Optional[Sampler] = None) -> DataLoader:
         """
         :param mode: train, valid or test
@@ -41,5 +40,14 @@ class DataGenerator(object):
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
         # default sampler is a random sampler over all entries in the dataset.
         sampler = sampler or RandomSampler(dataset)
-        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler) #TODO: add sampler option
+        return DataLoader(dataset, batch_size=batch_size, sampler=sampler) #TODO: add sampler option
 
+
+class DataGeneratorSubSample(DataGenerator):
+    @property
+    def training_dataset(self):
+        return load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=0.6)["train"]
+
+    @property
+    def testing_dataset(self):
+        return load_dataset(self.cfg.data.name, split='test').train_test_split(test_size=0.4)["test"]

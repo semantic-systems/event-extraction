@@ -3,13 +3,12 @@ from collections import Sized
 
 import numpy as np
 import torch
-from torch.utils.data.sampler import Sampler
+from torch.utils.data import Sampler, Dataset
 
 
 class EpisodicBatchSampler(Sampler[int]):
-    data_source: Sized
 
-    def __init__(self, data_source, labels, n_way, k_shot, iterations):
+    def __init__(self, data_source: Sized, n_way, k_shot, iterations):
         '''
         Initialize the PrototypicalBatchSampler object
         Args:
@@ -20,7 +19,7 @@ class EpisodicBatchSampler(Sampler[int]):
         - iterations: number of iterations (episodes) per epoch
         '''
         super(EpisodicBatchSampler, self).__init__(data_source)
-        self.labels = labels
+        self.labels = data_source['label']
         self.classes_per_it = n_way
         self.sample_per_class = k_shot
         self.iterations = iterations

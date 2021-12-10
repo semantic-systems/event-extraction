@@ -12,5 +12,9 @@ model:
 data:
   name: "banking77"
   batch_size: 32
+episode:
+  n_way: 5
+  k_shot: 3
+  iteration: 20
 
 
