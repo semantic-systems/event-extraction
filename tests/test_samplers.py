@@ -10,7 +10,6 @@ def test_episodic_batch_sampler():
     k_shot = 3
     iterations = 20
     dataset = load_dataset('banking77', split="train").train_test_split(test_size=0.4)["test"]
-    labels = dataset['label']
     sampler = EpisodicBatchSampler(data_source=dataset,
                                    n_way=n_way, k_shot=k_shot, iterations=iterations)
     data_loader = DataLoader(dataset, sampler=sampler)

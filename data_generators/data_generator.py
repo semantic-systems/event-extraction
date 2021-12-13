@@ -40,7 +40,7 @@ class DataGenerator(object):
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
         # default sampler is a random sampler over all entries in the dataset.
         sampler = sampler or RandomSampler(dataset)
-        return DataLoader(dataset, batch_size=batch_size, sampler=sampler) #TODO: add sampler option
+        return DataLoader(dataset, batch_size=batch_size, sampler=sampler)
 
 
 class DataGeneratorSubSample(DataGenerator):

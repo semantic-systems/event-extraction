@@ -9,17 +9,17 @@ class PrototypicalNetworks(Module):
 
     def forward(
         self,
-        support_images: torch.Tensor,
+        support_features: torch.Tensor,
         support_labels: torch.Tensor,
-        query_images: torch.Tensor,
+        query_features: torch.Tensor,
     ) -> torch.Tensor:
         """
         Predict query labels using labeled support images.
         """
 
         # Extract the features of support and query images
-        z_support = self.backbone.forward(support_images)
-        z_query = self.backbone.forward(query_images)
+        z_support = self.backbone.forward(support_features)
+        z_query = self.backbone.forward(query_features)
 
         # Infer the number of classes from the labels of the support set
         n_way = len(torch.unique(support_labels))
