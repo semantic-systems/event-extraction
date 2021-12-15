@@ -14,11 +14,21 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
-        return load_dataset(self.cfg.data.name, split='train')
+        dataset = load_dataset(self.cfg.data.name, split='train')
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset
 
     @property
     def testing_dataset(self):
-        return load_dataset(self.cfg.data.name, split='test')
+        dataset = load_dataset(self.cfg.data.name, split='test')
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset
+
+    @staticmethod
+    def rename_label_column(dataset, original_label_name, new_label_name):
+        return dataset.rename_column(original_label_name, new_label_name)
 
     def __call__(self,
                  mode: str,
@@ -46,8 +56,14 @@ class DataGenerator(object):
 class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
-        return load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=0.6)["train"]
+        dataset = load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=0.6)["train"]
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset
 
     @property
     def testing_dataset(self):
-        return load_dataset(self.cfg.data.name, split='test').train_test_split(test_size=0.4)["test"]
+        dataset = load_dataset(self.cfg.data.name, split='test')
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset

@@ -1,4 +1,4 @@
-name: "banking77_few_shot_cohort_1"
+name: "trec_many_shot_cohort_1"
 model:
   from_pretrained: "bert-base-cased"
   layers:
@@ -8,16 +8,11 @@ model:
   num_transformer_layers: 1
   freeze_transformer_layers: "none"
   learning_rate: 0.0001
-  dropout_rate: 0.5
-  epochs: 10
+  dropout_rate: 0.2
+  epochs: 20
 data:
-  name: "banking77"
+  name: "trec"
   batch_size: 32
-  label_column: "label"
-
-episode:
-  n_way: 5
-  k_shot: 3
-  iteration: 20
+  label_column: "label-coarse"
 
 

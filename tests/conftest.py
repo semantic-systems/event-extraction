@@ -13,5 +13,5 @@ def hydra_config():
 
 @pytest.fixture()
 def model_instance(hydra_config):
-    model = SingleLabelSequenceClassification(hydra_config, num_classes=14)
+    model = SingleLabelSequenceClassification(hydra_config)
     return model
