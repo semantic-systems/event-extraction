@@ -20,6 +20,7 @@ class PrototypicalNetworksForwardOutput:
 class InputFeature:
     input_ids: tensor
     attention_mask: tensor
+    labels: Optional[tensor] = None
 
 
 @dataclass

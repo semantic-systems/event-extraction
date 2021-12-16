@@ -19,7 +19,7 @@ class PrototypicalNetworks(SequenceClassification):
         self.dropout = Dropout(p=cfg.model.dropout_rate)
         self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.model.from_pretrained)
 
-    def forward( self, support_features: InputFeature, query_features: InputFeature) -> tensor:
+    def forward(self, support_features: InputFeature, query_features: InputFeature) -> tensor:
         support_labels: tensor = support_features.labels
         support_ids: tensor = support_features.input_ids
         support_attention_mask: tensor = support_features.attention_mask

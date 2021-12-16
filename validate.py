@@ -1,4 +1,3 @@
-# validate config value
 import logging
 from pathlib import Path
 

@@ -1,6 +1,5 @@
 """Allocine Dataset: A Large-Scale French Movie Reviews Dataset."""
 import csv
-import json
 import os
 
 import datasets
