@@ -1,4 +1,5 @@
 name: "banking77_few_shot_cohort_1"
+seed: 42
 model:
   from_pretrained: "bert-base-cased"
   layers:
