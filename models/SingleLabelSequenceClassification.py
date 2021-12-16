@@ -20,7 +20,6 @@ from models.heads import LinearLayerHead
 from schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
 import torch
 import matplotlib.pyplot as plt
-from utils import log_params_from_omegaconf_dict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
