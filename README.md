@@ -13,7 +13,7 @@ pip install -r requirements_{cpu|gpu}.txt
 
 ## Overview
 This repository is trying to reduce the task of training, or fine-tuning, of a transformer-based pre-trained 
-language model, while allowing users to interchange one more encapsulated components that appear in the pipeline.
+language model, by allowing users to interchange one more encapsulated components that appear in the pipeline.
 The implementation is trying hard to encapsulate different component parts as independent as possible, by means of 
 having a generic interface. 
 
