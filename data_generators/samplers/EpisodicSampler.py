@@ -6,6 +6,9 @@ import torch
 from torch.utils.data import Sampler, Dataset
 
 
+# from https://github.com/orobix/Prototypical-Networks-for-Few-shot-Learning-PyTorch/blob/master/src/prototypical_batch_sampler.py
+
+
 class EpisodicBatchSampler(Sampler[int]):
 
     def __init__(self, data_source: Sized, n_way, k_shot, iterations):
@@ -41,9 +44,9 @@ class EpisodicBatchSampler(Sampler[int]):
             self.numel_per_class[label_idx] += 1
 
     def __iter__(self):
-        '''
+        """
         yield a batch of indexes
-        '''
+        """
         spc = self.sample_per_class
         cpi = self.classes_per_it
 
@@ -53,7 +56,7 @@ class EpisodicBatchSampler(Sampler[int]):
             c_idxs = torch.randperm(len(self.classes))[:cpi]
             for i, c in enumerate(self.classes[c_idxs]):
                 s = slice(i * spc, (i + 1) * spc)
-                # FIXME when torch.argwhere will exists
+                # FIXME when torch.argwhere will exist
                 label_idx = torch.arange(len(self.classes)).long()[self.classes == c].item()
                 sample_idxs = torch.randperm(self.numel_per_class[label_idx])[:spc]
                 batch[s] = self.indexes[label_idx][sample_idxs]
