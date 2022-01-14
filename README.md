@@ -15,7 +15,10 @@ pip install -r requirements_{cpu|gpu}.txt
 This repository is trying to reduce the task of training, or fine-tuning, of a transformer-based pre-trained 
 language model, by allowing users to interchange one more encapsulated components that appear in the pipeline.
 The implementation is trying hard to encapsulate different component parts as independent as possible, by means of 
-having a generic interface. 
+having a generic interface. The highlight of this implementation is that it is designed for research usage, with 
+the integration of hydra - a configuration tool - and mlflow - an experiment logger/observer. These two packages allow
+ users to run and observe experiments sacredly. In the future, optuna - an auto-hyper-parameters tuning package - 
+will also be integrated.
 
 ## Pipeline
 The pipeline of training or fine-tuning a language model with a downstream classifier contains the following parts.
