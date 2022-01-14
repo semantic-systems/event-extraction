@@ -3,6 +3,8 @@
 - python==3.7.6
 - torch==1.10.0
 - transformers==4.12.5
+- hydra==1.1.1
+- mlflow==1.21.0
 
 The required packages are defined in the `requirements_cpu.txt`, or `requirements_gpu.txt`, which uses another pytorch version for gpu.
 Please install the packages in your own virtual environment.
@@ -19,6 +21,28 @@ having a generic interface. The highlight of this implementation is that it is d
 the integration of hydra - a configuration tool - and mlflow - an experiment logger/observer. These two packages allow
  users to run and observe experiments sacredly. In the future, optuna - an auto-hyper-parameters tuning package - 
 will also be integrated.
+
+### How to write a configuration file?
+The configuration file is utilized by hydra with a .yaml file. To set up a configuration, one can refer to one of the example 
+configuration under `configs/`. Note that there is no predefined schema for the config. One can freely add arguments in the 
+yaml file (If you do so, some tests might fail). To use the arguments defined in the config, one has two options:
+- attribute style access: `config.model.from_pretrained`
+- dictionary style access: `config["model"]["from_pretrained"]`
+
+(UPDATE: one can now define the so-called structured configuration, by utilizing python's dataclasses package, to do type checking. 
+This might happen in the future as a feature extension.)
+### How to run an experiment?
+```
+python main.py
+```
+So far you need to define the configuration file within the `main.py`. This will be changed to a more friendly cmd usage soon :D
+
+### How to observe experiments in your localhost
+Once you have run an experiment, you can create a localhost to visualize the logged metrics by
+```
+mlflow ui
+```
+The default host is set to be http://127.0.0.1:5000 . Simply open it in your browser.
 
 ## Pipeline
 The pipeline of training or fine-tuning a language model with a downstream classifier contains the following parts.
