@@ -21,9 +21,16 @@ def set_seed(seed: int):
     torch.manual_seed(seed)
 
 
-def run_many_shot_training(config_name: str):
-    with initialize(config_path="./configs", job_name="test"):
-        cfg = compose(config_name=config_name+".yaml")
+def instantiate_config(config_path: str, job_name: str):
+    config_dir = config_path.rsplit("/", 1)[0]
+    config_file = config_path.rsplit("/", 1)[-1]
+    with initialize(config_path=config_dir, job_name=job_name):
+        cfg = compose(config_name=config_file)
+    return cfg
+
+
+def run_many_shot_training(config_path: str, job_name: str = "many_shot"):
+    cfg = instantiate_config(config_path, job_name)
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
     validator()
@@ -37,9 +44,9 @@ def run_many_shot_training(config_name: str):
     model.test_model(data_loader_test)
 
 
-def run_episodic_training(config_name: str):
-    with initialize(config_path="./configs", job_name="test"):
-        cfg = compose(config_name=config_name+".yaml")
+def run_episodic_training(config_path: str, job_name: str = "few_shot"):
+    cfg = instantiate_config(config_path, job_name)
+    print(cfg)
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
     validator()
@@ -62,6 +69,6 @@ def run_episodic_training(config_name: str):
 
 
 if __name__ == "__main__":
-    #run_many_shot_training("trec_is")
-    run_episodic_training("banking77")
+    #run_many_shot_training("many_shot/trec_is.yaml")
+    run_episodic_training("./configs/intent_classification/banking77_many_shot.yaml")
 

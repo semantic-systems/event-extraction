@@ -1,4 +1,4 @@
-name: "banking77_few_shot_cohort_1"
+name: "banking77_many_shot_cohort_1"
 seed: 42
 model:
   from_pretrained: "bert-base-cased"
@@ -16,10 +16,7 @@ data:
   name: "banking77"
   batch_size: 32
   label_column: "label"
-
 episode:
   n_way: 5
   k_shot: 3
-  iteration: 20
-
-
+  iteration: 10
