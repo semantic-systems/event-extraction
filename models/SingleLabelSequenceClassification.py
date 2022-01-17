@@ -3,11 +3,11 @@ import logging
 from itertools import chain
 from pathlib import Path
 
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Tuple
 
 from omegaconf import DictConfig
 from sklearn.metrics import ConfusionMatrixDisplay
-from torch.nn import Module, ModuleList, CrossEntropyLoss, Identity
+from torch.nn import Module, CrossEntropyLoss, Identity
 from torch import tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm

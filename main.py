@@ -46,7 +46,6 @@ def run_many_shot_training(config_path: str, job_name: str = "many_shot"):
 
 def run_episodic_training(config_path: str, job_name: str = "few_shot"):
     cfg = instantiate_config(config_path, job_name)
-    print(cfg)
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
     validator()
@@ -59,8 +58,8 @@ def run_episodic_training(config_path: str, job_name: str = "few_shot"):
                                         n_way=cfg.episode.n_way,
                                         k_shot=cfg.episode.k_shot,
                                         iterations=cfg.episode.iteration)
-    data_loader_train = generator("train")#, sampler=sampler_train)
-    data_loader_test = generator("test", batch_size=1)#, sampler=sampler_test)
+    data_loader_train = generator("train", sampler=sampler_train)
+    data_loader_test = generator("test", batch_size=1, sampler=sampler_test)
     cfg.model.layers = fill_config_with_num_classes(cfg.model.layers, generator.num_labels)
     model = SingleLabelSequenceClassification(cfg)
     model.train_model(data_loader_train)
