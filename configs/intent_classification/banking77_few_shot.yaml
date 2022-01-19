@@ -19,7 +19,7 @@ data:
 
 episode:
   n_way: 5
-  k_shot: 3
+  k_shot: 5
   iteration: 10
 
 

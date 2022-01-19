@@ -1,4 +1,6 @@
 # coding=utf-8
+import copy
+import random
 from collections import Sized
 
 import numpy as np
@@ -68,3 +70,83 @@ class EpisodicBatchSampler(Sampler[int]):
         returns the number of iterations (episodes) per epoch
         '''
         return self.iterations
+
+
+class CategoricalSampler(Sampler):
+    # stolen from https://github.com/fiveai/on-episodes-fsl/blob/master/src/datasets/sampler.py
+    def __init__(self, label, replacement, n_iter, n_way, n_shot, n_query):
+        super(CategoricalSampler, self).__init__()
+
+        self.n_iter = n_iter
+        self.n_way = n_way
+        self.n_shot = n_shot
+        self.n_query = n_query
+        self.replacement = replacement
+
+        label = np.array(label)
+        unique = np.unique(label)
+        unique = np.sort(unique)
+
+        self.m_ind = []
+        self.labels = unique
+        # dictionary to keep track of which images belong to which class
+        self.class2imgs = {}
+
+        for i in unique:
+            ind = np.argwhere(label == i).reshape(-1)
+            ind = torch.from_numpy(ind)
+            self.m_ind.append(ind)
+            self.class2imgs[i] = list(ind.numpy())
+
+    def __len__(self):
+        return self.n_iter
+
+    def __iter__(self):
+        if self.replacement:
+            for i in range(self.n_iter):
+                batch_gallery = []
+                batch_query = []
+                classes = torch.randperm(len(self.m_ind))[:self.n_way]
+                for c in classes:
+                    l = self.m_ind[c.item()]
+                    pos = torch.randperm(l.size()[0])
+                    batch_gallery.append(l[pos[:self.n_shot]])
+                    batch_query.append(l[pos[self.n_shot:self.n_shot + self.n_query]])
+                batch = torch.cat(batch_gallery + batch_query)
+                yield batch
+
+        else:
+            n_to_sample = (self.n_query + self.n_shot)
+            batch_size = self.n_way*(self.n_query + self.n_shot)
+
+            remaining_classes = list(self.labels)
+
+            copy_class2imgs = copy.deepcopy(self.class2imgs)
+
+            while len(remaining_classes) > self.n_way - 1:
+                # randomly select classes
+                classes = random.sample(remaining_classes, self.n_way)
+
+                batch_gallery = []
+                batch_query = []
+
+                # construct the batch
+                for c in classes:
+                    # sample correct numbers
+                    l = random.sample(copy_class2imgs[c], n_to_sample)
+                    batch_gallery.append(torch.tensor(l[:self.n_shot], dtype=torch.int32))
+                    batch_query.append(torch.tensor(l[self.n_shot:self.n_shot + self.n_query],
+                                                    dtype=torch.int32))
+
+                    # remove values if used (sampling without replacement)
+                    for value in l:
+                        copy_class2imgs[c].remove(value)
+
+                    # if not enough elements remain,
+                    # remove key from dictionary and remaining classes
+                    if len(copy_class2imgs[c]) < n_to_sample:
+                        del copy_class2imgs[c]
+                        remaining_classes.remove(c)
+
+                batch = torch.cat(batch_gallery + batch_query)
+                yield batch
