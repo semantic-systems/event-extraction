@@ -1,1 +1,1 @@
-from data_generators.samplers.EpisodicSampler import EpisodicBatchSampler
+from data_generators.samplers.EpisodicSampler import EpisodicBatchSampler, CategoricalSampler

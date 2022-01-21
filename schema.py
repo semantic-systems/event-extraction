@@ -13,6 +13,7 @@ class SingleLabelClassificationForwardOutput:
 
 @dataclass
 class PrototypicalNetworksForwardOutput:
+    loss: Optional[tensor] = None
     distance: Optional[tensor] = None
 
 

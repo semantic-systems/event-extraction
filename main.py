@@ -1,8 +1,8 @@
 import logging
 import warnings
-from models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
+from models import SingleLabelSequenceClassification, PrototypicalNetworks
 from data_generators import DataGenerator, DataGeneratorSubSample
-from data_generators.samplers import EpisodicBatchSampler
+from data_generators.samplers import EpisodicBatchSampler, CategoricalSampler
 from hydra import initialize, compose
 from helper import fill_config_with_num_classes
 from validate import ConfigValidator
@@ -49,22 +49,26 @@ def run_episodic_training(config_path: str, job_name: str = "few_shot"):
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
     validator()
-    generator = DataGeneratorSubSample(cfg)
-    sampler_train = EpisodicBatchSampler(data_source=generator.training_dataset,
-                                         n_way=cfg.episode.n_way,
-                                         k_shot=cfg.episode.k_shot,
-                                         iterations=cfg.episode.iteration)
-    sampler_test = EpisodicBatchSampler(data_source=generator.testing_dataset,
-                                        n_way=cfg.episode.n_way,
-                                        k_shot=cfg.episode.k_shot,
-                                        iterations=cfg.episode.iteration)
+    generator = DataGenerator(cfg)
+    sampler_train = CategoricalSampler(data_source=generator.training_dataset,
+                                       n_way=cfg.episode.n_way,
+                                       k_shot=cfg.episode.k_shot,
+                                       iterations=cfg.episode.iteration,
+                                       n_query=cfg.episode.n_query,
+                                       replacement=cfg.episode.replacement)
+    sampler_test = CategoricalSampler(data_source=generator.testing_dataset,
+                                      n_way=cfg.episode.n_way,
+                                      k_shot=cfg.episode.k_shot,
+                                      iterations=cfg.episode.iteration,
+                                      n_query=cfg.episode.n_query,
+                                      replacement=cfg.episode.replacement)
     data_loader_train = generator("train", sampler=sampler_train)
-    data_loader_test = generator("test", batch_size=1, sampler=sampler_test)
+    data_loader_test = generator("test", sampler=sampler_test)
     cfg.model.layers = fill_config_with_num_classes(cfg.model.layers, generator.num_labels)
-    model = SingleLabelSequenceClassification(cfg)
+    model = PrototypicalNetworks(cfg)
     model.train_model(data_loader_train)
     # model = torch.load("./outputs/test_model.pt")
-    model.test_model(data_loader_test)
+    # model.test_model(data_loader_test)
 
 
 if __name__ == "__main__":

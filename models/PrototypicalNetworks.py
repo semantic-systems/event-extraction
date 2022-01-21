@@ -14,9 +14,8 @@ from sklearn.metrics import ConfusionMatrixDisplay
 
 from models import SequenceClassification
 from models.heads.prototypical_head import PrototypicalHead
-from schema import InputFeature
+from schema import InputFeature, PrototypicalNetworksForwardOutput, EncodedFeature
 from helper import log_metrics, set_run_testing, set_run_training, get_data_time
-from schema import SingleLabelClassificationForwardOutput
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -25,38 +24,34 @@ logger.setLevel(logging.INFO)
 class PrototypicalNetworks(SequenceClassification):
     def __init__(self, cfg: DictConfig):
         super(PrototypicalNetworks, self).__init__(cfg)
-        self.encoder: PreTrainedModel = self.encoder_layer(cfg)
-        self.classification_layers = self.classification_head(cfg)
         self.optimizer = AdamW(self.parameters(), lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()
         self.dropout = Dropout(p=cfg.model.dropout_rate)
         self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.model.from_pretrained)
 
-    def forward(self, support_features: InputFeature, query_features: InputFeature) -> tensor:
-        support_labels: tensor = support_features.labels
-        support_ids: tensor = support_features.input_ids
-        support_attention_mask: tensor = support_features.attention_mask
-        query_ids: tensor = query_features.input_ids
-        query_attention_mask: tensor = query_features.attention_mask
-
-        # Infer the number of classes from the labels of the support set
-        n_way = len(torch.unique(support_labels))
+    def forward(self, support_features: InputFeature, query_features: InputFeature) -> PrototypicalNetworksForwardOutput:
         # Prototype i is the mean of all support features vector with label i
-        support_encoded_feature = self.encoder(input_ids=support_ids, attention_mask=support_attention_mask).pooler_output
-        query_encoded_feature = self.encoder(input_ids=query_ids, attention_mask=query_attention_mask).pooler_output
+        support_encoded_feature: EncodedFeature = EncodedFeature(
+            encoded_feature=self.encoder(
+                input_ids=support_features.input_ids,
+                attention_mask=support_features.attention_mask).pooler_output,
+            labels=support_features.labels)
+        query_encoded_feature: EncodedFeature = EncodedFeature(
+            encoded_feature=self.encoder(
+                input_ids=query_features.input_ids,
+                attention_mask=query_features.attention_mask).pooler_output,
+            labels=query_features.labels)
+        head_output = self.classification_head(support_encoded_feature, query_encoded_feature)
 
-        z_proto = torch.cat(
-            [
-                support_encoded_feature[torch.nonzero(support_labels == label)].mean(0)
-                for label in range(n_way)
-            ]
-        )
-
-        # Compute the euclidean distance from queries to prototypes
-        dists = torch.cdist(query_encoded_feature, z_proto)
-
-        scores = -dists
-        return scores
+        label_map = {i_whole: i_episode for i_episode, i_whole in enumerate(torch.unique(query_encoded_feature.labels).tolist())}
+        if query_encoded_feature.labels is not None:
+            query_label_episode = torch.tensor([*map(label_map.get, query_encoded_feature.labels.tolist())])
+            loss = self.loss(head_output.output, query_label_episode)
+            loss.backward()
+            self.optimizer.step()
+            return PrototypicalNetworksForwardOutput(loss=loss, distance=-head_output.output)
+        else:
+            return PrototypicalNetworksForwardOutput(distance=-head_output.output)
 
     def instantiate_classification_head(self):
         return PrototypicalHead(self.cfg)
@@ -86,19 +81,28 @@ class PrototypicalNetworks(SequenceClassification):
     def run_per_epoch(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, int]:
         y_predict, y_true = [], []
         loss = 0
-        for i, batch in enumerate(data_loader):
+        n_way = self.cfg.episode.n_way
+        k_shot = self.cfg.episode.k_shot
+        for i, episode in enumerate(data_loader):
             if not test:
                 self.optimizer.zero_grad()
-            labels: tensor = batch["label"].to(self.device)
-            y_true.extend(labels)
-            batch = self.preprocess(batch)
-            input_ids: tensor = batch["input_ids"].to(self.device)
-            attention_masks: tensor = batch["attention_mask"].to(self.device)
-            # convert labels to None if in testing mode.
-            labels = None if test else labels
-            input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: SingleLabelClassificationForwardOutput = self(input_feature)
-            prediction = outputs.prediction_logits.argmax(1)
+            labels: tensor = torch.as_tensor(episode["label"]).to(self.device)
+            episode = self.preprocess(episode)
+            input_ids: tensor = episode["input_ids"].to(self.device)
+            attention_masks: tensor = episode["attention_mask"].to(self.device)
+            support_feature: InputFeature = InputFeature(input_ids=input_ids[:n_way*k_shot],
+                                                         attention_mask=attention_masks[:n_way*k_shot],
+                                                         labels=labels[:n_way*k_shot])
+            query_feature: InputFeature = InputFeature(input_ids=input_ids[n_way*k_shot:],
+                                                       attention_mask=attention_masks[n_way*k_shot:],
+                                                       labels=labels[n_way*k_shot:] if not test else None)
+            y_true.extend(labels[n_way*k_shot:])
+            label_map = {i_episode: i_whole for i_episode, i_whole in
+                         enumerate(torch.unique(labels[n_way*k_shot:]).tolist())}
+
+            outputs: PrototypicalNetworksForwardOutput = self(support_feature, query_feature)
+            prediction_per_episode = outputs.distance.argmin(1).tolist()
+            prediction = [*map(label_map.get, prediction_per_episode)]
             y_predict.extend(prediction)
             if not test:
                 loss = (loss + outputs.loss.item())/(i+1)
@@ -110,8 +114,8 @@ class PrototypicalNetworks(SequenceClassification):
                  y_true: List,
                  loss: int,
                  num_epoch: Optional[int] = None) -> Tuple[float, float, str]:
-        y_predict = torch.stack(y_predict)
-        y_true = torch.stack(y_true)
+        y_predict = torch.tensor(y_predict)
+        y_true = torch.tensor(y_true)
         acc = (y_predict == y_true).sum().item() / y_predict.size(0)
         ConfusionMatrixDisplay.from_predictions(y_true=y_true, y_pred=y_predict)
         if num_epoch is not None:
