@@ -1,10 +1,14 @@
 import logging
 import warnings
+from typing import Optional
+
+from engines.trainer import SingleAgentTrainer
 from models import SingleLabelSequenceClassification, PrototypicalNetworks
 from data_generators import DataGenerator, DataGeneratorSubSample
 from data_generators.samplers import EpisodicBatchSampler, CategoricalSampler
 from hydra import initialize, compose
 from helper import fill_config_with_num_classes
+from parsers import parse
 from validate import ConfigValidator
 import numpy as np
 import torch
@@ -29,7 +33,7 @@ def instantiate_config(config_path: str, job_name: str):
     return cfg
 
 
-def run_many_shot_training(config_path: str, job_name: str = "many_shot"):
+def run_many_shot_training(config_path: str, job_name: Optional[str] = "many_shot"):
     cfg = instantiate_config(config_path, job_name)
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
@@ -44,7 +48,7 @@ def run_many_shot_training(config_path: str, job_name: str = "many_shot"):
     model.test_model(data_loader_test)
 
 
-def run_episodic_training(config_path: str, job_name: str = "few_shot"):
+def run_episodic_training(config_path: str, job_name: Optional[str] = "few_shot"):
     cfg = instantiate_config(config_path, job_name)
     set_seed(cfg.seed)
     validator = ConfigValidator(cfg)
@@ -72,7 +76,12 @@ def run_episodic_training(config_path: str, job_name: str = "few_shot"):
 
 
 if __name__ == "__main__":
-    run_many_shot_training("./configs/event_detection/many_shot/trec_is.yaml")
+    # run_many_shot_training("./configs/event_detection/many_shot/trec_is.yaml")
     # run_episodic_training("./configs/intent_classification/banking77_few_shot.yaml")
     # run_many_shot_training("./configs/intent_classification/banking77_many_shot.yaml")
+    args = parse()
+    cfg = instantiate_config(args.config, args.job_name)
+    trainer = SingleAgentTrainer(cfg)
+    trainer.train()
+
 
