@@ -72,6 +72,7 @@ def run_episodic_training(config_path: str, job_name: str = "few_shot"):
 
 
 if __name__ == "__main__":
-    # run_many_shot_training("./configs/event_detection/many_shot/trec_is.yaml")
-    run_episodic_training("./configs/intent_classification/banking77_few_shot.yaml")
+    run_many_shot_training("./configs/event_detection/many_shot/trec_is.yaml")
+    # run_episodic_training("./configs/intent_classification/banking77_few_shot.yaml")
+    # run_many_shot_training("./configs/intent_classification/banking77_many_shot.yaml")
 
