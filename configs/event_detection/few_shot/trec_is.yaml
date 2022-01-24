@@ -10,7 +10,7 @@ model:
   freeze_transformer_layers: "none"
   learning_rate: 0.0001
   dropout_rate: 0.5
-  epochs: 1
+  epochs: 5
   output_path: "./outputs/"
 
 data:
@@ -19,7 +19,7 @@ data:
   label_column: "label"
 
 episode:
-  n_way: 5
+  n_way: 3
   k_shot: 2
   iteration: 10
   n_query: 2

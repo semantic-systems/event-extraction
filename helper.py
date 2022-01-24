@@ -16,11 +16,11 @@ def fill_config_with_num_classes(cfg_layer: DictConfig, num_classes: int) -> Dic
 
 def set_run_training(func):
     def run(*args):
-        a, data_loader = args[0], args[1]
+        a = args[0]
         mlflow.set_tracking_uri('http://127.0.0.1:5000')
-        mlflow.set_experiment(a.cfg.name)
+        mlflow.set_experiment(a.config.name)
         with mlflow.start_run():
-            log_params_from_omegaconf_dict(a.cfg)
+            log_params_from_omegaconf_dict(a.config)
             func(*args)
     return run
 
