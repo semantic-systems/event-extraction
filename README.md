@@ -52,6 +52,9 @@ While for few shot learning, one might desire an episodic sampler within the Gen
 3. a Validator class, which takes the config instances as input and validate the value type, defined in the validator. This is because hydra does not support validation of values.
 4. a Model class, which defines the training pipeline, given a downstream classification task.
 5. an Evaluator class, which reduces the evaluation process depending on the type of output data given by the model object.
+6. an Agent class, which interacts with its environment and makes decision and gets evaluated by the environment. For RL problems, this is intuitive. A classification problem can be viewed as an instance of the RL problem, where the evaluation happens after each action. This is to say, a classification task can be viewed as a one-step RL problem.
+7. an Environment class, where the datasets and dataloaders are stored, as well as the evaluation scripts (Evaluator). 
+8. a Trainer class, which is an Injector, which utilizes all the other classes in a centralized manner. Logging, training, instantiating.
 
 ## Dataset
 The huggingface Dataset class contains three methods to be customized. 
@@ -122,12 +125,24 @@ Note that the `classification_head` by itself is also a `torch.nn.Module`, which
 3. `preprocess(self, batch)`
 - The preprocessing step does not happen within the Generator, but here. The reason for that is to have a consistent pipeline 
 in both training and testing step. This is because for application, the input sentence is going directly into the Model class. 
-4. `train_model(self, data_loader: DataLoader)`
-- This method transfer the processing from cpu to gpu, if gpus are found. And it defines the training per epoch, as well as the evaluation and saving processing.
-5. `run_per_epoch(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, int]`
-- This method defines in details how should each training epoch look like, and outputs the information for evaluation, such as 
-the predicted label and the true label, as well as the loss in this epoch.
-6. `evaluate(self, y_predict: List, y_true: List, loss: int, num_epoch: Optional[int] = None) -> Tuple[float, float, str]`
-- This should make use of the Evaluator object. But so far, it is not implemented yet formally.
-7. `test_model(self, data_loader: DataLoader)`
-- for doing inference and evaluating the performance in test time.
+
+
+## Agent
+The Agent class represents the body where the classifier sits. It has its policy, where decisions are made; action space, which is, in classification, the set of labels.
+In each training/time step, it receives raw (textual) features and processes it and makes prediction given the task.
+It contains the following methods.
+1. `policy_class(self)`
+- where you select the policy/model that does the downstream prediction tasks. It can be, for example, a model where you define a language model and a prototypical networks as a classifier.
+5. `act(self)`
+- the within-batch/episode level inference with the model defined as a policy.
+
+## Environment
+The Environment class defines the world/environment where the agent is sitting. In classification, this will be where the datasets and their loaders are stored. 
+The configuration of datasets and dataloaders are defined to be the dynamics of this environment.
+
+## Trainer
+The injector class Trainer instantiates all the higher-level classes. On top of that, it has the following methods.
+1. `train(self)`
+- This method defines the highest level training process - iterating over batches in batch learning, iterating over iterations in meta learning 
+5. `test(self)`
+- same thing as above but for testing.
