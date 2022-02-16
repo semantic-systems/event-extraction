@@ -150,3 +150,8 @@ class TrecisDataset(datasets.GeneratorBasedBuilder):
                 except ValueError:
                     # TODO: log and check the invalid entries
                     pass
+
+
+if __name__ == "__main__":
+    processor = DataProcessorEventType()
+    _, _ = processor.run()
