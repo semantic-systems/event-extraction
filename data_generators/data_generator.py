@@ -56,7 +56,7 @@ class DataGenerator(object):
 class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=0.9)["train"]
+        dataset = load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=0.6)["train"]
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset

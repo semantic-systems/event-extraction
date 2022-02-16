@@ -1,0 +1,22 @@
+name: "trec_is_event_type"
+seed: 42
+model:
+  from_pretrained: "vinai/bertweet-base"
+  layers:
+    layer1:
+      n_in: 768
+      n_out: 20
+  num_transformer_layers: 2
+  freeze_transformer_layers: "none"
+  learning_rate: 0.0001
+  dropout_rate: 0.5
+  epochs: 2
+  output_path: "./outputs/"
+
+data:
+  name: "./custom_datasets/TRECIS_event_type.py"
+  batch_size: 32
+  label_column: "label"
+
+
+

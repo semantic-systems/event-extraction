@@ -10,7 +10,7 @@ from dataclasses import dataclass, asdict
 from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.data import DataLoader, Sampler
 
-from data_generators import DataGenerator
+from data_generators import DataGenerator, DataGeneratorSubSample
 from data_generators.samplers import CategoricalSampler
 from helper import log_metrics
 
@@ -53,7 +53,7 @@ class StaticEnvironment(Environment):
         super(StaticEnvironment, self).__init__(config)
 
     def instantiate_environment(self) -> DataGenerator:
-        return DataGenerator(self.config)
+        return DataGeneratorSubSample(self.config)
 
     def instantiate_sampler(self, mode: str, training_type: str) -> Union[Sampler, None]:
         data_source = self.environment.training_dataset if mode == "train" else self.environment.testing_dataset
