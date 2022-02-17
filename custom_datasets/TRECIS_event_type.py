@@ -60,9 +60,6 @@ class DataProcessorEventType(object):
         label_dict = dict(zip(new_key, train_label+test_label))
         return label_dict
 
-    def create_df(self):
-        pass
-
     def get_file_list(self) -> list:
         return glob.glob(self.FILE_DIR + "*.json")
 
