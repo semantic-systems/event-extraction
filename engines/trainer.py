@@ -22,6 +22,9 @@ class Trainer(object):
         self.config = config
         self.setup()
         self.environment = self.instantiate_environment()
+        # update config according to envrionment instance - num_labels
+        self.config.model.layers = fill_config_with_num_classes(self.config.model.layers,
+                                                                self.environment.num_labels)
         self.agent = self.instantiate_agent()
 
     def run(self):
@@ -112,8 +115,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
     def train(self):
         # run per batch
         data_loader = self.environment.load_environment("train", self.training_type)
-        self.config.model.layers = fill_config_with_num_classes(self.config.model.layers,
-                                                                self.environment.num_labels)
+
         self.agent.policy.to(self.agent.policy.device)
         self.agent.policy.train()
         self.agent.policy.optimizer.zero_grad()

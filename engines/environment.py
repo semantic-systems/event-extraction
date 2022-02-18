@@ -47,22 +47,16 @@ class Environment(object):
     def return_state_as_dict(self):
         return asdict(self.state)
 
-    def instantiate_data_generator(self):
-        # TODO: automatically instantiate data generator to be a full generator or a subset generator,
-        # TODO: the subset generator is only used to exploration in fast training.
-        if "subset" in self.config.data:
-            return DataGeneratorSubSample(self.config)
-        else:
-            return DataGenerator(self.config)
-
-
 
 class StaticEnvironment(Environment):
     def __init__(self, config: DictConfig):
         super(StaticEnvironment, self).__init__(config)
 
     def instantiate_environment(self) -> DataGenerator:
-        return DataGeneratorSubSample(self.config)
+        if "subset" in self.config.data:
+            return DataGeneratorSubSample(self.config)
+        else:
+            return DataGenerator(self.config)
 
     def instantiate_sampler(self, mode: str, training_type: str) -> Union[Sampler, None]:
         data_source = self.environment.training_dataset if mode == "train" else self.environment.testing_dataset
