@@ -1,17 +1,18 @@
 # Sequence Classification with Pre-trained Language model
 ## Requirement
-- python==3.7.6
+- python==3.7.*
 - torch==1.10.0
 - transformers==4.12.5
 - hydra==1.1.1
 - mlflow==1.21.0
 
-The required packages are defined in the `requirements_cpu.txt`, or `requirements_gpu.txt`, which uses another pytorch version for gpu.
-Please install the packages in your own virtual environment.
-If you are using conda, use the following command:
+The required packages are defined in the `requirements.txt`, which uses the cpu version of pytorch.
+To use the gpu version, please visit follow the official [installation guideline](https://pytorch.org/get-started/locally/).
+Please install the packages in your own virtual environment with the following command:
 ```
-pip install -r requirements_{cpu|gpu}.txt
+pip install -r requirements.txt
 ```
+
 
 ## Overview
 This repository is trying to reduce the task of training, or fine-tuning, of a transformer-based pre-trained 
