@@ -50,7 +50,11 @@ class Environment(object):
     def instantiate_data_generator(self):
         # TODO: automatically instantiate data generator to be a full generator or a subset generator,
         # TODO: the subset generator is only used to exploration in fast training.
-        pass
+        if "subset" in self.config.data:
+            return DataGeneratorSubSample(self.config)
+        else:
+            return DataGenerator(self.config)
+
 
 
 class StaticEnvironment(Environment):

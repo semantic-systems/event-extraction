@@ -17,6 +17,7 @@ data:
   name: "./custom_datasets/TRECIS_event_type.py"
   batch_size: 32
   label_column: "label"
+  subset: 0.1
 
 
 

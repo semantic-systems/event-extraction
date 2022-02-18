@@ -16,3 +16,4 @@ data:
   name: "banking77"
   batch_size: 32
   label_column: "label"
+  subset: 0.1
