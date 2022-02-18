@@ -2,7 +2,7 @@ import torch
 
 from omegaconf import DictConfig
 from torch.nn import CrossEntropyLoss, Dropout, Identity
-from transformers import PreTrainedModel, AdamW, PreTrainedTokenizer, BertTokenizer, AutoModel
+from transformers import PreTrainedModel, AdamW, PreTrainedTokenizer, AutoTokenizer, AutoModel
 
 from models import SequenceClassification
 from models.heads.prototypical_head import PrototypicalHead
@@ -15,7 +15,7 @@ class PrototypicalNetworks(SequenceClassification):
         self.optimizer = AdamW(self.parameters(), lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()
         self.dropout = Dropout(p=cfg.model.dropout_rate)
-        self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.model.from_pretrained)
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
 
     def forward(self, support_features: InputFeature, query_features: InputFeature) -> PrototypicalNetworksForwardOutput:
         # Prototype i is the mean of all support features vector with label i

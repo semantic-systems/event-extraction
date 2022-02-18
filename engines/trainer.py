@@ -150,8 +150,6 @@ class MetaLearningTrainer(SingleAgentTrainer):
     @set_run_training
     def train(self):
         data_loader = self.environment.load_environment("train", self.training_type)
-        self.config.model.layers = fill_config_with_num_classes(self.config.model.layers,
-                                                                self.environment.num_labels)
         self.agent.policy.to(self.agent.policy.device)
         self.agent.policy.train()
         self.agent.policy.optimizer.zero_grad()

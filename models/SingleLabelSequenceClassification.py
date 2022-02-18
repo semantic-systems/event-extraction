@@ -1,7 +1,7 @@
 from itertools import chain
 from omegaconf import DictConfig
 from torch.nn import Module, CrossEntropyLoss, Identity
-from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, BertTokenizer
+from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer
 from models import SequenceClassification
 from models.heads import LinearLayerHead
 from schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
@@ -10,7 +10,7 @@ from schema import SingleLabelClassificationForwardOutput, InputFeature, Encoded
 class SingleLabelSequenceClassification(SequenceClassification):
     def __init__(self, cfg: DictConfig):
         super(SingleLabelSequenceClassification, self).__init__(cfg)
-        self.tokenizer: PreTrainedTokenizer = BertTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()

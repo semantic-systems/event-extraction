@@ -1,4 +1,4 @@
-name: "trec_is_event_type"
+name: "trec_is_event_type_few_shot"
 seed: 42
 model:
   from_pretrained: "vinai/bertweet-base"
@@ -15,9 +15,16 @@ model:
 
 data:
   name: "./custom_datasets/TRECIS_event_type.py"
-  batch_size: 32
+  batch_size: null
   label_column: "label"
-  subset: 0.0001
+  subset: 0.01
+
+episode:
+  n_way: 3
+  k_shot: 2
+  iteration: 10
+  n_query: 2
+  replacement: True
 
 
 
