@@ -17,6 +17,6 @@ data:
   name: "./custom_datasets/TRECIS.py"
   batch_size: 32
   label_column: "label"
-
+  subset: 0.1
 
 

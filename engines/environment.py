@@ -7,8 +7,9 @@ from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 from dataclasses import dataclass, asdict
 
-from sklearn.metrics import ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from torch.utils.data import DataLoader, Sampler
+import seaborn as sns
 
 from data_generators import DataGenerator, DataGeneratorSubSample
 from data_generators.samplers import CategoricalSampler
@@ -82,6 +83,10 @@ class StaticEnvironment(Environment):
     def num_labels(self):
         return self.environment.num_labels
 
+    @property
+    def labels_list(self) -> List[str]:
+        return [*self.environment.label_index_map]
+
     @log_metrics
     def evaluate(self,
                  y_predict: List,
@@ -93,14 +98,23 @@ class StaticEnvironment(Environment):
         y_predict = torch.tensor(y_predict)
         y_true = torch.tensor(y_true)
         acc = (y_predict == y_true).sum().item() / y_predict.size(0)
-        ConfusionMatrixDisplay.from_predictions(y_true=y_true, y_pred=y_predict)
+        cm = confusion_matrix(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels))
+
+        cmd_obj = ConfusionMatrixDisplay(cm, display_labels=self.labels_list)
+        cmd_obj.plot()
+        cmd_obj.ax_.set(
+            title='Confusion Matrix',
+            xlabel='Predicted Labels',
+            ylabel='True Labels')
+
+        plt.axis('scaled')
         if num_epoch is not None:
             path_to_plot: str = str(Path(self.config.model.output_path, self.config.name, "plots",
                                          f'confusion_matrix_train_epoch_{num_epoch}.png').absolute())
         else:
             path_to_plot = str(Path(self.config.model.output_path, self.config.name, "plots",
                                     'confusion_matrix_test.png').absolute())
-        plt.savefig(path_to_plot)
+        plt.savefig(path_to_plot, aspect='auto', dpi=100)
         plt.close()
         return acc, loss, path_to_plot
 
