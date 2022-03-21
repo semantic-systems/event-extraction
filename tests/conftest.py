@@ -1,6 +1,6 @@
 import pytest
 from hydra import initialize, compose
-from models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
+from event_extractor.models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
 
 
 @pytest.fixture()

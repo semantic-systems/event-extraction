@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 
-from data_generators import DataGenerator
+from event_extractor.data_generators import DataGenerator
 
 
 def test_initialize_data_generator(hydra_config):

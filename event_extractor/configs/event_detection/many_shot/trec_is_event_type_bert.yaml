@@ -1,23 +1,23 @@
-name: "trec_is_many_shot_cohort_1"
+name: "trec_is_event_type"
 seed: 42
 model:
   from_pretrained: "bert-base-cased"
   layers:
     layer1:
       n_in: 768
-      n_out: 128
-    layer2:
-      n_in: 128
       n_out: 20
   num_transformer_layers: 2
   freeze_transformer_layers: "none"
-  learning_rate: 0.001
-  dropout_rate: 0.1
-  epochs: 10
+  learning_rate: 0.0001
+  dropout_rate: 0.5
+  epochs: 2
   output_path: "./outputs/"
 
 data:
-  name: "./event_extractor/custom_datasets/TRECIS.py"
-  batch_size: 1
+  name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
+  batch_size: 32
   label_column: "label"
+  subset: 0.0001
+
+
 

@@ -1,8 +1,8 @@
 import logging
 import warnings
 
-from engines.trainer import MetaLearningTrainer, BatchLearningTrainer
-from parsers import parse
+from event_extractor.engines.trainer import MetaLearningTrainer, BatchLearningTrainer
+from event_extractor.parsers.parser import parse
 from utils import instantiate_config
 
 

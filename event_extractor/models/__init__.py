@@ -1,0 +1,4 @@
+from event_extractor.models.SequenceClassificationBase import SequenceClassification
+from event_extractor.models.SingleLabelSequenceClassification import SingleLabelSequenceClassification
+from event_extractor.models.PrototypicalNetworks import PrototypicalNetworks
+

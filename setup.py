@@ -8,7 +8,7 @@ setuptools.setup(
     version="0.0.1",
     author="Junbo Huang",
     author_email="junbo.huang@uni-hamburg.de",
-    description="A package for sequence classification tasks",
+    description="A package for sequence classification",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
