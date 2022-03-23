@@ -1,7 +1,9 @@
 import abc
 import copy
+from pathlib import Path
+
 import torch
-from typing import Union
+from typing import Union, Dict
 from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
@@ -72,6 +74,14 @@ class SequenceClassification(Module):
 
     def preprocess(self, batch):
         return self.tokenizer(batch["text"], padding=True, truncation=True, max_length=512, return_tensors="pt")
+
+    def save_model(self, path: Path, index_label_map: Dict):
+        torch.save({
+            'config': self.cfg,
+            'model_state_dict': self.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'index_label_map': index_label_map
+        }, path)
 
     @property
     def device(self):

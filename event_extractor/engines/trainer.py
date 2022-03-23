@@ -115,7 +115,6 @@ class BatchLearningTrainer(SingleAgentTrainer):
     def train(self):
         # run per batch
         data_loader = self.environment.load_environment("train", self.training_type)
-
         self.agent.policy.to(self.agent.policy.device)
         self.agent.policy.train()
         self.agent.policy.optimizer.zero_grad()
@@ -124,8 +123,10 @@ class BatchLearningTrainer(SingleAgentTrainer):
             y_predict, y_true, loss = self.agent.act(data_loader)
             acc, _, _ = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
             logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {acc}")
-        torch.save(self, Path(self.config.model.output_path, self.config.name, "pretrained_models",
-                              f"{self.config.name}_{get_data_time()}.pt").absolute())
+        label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
+        self.agent.policy.save_model(Path(self.config.model.output_path, self.config.name, "pretrained_models",
+                                          f"{self.config.name}_{get_data_time()}.pt").absolute(),
+                                     index_label_map=label_index_map)
 
     @set_run_testing
     def test(self):

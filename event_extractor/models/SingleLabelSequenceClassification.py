@@ -40,3 +40,5 @@ class SingleLabelSequenceClassification(SequenceClassification):
 
     def instantiate_classification_head(self) -> LinearLayerHead:
         return LinearLayerHead(self.cfg)
+
+

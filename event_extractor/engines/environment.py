@@ -51,6 +51,7 @@ class Environment(object):
 class StaticEnvironment(Environment):
     def __init__(self, config: DictConfig):
         super(StaticEnvironment, self).__init__(config)
+        self.label_index_map = self.environment.label_index_map
 
     def instantiate_environment(self) -> DataGenerator:
         if "subset" in self.config.data:
