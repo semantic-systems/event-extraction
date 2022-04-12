@@ -1,5 +1,6 @@
+import numpy as np
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from torch import tensor
 
 
@@ -40,3 +41,9 @@ class TransformedFeature:
 class HeadOutput:
     output: tensor
     labels: Optional[tensor] = None
+
+
+@dataclass
+class FeatureToVisualize:
+    feature: np.array
+    labels: Optional[List[str]] = None
