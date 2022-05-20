@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import List
@@ -121,8 +122,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         # start new run
         for n in tqdm(range(self.config.model.epochs)):
             y_predict, y_true, loss = self.agent.act(data_loader)
-            acc, _, _ = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
-            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {acc}")
+            result = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
+            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}")
         label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
         self.agent.policy.save_model(Path(self.config.model.output_path, self.config.name, "pretrained_models",
                                           f"{self.config.name}_{get_data_time()}.pt").absolute(),
@@ -134,8 +135,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         self.agent.policy.eval()
         with torch.no_grad():
             y_predict, y_true, loss = self.agent.act(data_loader, test=True)
-            acc, _, _ = self.environment.evaluate(y_predict, y_true, loss)
-            logger.warning(f"Testing Accuracy: {acc}")
+            result = self.environment.evaluate(y_predict, y_true, loss)
+            logger.warning(f"Testing Accuracy: {result.acc}")
 
 
 class MetaLearningTrainer(SingleAgentTrainer):
@@ -154,11 +155,18 @@ class MetaLearningTrainer(SingleAgentTrainer):
         self.agent.policy.to(self.agent.policy.device)
         self.agent.policy.train()
         self.agent.policy.optimizer.zero_grad()
+        train_result = []
         # start new run
         for n in tqdm(range(self.config.model.epochs)):
             y_predict, y_true, loss = self.agent.act(data_loader)
-            acc, _, _ = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
-            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {acc}")
+            result = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
+            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}, Average macro f1: {result.f1_macro}, Average micro f1: {result.f1_micro}")
+            result_this_epoch = result.__dict__
+            result_this_epoch.update({"epoch": n})
+            result_this_epoch.pop('path_to_plot', None)
+            train_result.append(result_this_epoch)
+        with open(Path(self.config.model.output_path, self.config.name, "train_result.json"), "w") as final:
+            json.dump(train_result, final, indent=2)
         torch.save(self, Path(self.config.model.output_path, self.config.name, "pretrained_models",
                               f"{self.config.name}_{get_data_time()}.pt").absolute())
 
@@ -166,9 +174,16 @@ class MetaLearningTrainer(SingleAgentTrainer):
     def test(self):
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
+        test_result = []
         with torch.no_grad():
             y_predict, y_true, loss = self.agent.act(data_loader, test=True)
-            acc, _, _ = self.environment.evaluate(y_predict, y_true, loss)
-            logger.warning(f"Testing Accuracy: {acc}")
+            result = self.environment.evaluate(y_predict, y_true, loss)
+            logger.warning(
+                f"Testing acc: {result.acc}, macro f1: {result.f1_macro}, micro f1: {result.f1_micro}")
+            result_this_epoch = result.__dict__
+            result_this_epoch.pop('path_to_plot', None)
+            test_result.append(result_this_epoch)
+        with open(Path(self.config.model.output_path, self.config.name, "test_result.json"), "w") as final:
+            json.dump(test_result, final, indent=2)
 
 

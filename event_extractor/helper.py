@@ -34,13 +34,15 @@ def set_run_testing(func):
 
 def log_metrics(func):
     def run(*args, **kwargs):
-        acc, loss, path_to_plot = func(*args, **kwargs)
+        result = func(*args, **kwargs)
         # log metric
-        mlflow.log_metric("loss", loss, step=1)
-        mode = "train" if "train" in path_to_plot.split("/")[-1] else "test"
-        mlflow.log_metric(f"{mode}_acc", acc, step=1)
-        mlflow.log_artifact(path_to_plot)
-        return acc, loss, path_to_plot
+        mlflow.log_metric("loss", result.loss, step=1)
+        mode = "train" if "train" in result.path_to_plot.split("/")[-1] else "test"
+        mlflow.log_metric(f"{mode}_acc", result.acc, step=1)
+        mlflow.log_metric(f"{mode}_f1_micro", result.f1_micro, step=1)
+        mlflow.log_metric(f"{mode}_f1_macro", result.f1_macro, step=1)
+        mlflow.log_artifact(result.path_to_plot)
+        return result
     return run
 
 

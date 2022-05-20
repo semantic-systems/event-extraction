@@ -7,12 +7,13 @@ from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 from dataclasses import dataclass, asdict
 
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
 from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
 from event_extractor.data_generators.samplers import FixedSizeCategoricalSampler
 from event_extractor.helper import log_metrics
+from event_extractor.schema import ClassificationResult
 
 
 @dataclass
@@ -92,16 +93,22 @@ class StaticEnvironment(Environment):
                  y_predict: List,
                  y_true: List,
                  loss: int,
-                 num_epoch: Optional[int] = None) -> Tuple[float, float, str]:
+                 num_epoch: Optional[int] = None) -> ClassificationResult:
         # y_predict = torch.stack(y_predict)
         # y_true = torch.stack(y_true)
         y_predict = torch.tensor(y_predict)
         y_true = torch.tensor(y_true)
         acc = (y_predict == y_true).sum().item() / y_predict.size(0)
+        # y_predict = y_predict.cpu().detach().numpy()
+        # y_true = y_true.cpu().detach().numpy()
+        f1_micro = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='micro')
+        f1_macro = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='macro')
+        f1_per_class = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average=None)
         cm = confusion_matrix(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels))
 
         cmd_obj = ConfusionMatrixDisplay(cm, display_labels=self.labels_list)
-        cmd_obj.plot()
+        fig, ax = plt.subplots(figsize=(10, 10))
+        cmd_obj.plot(xticks_rotation=30, ax=ax)
         cmd_obj.ax_.set(
             title='Confusion Matrix',
             xlabel='Predicted Labels',
@@ -116,7 +123,15 @@ class StaticEnvironment(Environment):
                                     'confusion_matrix_test.png').absolute())
         plt.savefig(path_to_plot, aspect='auto', dpi=100)
         plt.close()
-        return acc, loss, path_to_plot
+        results = ClassificationResult(**{"acc": acc,
+                                          "loss": loss,
+                                          "f1_micro": f1_micro,
+                                          "f1_macro": f1_macro,
+                                          "f1_per_class": {label: f1_per_class[i] for i, label in enumerate(self.labels_list)},
+                                          "path_to_plot": path_to_plot
+                                          }
+                                       )
+        return results
 
 
 class DynamicEnvironment(Environment):

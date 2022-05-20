@@ -47,3 +47,13 @@ class HeadOutput:
 class FeatureToVisualize:
     feature: np.array
     labels: Optional[List[str]] = None
+
+
+@dataclass
+class ClassificationResult:
+    acc: float
+    f1_macro: float
+    f1_micro: float
+    f1_per_class: list
+    path_to_plot: str
+    loss: Optional[float]

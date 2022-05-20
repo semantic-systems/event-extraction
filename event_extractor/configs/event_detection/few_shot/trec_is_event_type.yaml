@@ -20,10 +20,10 @@ data:
   subset: 0.01
 
 episode:
-  n_way: 5
-  k_shot: 5
-  iteration: 10
-  n_query: 5
+  n_way: 3
+  k_shot: 2
+  iteration: 2
+  n_query: 2
   replacement: False
 
 
