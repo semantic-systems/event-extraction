@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
-from event_extractor.data_generators.samplers import CategoricalSampler
+from event_extractor.data_generators.samplers import FixedSizeCategoricalSampler
 from event_extractor.helper import log_metrics
 
 
@@ -62,12 +62,12 @@ class StaticEnvironment(Environment):
     def instantiate_sampler(self, mode: str, training_type: str) -> Union[Sampler, None]:
         data_source = self.environment.training_dataset if mode == "train" else self.environment.testing_dataset
         if training_type == "episodic_training":
-            return CategoricalSampler(data_source=data_source,
-                                      n_way=self.config.episode.n_way,
-                                      k_shot=self.config.episode.k_shot,
-                                      iterations=self.config.episode.iteration,
-                                      n_query=self.config.episode.n_query,
-                                      replacement=self.config.episode.replacement)
+            return FixedSizeCategoricalSampler(data_source=data_source,
+                                               n_way=self.config.episode.n_way,
+                                               k_shot=self.config.episode.k_shot,
+                                               iterations=self.config.episode.iteration,
+                                               n_query=self.config.episode.n_query,
+                                               replacement=self.config.episode.replacement)
         elif training_type == "batch_training":
             return None
 

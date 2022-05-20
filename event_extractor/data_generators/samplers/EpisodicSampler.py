@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import Sampler
 
 
-class CategoricalSampler(Sampler):
+class FixedSizeCategoricalSampler(Sampler):
     # stolen from https://github.com/fiveai/on-episodes-fsl/blob/master/src/datasets/sampler.py
     def __init__(self,
                  data_source: Sized,
@@ -18,7 +18,7 @@ class CategoricalSampler(Sampler):
                  k_shot: int,
                  n_query: int,
                  replacement: Optional[bool] = True):
-        super(CategoricalSampler, self).__init__(data_source)
+        super(FixedSizeCategoricalSampler, self).__init__(data_source)
 
         self.iterations = iterations
         self.n_way = n_way

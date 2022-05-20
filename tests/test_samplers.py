@@ -2,7 +2,7 @@ import numpy as np
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 
-from event_extractor.data_generators.samplers import CategoricalSampler
+from event_extractor.data_generators.samplers import FixedSizeCategoricalSampler
 
 
 def test_episodic_batch_sampler():
@@ -11,11 +11,11 @@ def test_episodic_batch_sampler():
     iterations = 20
     n_query = 5
     dataset = load_dataset('banking77', split="train").train_test_split(test_size=0.4)["test"]
-    sampler = CategoricalSampler(data_source=dataset,
-                                 n_way=n_way,
-                                 k_shot=k_shot,
-                                 iterations=iterations,
-                                 n_query=n_query)
+    sampler = FixedSizeCategoricalSampler(data_source=dataset,
+                                          n_way=n_way,
+                                          k_shot=k_shot,
+                                          iterations=iterations,
+                                          n_query=n_query)
     data_loader = DataLoader(dataset, sampler=sampler)
     # remove header
     sample = next(iter(data_loader))
