@@ -1,30 +1,29 @@
-name: "trec_is_event_type_few_shot"
+name: "banking77_few_shot_cohort_1"
 seed: 42
 model:
-  from_pretrained: "../lm/CoyPu-CrisisLM-v1"
+  from_pretrained: "bert-base-cased"
   layers:
     layer1:
       n_in: 768
       n_out: 20
-  num_transformer_layers: 2
+  num_transformer_layers: 1
   freeze_transformer_layers: "none"
   learning_rate: 0.0001
   dropout_rate: 0.5
   epochs: 2
   output_path: "./outputs/"
-
 data:
-  name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
+  name: "banking77"
   batch_size: null
   label_column: "label"
-  subset: 0.01
 
 episode:
-  n_way: 2
-  k_shot: 2
+  min_way: 5
+  max_way: 10
+  min_shot: 1
+  max_shot: 5
   iteration: 2
-  n_query: 2
-  replacement: True
-
+  n_query: 5
+  replacement: False
 
 

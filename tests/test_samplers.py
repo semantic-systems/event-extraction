@@ -3,6 +3,7 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 
 from event_extractor.data_generators.samplers import FixedSizeCategoricalSampler
+from event_extractor.data_generators.samplers.EpisodicSampler import VariableSizeCategoricalSampler
 
 
 def test_episodic_batch_sampler():
@@ -26,3 +27,25 @@ def test_episodic_batch_sampler():
         classes, counts = np.unique(batch["label"], return_counts=True)
         assert len(classes) == n_way
         assert all([count == k_shot + n_way for count in counts])
+
+
+def test_variable_sized_episodic_batch_sampler():
+    min_way = 5
+    max_way = 10
+    min_shot = 1
+    max_shot = 5
+    iterations = 20
+    n_query = 5
+    dataset = load_dataset('banking77', split="train").train_test_split(test_size=0.4)["test"]
+    sampler = VariableSizeCategoricalSampler(data_source=dataset,
+                                             min_way=min_way,
+                                             max_way=max_way,
+                                             min_shot=min_shot,
+                                             max_shot=max_shot,
+                                             iterations=iterations,
+                                             n_query=n_query
+                                             )
+    data_loader = DataLoader(dataset, sampler=sampler)
+    # remove header
+    sample = next(iter(data_loader))
+    assert len(sample["text"]) == len(sample["label"])
