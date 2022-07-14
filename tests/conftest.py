@@ -15,3 +15,8 @@ def hydra_config():
 def model_instance(hydra_config):
     model = SingleLabelSequenceClassification(hydra_config)
     return model
+
+
+@pytest.fixture()
+def config_dir_path():
+    return "./configs/test_cohort_1/"
