@@ -1,7 +1,7 @@
-name: "bertweet"
+name: "2 self attention layer"
 seed: 42
 model:
-  from_pretrained: "vinai/bertweet-base"
+  from_pretrained: "language_models/CoyPu-CrisisLM-v1"
   layers:
     layer1:
       n_in: 768

@@ -1,12 +1,12 @@
-name: "bertweet"
+name: "4 self attention layer"
 seed: 42
 model:
-  from_pretrained: "vinai/bertweet-base"
+  from_pretrained: "language_models/CoyPu-CrisisLM-v1"
   layers:
     layer1:
       n_in: 768
       n_out: 20
-  num_transformer_layers: 2
+  num_transformer_layers: 4
   freeze_transformer_layers: "none"
   learning_rate: 0.0001
   dropout_rate: 0.5

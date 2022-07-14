@@ -1,7 +1,7 @@
-name: "bertweet"
+name: "bert_base_cased"
 seed: 42
 model:
-  from_pretrained: "vinai/bertweet-base"
+  from_pretrained: "bert-base-cased"
   layers:
     layer1:
       n_in: 768

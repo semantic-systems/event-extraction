@@ -1,4 +1,4 @@
-name: "trec_is_event_type"
+name: "crisisbert"
 seed: 42
 model:
   from_pretrained: "language_models/CoyPu-CrisisLM-v1"
