@@ -73,7 +73,8 @@ class SequenceClassification(Module):
                              f"are valid value for freeze_transformer_layer")
 
     def preprocess(self, batch):
-        return self.tokenizer(batch["text"], padding=True, truncation=True, max_length=512, return_tensors="pt")
+        return self.tokenizer(batch["text"], padding=True, truncation=True, return_tensors="pt")
+        # remove max_length arg to use the model's original value for that
 
     def save_model(self, path: Path, index_label_map: Dict):
         torch.save({
