@@ -137,7 +137,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         with torch.no_grad():
             y_predict, y_true, loss = self.agent.act(data_loader, test=True)
             result = self.environment.evaluate(y_predict, y_true, loss)
-            logger.warning(f"Testing Accuracy: {result.acc}")
+            logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
+                           f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}")
 
 
 class MetaLearningTrainer(SingleAgentTrainer):
