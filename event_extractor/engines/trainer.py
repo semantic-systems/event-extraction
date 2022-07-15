@@ -123,7 +123,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         for n in tqdm(range(self.config.model.epochs)):
             y_predict, y_true, loss = self.agent.act(data_loader)
             result = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
-            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}")
+            logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}, F1 micro: {result.f1_micro},"
+                           f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}")
         label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
         self.agent.policy.save_model(Path(self.config.model.output_path, self.config.name, "pretrained_models",
                                           f"{self.config.name}_{get_data_time()}.pt").absolute(),

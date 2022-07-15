@@ -1,7 +1,7 @@
-name: "trec_is_event_type"
+name: "test_roberta"
 seed: 42
 model:
-  from_pretrained: "bert-base-cased"
+  from_pretrained: "roberta-base"
   layers:
     layer1:
       n_in: 768
@@ -10,12 +10,14 @@ model:
   freeze_transformer_layers: "none"
   learning_rate: 0.0001
   dropout_rate: 0.5
-  epochs: 10
+  epochs: 2
   output_path: "./outputs/"
 
 data:
   name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
   batch_size: 32
   label_column: "label"
+  subset: 0.001
+
 
 
