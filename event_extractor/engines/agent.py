@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from torch import tensor
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, PrototypicalNetworksForwardOutput
@@ -66,7 +67,7 @@ class BatchLearningAgent(Agent):
         # action per time step - here it will be a batch
         y_predict, y_true = [], []
         loss = 0
-        for i, batch in enumerate(data_loader):
+        for i, batch in enumerate(tqdm(data_loader)):
             if not test:
                 self.policy.optimizer.zero_grad()
             labels: tensor = batch["label"].to(self.device)
@@ -102,7 +103,7 @@ class MetaLearningAgent(BatchLearningAgent):
         loss = 0
         n_way = self.config.episode.n_way
         k_shot = self.config.episode.k_shot
-        for i, episode in enumerate(data_loader):
+        for i, episode in enumerate(tqdm(data_loader)):
             if not test:
                 self.policy.optimizer.zero_grad()
             labels: tensor = torch.as_tensor(episode["label"]).to(self.device)

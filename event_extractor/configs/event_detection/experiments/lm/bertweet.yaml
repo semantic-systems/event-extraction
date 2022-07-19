@@ -15,7 +15,7 @@ model:
 
 data:
   name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
-  batch_size: 16
+  batch_size: 32
   label_column: "label"
 
 

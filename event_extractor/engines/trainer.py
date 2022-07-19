@@ -120,7 +120,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
         self.agent.policy.train()
         self.agent.policy.optimizer.zero_grad()
         # start new run
-        for n in tqdm(range(self.config.model.epochs)):
+        for n in range(self.config.model.epochs):
             y_predict, y_true, loss = self.agent.act(data_loader)
             result = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
             logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}, F1 micro: {result.f1_micro},"
@@ -159,7 +159,7 @@ class MetaLearningTrainer(SingleAgentTrainer):
         self.agent.policy.optimizer.zero_grad()
         train_result = []
         # start new run
-        for n in tqdm(range(self.config.model.epochs)):
+        for n in range(self.config.model.epochs):
             y_predict, y_true, loss = self.agent.act(data_loader)
             result = self.environment.evaluate(y_predict, y_true, loss, num_epoch=n)
             logger.warning(f"Epoch: {n}, Average loss: {loss}, Average acc: {result.acc}, Average macro f1: {result.f1_macro}, Average micro f1: {result.f1_micro}")
