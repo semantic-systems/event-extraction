@@ -37,11 +37,11 @@ class TrecisConfig(datasets.BuilderConfig):
 
 
 class DataProcessorEventType(object):
-    DATA_TO = {"train": "../../../../data/trec_is/data/train.csv",
-               "test": "../../../../data/trec_is/data/test.csv"}
-    INFO_FILE = {"train": "../../../../data/trec_is/train.csv",
-                 "test": "../../../../data/trec_is/test.csv"}
-    FILE_DIR = "../../../../../data/trec_is/data/json/"
+    DATA_TO = {"train": "/data/huang/data/trec_is/data/train.csv",
+               "test": "/data/huang/data/trec_is/data/test.csv"}
+    INFO_FILE = {"train": "/data/huang/data/trec_is/train.csv",
+                 "test": "/data/huang/data/trec_is/test.csv"}
+    FILE_DIR = "/data/huang/data/trec_is/data/json/"
 
     def __init__(self):
         self.data = {}
