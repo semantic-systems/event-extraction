@@ -5,6 +5,7 @@ from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer,
 from event_extractor.models import SequenceClassification
 from event_extractor.models.heads import LinearLayerHead
 from event_extractor.schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
+from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss
 
 
 class SingleLabelSequenceClassification(SequenceClassification):
@@ -42,3 +43,26 @@ class SingleLabelSequenceClassification(SequenceClassification):
         return LinearLayerHead(self.cfg)
 
 
+class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassification):
+    def __init__(self, cfg: DictConfig):
+        super(SingleLabelContrastiveSequenceClassification, self).__init__(cfg)
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
+        params = chain(self.encoder.parameters(), self.classification_head.parameters())
+        self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
+        self.loss = CrossEntropyLoss()
+        self.contrastive_loss = SupervisedContrastiveLoss()
+
+    def forward(self, input_feature: InputFeature) -> SingleLabelClassificationForwardOutput:
+        output = self.encoder(input_ids=input_feature.input_ids, attention_mask=input_feature.attention_mask).pooler_output
+        encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
+        head_output = self.classification_head(encoded_feature)
+
+        if input_feature.labels is not None:
+            loss = self.loss(head_output.output, input_feature.labels)
+            contrastive_loss = self.contrastive_loss(head_output.output, input_feature.labels)
+            total_loss = loss + contrastive_loss
+            total_loss.backward()
+            self.optimizer.step()
+            return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
+        else:
+            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output)
