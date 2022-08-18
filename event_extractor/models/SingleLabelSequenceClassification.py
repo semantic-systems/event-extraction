@@ -1,3 +1,4 @@
+import torch
 from itertools import chain
 from omegaconf import DictConfig
 from torch.nn import Module, CrossEntropyLoss, Identity
@@ -15,9 +16,13 @@ class SingleLabelSequenceClassification(SequenceClassification):
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()
+        self.l2_normalize = cfg.model.L2_normalize_encoded_feature
 
     def forward(self, input_feature: InputFeature) -> SingleLabelClassificationForwardOutput:
         output = self.encoder(input_ids=input_feature.input_ids, attention_mask=input_feature.attention_mask).pooler_output
+        if self.l2_normalize:
+            norm = output.norm(p=2, dim=1, keepdim=True)
+            output = output.div(norm.expand_as(output))
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature)
 
@@ -50,17 +55,24 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.loss = CrossEntropyLoss()
-        self.contrastive_loss = SupervisedContrastiveLoss()
+        self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
+                                                          base_temperature=cfg.model.contrastive.base_temperature,
+                                                          contrast_mode=cfg.model.contrastive.contrast_mode)
+        self.contrastive_loss_ratio = cfg.model.contrastive.contrastive_loss_ratio
 
     def forward(self, input_feature: InputFeature) -> SingleLabelClassificationForwardOutput:
         output = self.encoder(input_ids=input_feature.input_ids, attention_mask=input_feature.attention_mask).pooler_output
+        if self.l2_normalize:
+            norm = output.norm(p=2, dim=1, keepdim=True)
+            output = output.div(norm.expand_as(output))
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature)
 
         if input_feature.labels is not None:
             loss = self.loss(head_output.output, input_feature.labels)
-            contrastive_loss = self.contrastive_loss(head_output.output, input_feature.labels)
-            total_loss = loss + contrastive_loss
+            contrastive_features = head_output.output[:, None, :]
+            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels)
+            total_loss = (1-self.contrastive_loss_ratio)*loss + self.contrastive_loss_ratio*contrastive_loss
             total_loss.backward()
             self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
