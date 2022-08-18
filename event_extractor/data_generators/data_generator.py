@@ -14,14 +14,14 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, split='train')
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset
 
     @property
     def testing_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, split='test')
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset
@@ -56,14 +56,14 @@ class DataGenerator(object):
 class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, split='train').train_test_split(test_size=self.cfg.data.subset)["test"]
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset
 
     @property
     def testing_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset
