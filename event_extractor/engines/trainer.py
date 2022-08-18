@@ -5,7 +5,6 @@ from typing import List
 from abc import abstractmethod
 
 import torch
-from tqdm import tqdm
 from omegaconf import DictConfig
 from event_extractor.engines.agent import Agent, BatchLearningAgent, MetaLearningAgent
 from event_extractor.engines.environment import Environment, StaticEnvironment
@@ -27,6 +26,7 @@ class Trainer(object):
         self.config.model.layers = fill_config_with_num_classes(self.config.model.layers,
                                                                 self.environment.num_labels)
         self.agent = self.instantiate_agent()
+        self.print_trainer_info()
 
     def run(self):
         self.train()
@@ -35,7 +35,7 @@ class Trainer(object):
     def setup(self):
         set_seed(self.config.seed)
         validator = ConfigValidator(self.config)
-        validator()
+        self.config = validator()
 
     @property
     def training_type(self):
@@ -59,6 +59,13 @@ class Trainer(object):
     @abstractmethod
     def instantiate_agent(self):
         raise NotImplementedError
+
+    def print_trainer_info(self):
+        print(f"Training Info: \n"
+              f"    Trainer: {self.__class__.__name__}\n"
+              f"    Agent: {self.agent.__class__.__name__}\n"
+              f"    Environment: {self.environment.__class__.__name__}\n"
+              f"    Policy: {self.agent.policy.__class__.__name__}")
 
 
 class SingleAgentTrainer(Trainer):

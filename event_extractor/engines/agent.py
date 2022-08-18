@@ -8,10 +8,10 @@ from torch import tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks
+from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, PrototypicalNetworksForwardOutput
 
-PolicyClasses = Union[SingleLabelSequenceClassification, PrototypicalNetworks]
+PolicyClasses = Union[SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification]
 
 
 @dataclass
@@ -49,7 +49,10 @@ class BatchLearningAgent(Agent):
 
     @property
     def policy_class(self) -> Type[PolicyClasses]:
-        return SingleLabelSequenceClassification
+        if self.config.model.contrastive.contrastive_loss_ratio > 0:
+            return SingleLabelContrastiveSequenceClassification
+        else:
+            return SingleLabelSequenceClassification
 
     def instantiate_policy(self):
         return self.policy_class(self.config)
@@ -63,7 +66,7 @@ class BatchLearningAgent(Agent):
     def travel_back(self):
         raise NotImplementedError
 
-    def act(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, int]:
+    def act(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, float]:
         # action per time step - here it will be a batch
         y_predict, y_true = [], []
         loss = 0
@@ -136,35 +139,3 @@ class MetaLearningAgent(BatchLearningAgent):
 
     def travel_back(self):
         raise NotImplementedError
-
-
-class BatchContrastiveLearningAgent(BatchLearningAgent):
-    def __init__(self, config: DictConfig, device: torch.device):
-        super(BatchContrastiveLearningAgent, self).__init__(config, device)
-        self.policy = self.instantiate_policy()
-
-    @property
-    def policy_class(self) -> Type[PolicyClasses]:
-        return SingleLabelSequenceClassification
-
-    def act(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, int]:
-        # action per time step - here it will be a batch
-        y_predict, y_true = [], []
-        loss = 0
-        for i, batch in enumerate(tqdm(data_loader)):
-            if not test:
-                self.policy.optimizer.zero_grad()
-            labels: tensor = batch["label"].to(self.device)
-            y_true.extend(labels)
-            batch = self.policy.preprocess(batch)
-            input_ids: tensor = batch["input_ids"].to(self.device)
-            attention_masks: tensor = batch["attention_mask"].to(self.device)
-            # convert labels to None if in testing mode.
-            labels = None if test else labels
-            input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: SingleLabelClassificationForwardOutput = self.policy(input_feature)
-            prediction = outputs.prediction_logits.argmax(1)
-            y_predict.extend(prediction)
-            if not test:
-                loss = (loss + outputs.loss.item())/(i+1)
-        return y_predict, y_true, loss
