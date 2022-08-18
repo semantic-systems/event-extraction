@@ -1,10 +1,13 @@
 from torch.utils.data import DataLoader
+from event_extractor.validate import ConfigValidator
 
 from event_extractor.data_generators import DataGenerator
 
 
 def test_initialize_data_generator(hydra_config):
     cfg = hydra_config
+    validator = ConfigValidator(cfg)
+    cfg = validator()
     generator = DataGenerator(cfg)
     assert isinstance(generator, DataGenerator)
     data_loader_train = generator(mode="train")
