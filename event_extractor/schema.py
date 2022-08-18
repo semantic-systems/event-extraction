@@ -1,6 +1,8 @@
 import numpy as np
-from dataclasses import dataclass
-from typing import Optional, Tuple, List
+import dataclasses
+
+from dataclasses import dataclass, fields
+from typing import Optional, Tuple, List, Dict, Any
 from torch import tensor
 
 
@@ -57,3 +59,52 @@ class ClassificationResult:
     f1_per_class: list
     path_to_plot: str
     loss: Optional[float]
+
+
+@dataclass
+class LayerConfig:
+    n_in: int = 768
+    n_out: int = 20
+
+
+@dataclass
+class LayersConfig:
+    from_pretrained: str = "bert-base-uncased"
+    layers: Dict = LayerConfig #FIXME
+
+
+@dataclass
+class ContrastiveConfig:
+    contrastive_loss_ratio: float = 0
+    temperature: float = 0.07
+    base_temperature: float = 0.07
+    contrast_mode: str = "all"
+    L2_normalize_encoded_feature: bool = True
+
+@dataclass
+class ModelConfig:
+    layers: LayersConfig
+    contrastive: ContrastiveConfig
+    num_transformer_layers: int = 2
+    freeze_transformer_layers: Any = None
+    learning_rate: float = 0.0001
+    dropout_rate: float = 0.5
+    epochs: int = 5
+    output_path: str = "./outputs/"
+
+
+@dataclass
+class DataConfig:
+    name: str = "tweet_eval"
+    config: str = "emotion"
+    batch_size: int = 32
+    label_column: str = "label"
+    subset: str = 1
+
+
+@dataclass
+class Config:
+    model: ModelConfig
+    data: DataConfig
+    name: str = "emotion"
+    seed: int = 42
