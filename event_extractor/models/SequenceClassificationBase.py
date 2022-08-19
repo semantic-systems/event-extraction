@@ -41,18 +41,21 @@ class SequenceClassification(Module):
         raise NotImplementedError
 
     @staticmethod
-    def trim_encoder_layers(encoder: PreTrainedModel, num_layers_to_keep: int) -> PreTrainedModel:
-        full_layers = encoder.encoder.layer
-        trimmed_layers = ModuleList()
+    def trim_encoder_layers(encoder: PreTrainedModel, num_layers_to_keep: Union[int, str]) -> PreTrainedModel:
+        if num_layers_to_keep == "full":
+            return encoder
+        else:
+            full_layers = encoder.encoder.layer
+            trimmed_layers = ModuleList()
 
-        # Now iterate over all layers, only keeping only the relevant layers.
-        for i in range(num_layers_to_keep):
-            trimmed_layers.append(full_layers[i])
+            # Now iterate over all layers, only keeping only the relevant layers.
+            for i in range(num_layers_to_keep):
+                trimmed_layers.append(full_layers[i])
 
-        # create a copy of the model, modify it with the new list, and return
-        trimmed_encoder = copy.deepcopy(encoder)
-        trimmed_encoder.encoder.layer = trimmed_layers
-        return trimmed_encoder
+            # create a copy of the model, modify it with the new list, and return
+            trimmed_encoder = copy.deepcopy(encoder)
+            trimmed_encoder.encoder.layer = trimmed_layers
+            return trimmed_encoder
 
     @staticmethod
     def freeze_encoder(encoder: PreTrainedModel, layers_to_freeze: Union[str, int]) -> PreTrainedModel:
