@@ -66,12 +66,12 @@ class BatchLearningAgent(Agent):
     def travel_back(self):
         raise NotImplementedError
 
-    def act(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, float]:
+    def act(self, data_loader: DataLoader, mode: str) -> Tuple[List, List, float]:
         # action per time step - here it will be a batch
         y_predict, y_true = [], []
         loss = 0
         for i, batch in enumerate(tqdm(data_loader)):
-            if not test:
+            if mode == "train":
                 self.policy.optimizer.zero_grad()
             labels: tensor = batch["label"].to(self.device)
             y_true.extend(labels)
@@ -79,12 +79,12 @@ class BatchLearningAgent(Agent):
             input_ids: tensor = batch["input_ids"].to(self.device)
             attention_masks: tensor = batch["attention_mask"].to(self.device)
             # convert labels to None if in testing mode.
-            labels = None if test else labels
+            labels = None if mode == "test" else labels
             input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: SingleLabelClassificationForwardOutput = self.policy(input_feature)
+            outputs: SingleLabelClassificationForwardOutput = self.policy(input_feature, mode=mode)
             prediction = outputs.prediction_logits.argmax(1)
             y_predict.extend(prediction)
-            if not test:
+            if mode in ["train", "validation"]:
                 loss = (loss + outputs.loss.item())/(i+1)
         return y_predict, y_true, loss
 
@@ -100,14 +100,14 @@ class MetaLearningAgent(BatchLearningAgent):
     def instantiate_policy(self):
         return self.policy_class(self.config)
 
-    def act(self, data_loader: DataLoader, test: Optional[bool] = False) -> Tuple[List, List, int]:
+    def act(self, data_loader: DataLoader, mode: str) -> Tuple[List, List, int]:
         # action per time step - here it will be an episode
         y_predict, y_true = [], []
         loss = 0
         n_way = self.config.episode.n_way
         k_shot = self.config.episode.k_shot
         for i, episode in enumerate(tqdm(data_loader)):
-            if not test:
+            if mode == "train":
                 self.policy.optimizer.zero_grad()
             labels: tensor = torch.as_tensor(episode["label"]).to(self.device)
             episode = self.policy.preprocess(episode)
@@ -118,16 +118,17 @@ class MetaLearningAgent(BatchLearningAgent):
                                                          labels=labels[:n_way * k_shot])
             query_feature: InputFeature = InputFeature(input_ids=input_ids[n_way * k_shot:],
                                                        attention_mask=attention_masks[n_way * k_shot:],
-                                                       labels=labels[n_way * k_shot:] if not test else None)
+                                                       labels=labels[n_way * k_shot:] if mode in ["train", "validation"]
+                                                       else None)
             y_true.extend(labels[n_way * k_shot:])
             label_map = {i_episode: i_whole for i_episode, i_whole in
                          enumerate(torch.unique(labels[:n_way * k_shot]).tolist())}
 
-            outputs: PrototypicalNetworksForwardOutput = self.policy(support_feature, query_feature)
+            outputs: PrototypicalNetworksForwardOutput = self.policy(support_feature, query_feature, mode=mode)
             prediction_per_episode = outputs.distance.argmin(1).tolist()
             prediction = [*map(label_map.get, prediction_per_episode)]
             y_predict.extend(prediction)
-            if not test:
+            if mode in ["train", "validation"]:
                 loss = (loss + outputs.loss.item()) / (i + 1)
         return y_predict, y_true, loss
 
