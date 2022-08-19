@@ -20,7 +20,7 @@ data:
   subset: 0.01
 
 episode:
-  n_way: 3
+  n_way: 2
   k_shot: 2
   iteration: 2
   n_query: 2
