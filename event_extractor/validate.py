@@ -50,6 +50,12 @@ class ConfigValidator(object):
         if "config" not in self.config.data:
             with open_dict(self.config):
                 self.config.data.config = None
+        if "validation" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.validation = False
+        if "early_stopping" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.early_stopping = None
 
     def validate_episode(self):
         pass

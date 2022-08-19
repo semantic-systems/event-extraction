@@ -20,6 +20,13 @@ class DataGenerator(object):
         return dataset
 
     @property
+    def validation_dataset(self):
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset
+
+    @property
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
         if self.cfg.data.label_column != 'label':
@@ -46,6 +53,8 @@ class DataGenerator(object):
             dataset = self.training_dataset
         elif mode == "test":
             dataset = self.testing_dataset
+        elif mode == "validation":
+            dataset = self.validation_dataset
         else:
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
         # default sampler is a random sampler over all entries in the dataset.
@@ -64,6 +73,13 @@ class DataGeneratorSubSample(DataGenerator):
     @property
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.label_column != 'label':
+            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+        return dataset
+
+    @property
+    def validation_dataset(self):
+        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
         return dataset
