@@ -1,4 +1,3 @@
-import torch
 from itertools import chain
 from omegaconf import DictConfig
 from torch.nn import Module, CrossEntropyLoss, Identity
@@ -18,21 +17,29 @@ class SingleLabelSequenceClassification(SequenceClassification):
         self.loss = CrossEntropyLoss()
         self.l2_normalize = cfg.model.L2_normalize_encoded_feature
 
-    def forward(self, input_feature: InputFeature) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids, attention_mask=input_feature.attention_mask).pooler_output
+    def forward(self,
+                input_feature: InputFeature,
+                mode: str) -> SingleLabelClassificationForwardOutput:
+        output = self.encoder(input_ids=input_feature.input_ids,
+                              attention_mask=input_feature.attention_mask).pooler_output
         if self.l2_normalize:
             norm = output.norm(p=2, dim=1, keepdim=True)
             output = output.div(norm.expand_as(output))
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature)
 
-        if input_feature.labels is not None:
+        if mode == "train":
             loss = self.loss(head_output.output, input_feature.labels)
             loss.backward()
             self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
-        else:
+        elif mode == "validation":
+            loss = self.loss(head_output.output, input_feature.labels)
+            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
+        elif mode == "test":
             return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output)
+        else:
+            raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
     def instantiate_encoder(self) -> PreTrainedModel:
         encoder: PreTrainedModel = AutoModel.from_pretrained(self.cfg.model.from_pretrained)
@@ -60,21 +67,32 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                                                           contrast_mode=cfg.model.contrastive.contrast_mode)
         self.contrastive_loss_ratio = cfg.model.contrastive.contrastive_loss_ratio
 
-    def forward(self, input_feature: InputFeature) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids, attention_mask=input_feature.attention_mask).pooler_output
+    def forward(self,
+                input_feature: InputFeature,
+                mode: str) -> SingleLabelClassificationForwardOutput:
+        output = self.encoder(input_ids=input_feature.input_ids,
+                              attention_mask=input_feature.attention_mask).pooler_output
         if self.l2_normalize:
-            norm = output.norm(p=2, dim=1, keepdim=True)
+            norm = output.norm(p=2, dim=-1, keepdim=True)
             output = output.div(norm.expand_as(output))
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature)
 
-        if input_feature.labels is not None:
+        if mode == "train":
             loss = self.loss(head_output.output, input_feature.labels)
             contrastive_features = head_output.output[:, None, :]
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels)
-            total_loss = (1-self.contrastive_loss_ratio)*loss + self.contrastive_loss_ratio*contrastive_loss
+            total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
-        else:
+        elif mode == "validation":
+            loss = self.loss(head_output.output, input_feature.labels)
+            contrastive_features = head_output.output[:, None, :]
+            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels)
+            total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
+            return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
+        elif mode == "test":
             return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output)
+        else:
+            raise ValueError(f"mode {mode} is not one of train, validation or test.")

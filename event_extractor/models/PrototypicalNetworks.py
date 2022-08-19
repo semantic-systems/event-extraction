@@ -17,7 +17,10 @@ class PrototypicalNetworks(SequenceClassification):
         self.dropout = Dropout(p=cfg.model.dropout_rate)
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
 
-    def forward(self, support_features: InputFeature, query_features: InputFeature) -> PrototypicalNetworksForwardOutput:
+    def forward(self,
+                support_features: InputFeature,
+                query_features: InputFeature,
+                mode: str) -> PrototypicalNetworksForwardOutput:
         # Prototype i is the mean of all support features vector with label i
         support_encoded_feature: EncodedFeature = EncodedFeature(
             encoded_feature=self.encoder(
@@ -32,14 +35,20 @@ class PrototypicalNetworks(SequenceClassification):
         head_output = self.classification_head(support_encoded_feature, query_encoded_feature)
 
         label_map = {i_whole: i_episode for i_episode, i_whole in enumerate(torch.unique(support_encoded_feature.labels).tolist())}
-        if query_encoded_feature.labels is not None:
+        if mode == "train":
             query_label_episode = torch.tensor([*map(label_map.get, query_encoded_feature.labels.tolist())])
             loss = self.loss(head_output.output, query_label_episode)
             loss.backward()
             self.optimizer.step()
             return PrototypicalNetworksForwardOutput(loss=loss, distance=-head_output.output)
-        else:
+        elif mode == "validation":
+            query_label_episode = torch.tensor([*map(label_map.get, query_encoded_feature.labels.tolist())])
+            loss = self.loss(head_output.output, query_label_episode)
+            return PrototypicalNetworksForwardOutput(loss=loss, distance=-head_output.output)
+        elif mode == "test":
             return PrototypicalNetworksForwardOutput(distance=-head_output.output)
+        else:
+            raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
     def instantiate_classification_head(self):
         return PrototypicalHead(self.cfg)
