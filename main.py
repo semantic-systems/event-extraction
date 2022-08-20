@@ -1,5 +1,6 @@
 import glob
 import logging
+import os
 import warnings
 from pathlib import Path
 from event_extractor.engines.trainer import MetaLearningTrainer, BatchLearningTrainer
@@ -27,7 +28,11 @@ if __name__ == "__main__":
         trainer.run()
     elif Path(args.config).is_dir():
         configs = glob.glob(str(Path(args.config)) + "/*.yaml")
-        print(str(Path(args.config).absolute()))
+        if not configs:
+            configs = [os.path.join(path, name) for path, subdirs, files in os.walk(str(Path(args.config))) for name in files if
+                     name.endswith(".yaml")]
+        logger.warning(f"List of experiments to be run with the following configs: \n"
+                       f"{configs}")
         for config in configs:
             cfg = instantiate_config(config)
             trainer_class = get_trainer(config)
