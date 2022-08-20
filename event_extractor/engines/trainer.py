@@ -25,9 +25,10 @@ class EarlyStopping(object):
         self.min_delta = min_delta
         self.counter = 0
         self.early_stop = False
+        self.previous_loss = 9999
 
-    def __call__(self, train_loss, validation_loss):
-        if (validation_loss - train_loss) > self.min_delta:
+    def __call__(self, validation_loss):
+        if (self.previous_loss - validation_loss) < self.min_delta:
             self.counter +=1
             if self.counter >= self.tolerance:
                 self.early_stop = True
@@ -79,11 +80,11 @@ class Trainer(object):
         raise NotImplementedError
 
     def print_trainer_info(self):
-        print(f"Training Info: \n"
-              f"    Trainer: {self.__class__.__name__}\n"
-              f"    Agent: {self.agent.__class__.__name__}\n"
-              f"    Environment: {self.environment.__class__.__name__}\n"
-              f"    Policy: {self.agent.policy.__class__.__name__}")
+        logger.warning(f"Training Info: \n"
+                       f"    Trainer: {self.__class__.__name__}\n"
+                       f"    Agent: {self.agent.__class__.__name__}\n"
+                       f"    Environment: {self.environment.__class__.__name__}\n"
+                       f"    Policy: {self.agent.policy.__class__.__name__}")
 
     @staticmethod
     def log_result(result_per_epoch: ClassificationResult, final_result: List, epoch: Optional[int] = None):
@@ -205,7 +206,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                 self.log_result(result_per_epoch=validation_result_per_epoch, final_result=validation_result, epoch=n)
                 self.save_best_model(best_validation_metric, validation_result_per_epoch)
                 # early stopping
-                self.early_stopping(train_loss, validation_loss)
+                self.early_stopping(validation_loss)
                 if self.early_stopping.early_stop:
                     logger.warning(f"Early stopping reached at epoch: {n}")
                     break
