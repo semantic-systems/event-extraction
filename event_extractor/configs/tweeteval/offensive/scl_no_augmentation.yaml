@@ -1,0 +1,35 @@
+name: "offensive_scl_no_augmentation"
+seed: 42
+model:
+  from_pretrained: "roberta-base"
+  layers:
+    layer1:
+      n_in: 768
+      n_out: 20
+  num_transformer_layers: "full"
+  freeze_transformer_layers: "none"
+  learning_rate: 0.00001
+  dropout_rate: 0.5
+  epochs: 50
+  output_path: "./outputs/"
+  contrastive:
+    contrastive_loss_ratio: 1
+    temperature: 0.07
+    base_temperature: 0.07
+    contrast_mode: "all"
+  L2_normalize_encoded_feature: True
+
+data:
+  name: "tweet_eval"
+  config: "offensive"
+  batch_size: 32
+  label_column: "label"
+  validation: True
+
+early_stopping:
+  tolerance: 20
+  delta: 0
+
+
+
+
