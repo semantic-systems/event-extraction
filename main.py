@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     args = parse()
     if Path(args.config).is_file():
-        cfg = instantiate_config(args.config, args.job_name)
+        cfg = instantiate_config(args.config)
         trainer_class = get_trainer(args.config)
         trainer = trainer_class(cfg)
         trainer.run()
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         configs = glob.glob(str(Path(args.config)) + "/*.yaml")
         print(str(Path(args.config).absolute()))
         for config in configs:
-            cfg = instantiate_config(config, args.job_name)
+            cfg = instantiate_config(config)
             trainer_class = get_trainer(config)
             trainer = trainer_class(cfg)
             trainer.run()

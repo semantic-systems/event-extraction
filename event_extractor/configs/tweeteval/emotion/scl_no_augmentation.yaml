@@ -4,6 +4,7 @@ data:
   label_column: label
   name: tweet_eval
   validation: true
+  subset: 0.1
 early_stopping:
   delta: 0.003
   tolerance: 5

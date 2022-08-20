@@ -12,10 +12,10 @@ def set_seed(seed: int):
     torch.manual_seed(seed)
 
 
-def instantiate_config(config_path: str, job_name: str):
+def instantiate_config(config_path: str):
     config_dir = config_path.rsplit("/", 1)[0]
     config_file = config_path.rsplit("/", 1)[-1]
-    with initialize(config_path=config_dir, job_name=job_name):
+    with initialize(config_path=config_dir, job_name=config_path):
         cfg = compose(config_name=config_file)
     return cfg
 
