@@ -222,11 +222,13 @@ class BatchLearningTrainer(SingleAgentTrainer):
     def test(self):
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
+        test_result = []
         with torch.no_grad():
             y_predict, y_true, loss = self.agent.act(data_loader, mode="test")
             result = self.environment.evaluate(y_predict, y_true, loss)
             logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
                            f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}")
+            self.log_result(result_per_epoch=result, final_result=test_result)
 
 
 class MetaLearningTrainer(BatchLearningTrainer):
