@@ -26,13 +26,18 @@ class EarlyStopping(object):
         self.counter = 0
         self.early_stop = False
         self.previous_loss = 9999
+        self.best_score = None
 
     def __call__(self, validation_loss):
-        if (self.previous_loss - validation_loss) < self.min_delta:
-            self.counter +=1
+        score = -validation_loss
+        if self.best_score is None:
+            self.best_score = score
+        elif score < self.best_score + self.min_delta:
+            self.counter += 1
             if self.counter >= self.tolerance:
                 self.early_stop = True
         else:
+            self.best_score = score
             self.counter = 0
 
 
