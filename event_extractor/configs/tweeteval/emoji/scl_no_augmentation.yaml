@@ -10,10 +10,10 @@ early_stopping:
 model:
   L2_normalize_encoded_feature: false
   contrastive:
-    base_temperature: 0.07
+    base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 1
-    temperature: 0.07
+    contrastive_loss_ratio: 0.9
+    temperature: 0.3
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
