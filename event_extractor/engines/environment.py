@@ -3,6 +3,7 @@ from typing import Dict, Union, List, Optional
 from abc import abstractmethod
 
 import torch
+import emoji
 from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 from dataclasses import dataclass, asdict
@@ -86,7 +87,13 @@ class StaticEnvironment(Environment):
 
     @property
     def labels_list(self) -> List[str]:
-        return [*self.environment.label_index_map]
+        labels = [*self.environment.label_index_map]
+        # check if labels are emoji
+        if labels[0] in emoji.UNICODE_EMOJI:
+            normalized_labels = [emoji.UNICODE_EMOJI[label][1:-1] for label in labels]
+        else:
+            normalized_labels = labels
+        return normalized_labels
 
     @log_metrics
     def evaluate(self,
