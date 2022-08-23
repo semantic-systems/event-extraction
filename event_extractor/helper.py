@@ -37,10 +37,21 @@ def log_metrics(func):
         result = func(*args, **kwargs)
         # log metric
         mlflow.log_metric("loss", result.loss, step=1)
-        mode = "train" if "train" in result.path_to_plot.split("/")[-1] else "test"
+        if "train" in result.path_to_plot.split("/")[-1]:
+            mode = "train"
+        elif "validation" in result.path_to_plot.split("/")[-1]:
+            mode = "validation"
+        elif "test" in result.path_to_plot.split("/")[-1]:
+            mode = "test"
+        else:
+            raise ValueError
         mlflow.log_metric(f"{mode}_acc", result.acc, step=1)
         mlflow.log_metric(f"{mode}_f1_micro", result.f1_micro, step=1)
         mlflow.log_metric(f"{mode}_f1_macro", result.f1_macro, step=1)
+        mlflow.log_metric(f"{mode}_precision_macro", result.precision_macro, step=1)
+        mlflow.log_metric(f"{mode}_recall_macro", result.recall_macro, step=1)
+        for key, value in result.f1_per_class.items():
+            mlflow.log_metric(f"{mode}_f1_for_class_{key}", value, step=1)
         mlflow.log_artifact(result.path_to_plot)
         return result
     return run

@@ -57,6 +57,8 @@ class ClassificationResult:
     f1_macro: float
     f1_micro: float
     f1_per_class: list
+    precision_macro: float
+    recall_macro: float
     path_to_plot: str
     loss: Optional[float]
 

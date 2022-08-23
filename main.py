@@ -39,5 +39,5 @@ if __name__ == "__main__":
             trainer = trainer_class(cfg)
             trainer.run()
     else:
-        pass
+        raise FileNotFoundError(f"{args.config} does not exist.")
 

@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from omegaconf import DictConfig, OmegaConf, open_dict
+from event_extractor.helper import get_data_time
 
 
 class ConfigValidator(object):
@@ -69,14 +70,17 @@ class ConfigValidator(object):
         pass
 
     def create_output_path(self):
+        timestamp = get_data_time()
         if not Path(self.config.model.output_path, self.config.name).absolute().exists():
             logging.warning(f"Output path {str(Path(self.config.model.output_path, self.config.name).absolute())} "
                             f"does not exist. It will be automatically created. ")
             Path(self.config.model.output_path, self.config.name).absolute().mkdir(parents=True, exist_ok=True)
-        if not Path(self.config.model.output_path, self.config.name, "pretrained_models").absolute().exists():
-            Path(self.config.model.output_path, self.config.name, "pretrained_models").absolute().mkdir(parents=True, exist_ok=True)
-        if not Path(self.config.model.output_path, self.config.name, "plots").absolute().exists():
-            Path(self.config.model.output_path, self.config.name, "plots").absolute().mkdir(parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, timestamp).absolute().exists():
+            Path(self.config.model.output_path, self.config.name, timestamp).absolute().mkdir(parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, timestamp, "pretrained_models").absolute().exists():
+            Path(self.config.model.output_path, self.config.name, timestamp, "pretrained_models").absolute().mkdir(parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, timestamp, "plots").absolute().exists():
+            Path(self.config.model.output_path, self.config.name, timestamp, "plots").absolute().mkdir(parents=True, exist_ok=True)
 
 
 

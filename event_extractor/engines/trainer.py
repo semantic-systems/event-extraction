@@ -190,24 +190,36 @@ class BatchLearningTrainer(SingleAgentTrainer):
         for n in range(self.config.model.epochs):
             # training
             y_predict, y_true, train_loss = self.agent.act(data_loader, mode="train")
-            train_result_per_epoch = self.environment.evaluate(y_predict, y_true, train_loss, num_epoch=n)
+            train_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
+                                                                                     y_true,
+                                                                                     train_loss,
+                                                                                     mode="train",
+                                                                                     num_epoch=n)
             logger.warning(f"Training results:")
             logger.warning(f"Epoch: {n}, Average loss: {train_loss}, Average acc: {train_result_per_epoch.acc}, "
                            f"F1 macro: {train_result_per_epoch.f1_macro},"
                            f"F1 micro: {train_result_per_epoch.f1_micro}, "
-                           f"F1 per class: {train_result_per_epoch.f1_per_class}")
+                           f"F1 per class: {train_result_per_epoch.f1_per_class}, "
+                           f"Precision macro: {train_result_per_epoch.precision_macro}, "
+                           f"Recall macro: {train_result_per_epoch.recall_macro}")
             self.log_result(result_per_epoch=train_result_per_epoch, final_result=train_result, epoch=n)
 
             # validation
             if self.config.data.validation:
                 y_predict, y_true, validation_loss = self.agent.act(validation_data_loader, mode="validation")
-                validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict, y_true, validation_loss, num_epoch=n)
+                validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
+                                                                                              y_true,
+                                                                                              validation_loss,
+                                                                                              mode="validation",
+                                                                                              num_epoch=n)
                 logger.warning(f"Validation results:")
                 logger.warning(
                     f"Epoch: {n}, Average loss: {validation_loss}, Average acc: {validation_result_per_epoch.acc}, "
-                    f"Average macro f1: {validation_result_per_epoch.f1_macro},"
-                    f"Average micro f1: {validation_result_per_epoch.f1_micro}, "
-                    f"F1 per class: {validation_result_per_epoch.f1_per_class}")
+                    f"F1 macro: {validation_result_per_epoch.f1_macro},"
+                    f"F1 micro: {validation_result_per_epoch.f1_micro}, "
+                    f"F1 per class: {validation_result_per_epoch.f1_per_class}, "
+                    f"Precision macro: {validation_result_per_epoch.precision_macro}, "
+                    f"Recall macro: {validation_result_per_epoch.recall_macro}")
                 self.log_result(result_per_epoch=validation_result_per_epoch, final_result=validation_result, epoch=n)
                 self.save_best_model(best_validation_metric, validation_result_per_epoch)
                 # early stopping
@@ -230,9 +242,11 @@ class BatchLearningTrainer(SingleAgentTrainer):
         test_result = []
         with torch.no_grad():
             y_predict, y_true, loss = self.agent.act(data_loader, mode="test")
-            result = self.environment.evaluate(y_predict, y_true, loss)
+            result = self.environment.evaluate(y_predict, y_true, loss, mode="test")
             logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
-                           f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}")
+                           f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}, "
+                           f"Precision macro: {result.precision_macro}, "
+                           f"Recall macro: {result.recall_macro}")
             self.log_result(result_per_epoch=result, final_result=test_result)
 
 
