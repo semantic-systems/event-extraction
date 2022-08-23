@@ -89,8 +89,8 @@ class StaticEnvironment(Environment):
     def labels_list(self) -> List[str]:
         labels = [*self.environment.label_index_map]
         # check if labels are emoji
-        if labels[0] in emoji.UNICODE_EMOJI:
-            normalized_labels = [emoji.UNICODE_EMOJI[label][1:-1] for label in labels]
+        if all(emoji.is_emoji(label) for label in labels):
+            normalized_labels = [emoji.demojize(label)[1:-1] for label in labels]
         else:
             normalized_labels = labels
         return normalized_labels
