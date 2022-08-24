@@ -23,10 +23,11 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["early_stopping"]["delta"] = 0
+            config["seed"] = 1
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
         # print(updated_dicts)
+
 
 if __name__ == "__main__":
     ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/")

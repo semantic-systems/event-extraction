@@ -26,4 +26,4 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/
 name: stance_hillary_scl_no_augmentation
-seed: 42
+seed: 1
