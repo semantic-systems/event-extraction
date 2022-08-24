@@ -23,7 +23,7 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["model"]["L2_normalize_encoded_feature"] = False
+            config["early_stopping"]["delta"] = 0
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
         # print(updated_dicts)
