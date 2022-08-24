@@ -133,16 +133,23 @@ class StaticEnvironment(Environment):
                                     f'confusion_matrix_{mode}_{self.config.seed}.png').absolute())
         plt.savefig(path_to_plot, aspect='auto', dpi=100)
         plt.close()
+        f1_per_class = {label: f1_per_class[i] for i, label in enumerate(self.labels_list)}
+        if "stance" in self.config.data.config:
+            other = (f1_per_class["against"] + f1_per_class["favor"])/2
+        else:
+            other = None
         results = ClassificationResult(**{"acc": acc,
                                           "loss": loss,
                                           "f1_micro": f1_micro,
                                           "f1_macro": f1_macro,
                                           "recall_macro": recall_macro,
                                           "precision_macro": precision_macro,
-                                          "f1_per_class": {label: f1_per_class[i] for i, label in enumerate(self.labels_list)},
-                                          "path_to_plot": path_to_plot
+                                          "f1_per_class": f1_per_class,
+                                          "path_to_plot": path_to_plot,
+                                          "other": other
                                           }
                                        )
+
         return results
 
 

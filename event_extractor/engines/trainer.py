@@ -201,7 +201,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
                            f"F1 micro: {train_result_per_epoch.f1_micro}, "
                            f"F1 per class: {train_result_per_epoch.f1_per_class}, "
                            f"Precision macro: {train_result_per_epoch.precision_macro}, "
-                           f"Recall macro: {train_result_per_epoch.recall_macro}")
+                           f"Recall macro: {train_result_per_epoch.recall_macro}, "
+                           f"Other: {train_result_per_epoch.other}")
             self.log_result(result_per_epoch=train_result_per_epoch, final_result=train_result, epoch=n)
 
             # validation
@@ -219,7 +220,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
                     f"F1 micro: {validation_result_per_epoch.f1_micro}, "
                     f"F1 per class: {validation_result_per_epoch.f1_per_class}, "
                     f"Precision macro: {validation_result_per_epoch.precision_macro}, "
-                    f"Recall macro: {validation_result_per_epoch.recall_macro}")
+                    f"Recall macro: {validation_result_per_epoch.recall_macro}, "
+                    f"Other: {validation_result_per_epoch.other}")
                 self.log_result(result_per_epoch=validation_result_per_epoch, final_result=validation_result, epoch=n)
                 self.save_best_model(best_validation_metric, validation_result_per_epoch)
                 # early stopping
@@ -246,7 +248,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
             logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
                            f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}, "
                            f"Precision macro: {result.precision_macro}, "
-                           f"Recall macro: {result.recall_macro}")
+                           f"Recall macro: {result.recall_macro}, "
+                           f"Other: {result.other}")
             self.log_result(result_per_epoch=result, final_result=test_result)
 
 
