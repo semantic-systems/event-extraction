@@ -23,7 +23,17 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 2
+            config["model"]["layers"] = {"layer1":
+                                             {
+                                                 "n_in": 768,
+                                                 "n_out": 768
+                                             },
+                                         "layer2":
+                                            {
+                                                "n_in": 768,
+                                                "n_out": 20
+                                            }
+            }
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
         # print(updated_dicts)

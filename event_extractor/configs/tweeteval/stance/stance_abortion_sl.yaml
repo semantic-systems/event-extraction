@@ -16,9 +16,12 @@ model:
   layers:
     layer1:
       n_in: 768
+      n_out: 768
+    layer2:
+      n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
-  num_transformer_layers: full
+  num_transformer_layers: 1
   output_path: ./outputs/
 name: stance_abortion_sl
 seed: 2
