@@ -1,9 +1,13 @@
 import random
+import logging
 import mlflow
 import numpy as np
 import torch
 from hydra import initialize, compose
 from omegaconf import DictConfig, ListConfig
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 
 def set_seed(seed: int):
@@ -35,3 +39,8 @@ def _explore_recursive(parent_name, element):
     elif isinstance(element, ListConfig):
         for i, v in enumerate(element):
             mlflow.log_param(f'{parent_name}.{i}', v)
+    elif isinstance(element, int) or isinstance(element, str):
+        mlflow.log_param(parent_name, element)
+    else:
+        logger.warning(f"Configuration field {parent_name} with value {element} not logged in mlflow.")
+

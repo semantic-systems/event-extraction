@@ -108,7 +108,7 @@ class Trainer(object):
                 index_label_map=label_index_map)
 
     def dump_result(self, result: List, mode: str):
-        with open(Path(self.config.model.output_path, self.config.name, f"{mode}_result_{self.config.seed}.json"), "w") as final:
+        with open(Path(self.config.model.output_path, self.config.name, f"{mode}_result_seed_{self.config.seed}.json"), "w") as final:
             json.dump(result, final, indent=2)
 
     def save_final_model(self):
@@ -251,6 +251,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                            f"Recall macro: {result.recall_macro}, "
                            f"Other: {result.other}")
             self.log_result(result_per_epoch=result, final_result=test_result)
+            self.dump_result(test_result, mode='test')
 
 
 class MetaLearningTrainer(BatchLearningTrainer):
