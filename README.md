@@ -1,8 +1,8 @@
 # Sequence Classification with Pre-trained Language model
 ## Requirement
-- python==3.7.*
-- torch==1.10.0
-- transformers==4.12.5
+- python>=3.7.*
+- torch>=1.10.0
+- transformers>=4.12.5
 - hydra==1.1.1
 - mlflow==1.21.0
 
@@ -32,18 +32,18 @@ yaml file (If you do so, some tests might fail). To use the arguments defined in
 
 (UPDATE: one can now define the so-called structured configuration, by utilizing python's dataclasses package, to do type checking. 
 This might happen in the future as a feature extension.)
-### How to run an experiment?
-```
-python main.py
-```
-So far you need to define the configuration file within the `main.py`. This will be changed to a more friendly cmd usage soon :D
-
 ### How to observe experiments in your localhost
-Once you have run an experiment, you can create a localhost to visualize the logged metrics by
+Before running an experiment, you must open mlflow locally. (not nice, i know.)
 ```
 mlflow ui
 ```
 The default host is set to be http://127.0.0.1:5000 . Simply open it in your browser.
+
+### How to run an experiment?
+```
+python main.py <path/to/config>
+```
+So far you need to define the configuration file within the `main.py`. This will be changed to a more friendly cmd usage soon :D
 
 ## Pipeline
 The pipeline of training or fine-tuning a language model with a downstream classifier contains the following parts.
