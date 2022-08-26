@@ -126,11 +126,11 @@ class StaticEnvironment(Environment):
 
         plt.axis('scaled')
         if num_epoch is not None:
-            path_to_plot: str = str(Path(self.config.model.output_path, self.config.name, "plots",
-                                         f'confusion_matrix_{mode}_epoch_{num_epoch}_{self.config.seed}.png').absolute())
+            path_to_plot: str = str(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                                         f'confusion_matrix_{mode}_epoch_{num_epoch}.png').absolute())
         else:
-            path_to_plot = str(Path(self.config.model.output_path, self.config.name, "plots",
-                                    f'confusion_matrix_{mode}_{self.config.seed}.png').absolute())
+            path_to_plot = str(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                                    f'confusion_matrix_{mode}.png').absolute())
         plt.savefig(path_to_plot, aspect='auto', dpi=100)
         plt.close()
         f1_per_class = {label: f1_per_class[i] for i, label in enumerate(self.labels_list)}

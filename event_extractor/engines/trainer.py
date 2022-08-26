@@ -103,18 +103,19 @@ class Trainer(object):
         if result_per_epoch.f1_macro > best_validation_metric:
             label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
             self.agent.policy.save_model(
-                Path(self.config.model.output_path, self.config.name, "pretrained_models",
-                     f"{self.config.name}_best_model_{self.config.seed}.pt").absolute(),
+                Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "pretrained_models",
+                     f"{self.config.name}_best_model.pt").absolute(),
                 index_label_map=label_index_map)
 
     def dump_result(self, result: List, mode: str):
-        with open(Path(self.config.model.output_path, self.config.name, f"{mode}_result_seed_{self.config.seed}.json"), "w") as final:
+        with open(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}",
+                       f"{mode}_result.json"), "w") as final:
             json.dump(result, final, indent=2)
 
     def save_final_model(self):
         label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
         self.agent.policy.save_model(
-            Path(self.config.model.output_path, self.config.name, "pretrained_models",
+            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "pretrained_models",
                  f"{self.config.name}_{get_data_time()}.pt").absolute(),
             index_label_map=label_index_map)
 

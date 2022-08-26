@@ -77,10 +77,13 @@ class ConfigValidator(object):
             logger.warning(f"Output path {str(Path(self.config.model.output_path, self.config.name).absolute())} "
                             f"does not exist. It will be automatically created. ")
             Path(self.config.model.output_path, self.config.name).absolute().mkdir(parents=True, exist_ok=True)
-        if not Path(self.config.model.output_path, self.config.name, "pretrained_models").absolute().exists():
-            Path(self.config.model.output_path, self.config.name, "pretrained_models").absolute().mkdir(parents=True, exist_ok=True)
-        if not Path(self.config.model.output_path, self.config.name, "plots").absolute().exists():
-            Path(self.config.model.output_path, self.config.name, "plots").absolute().mkdir(parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}").absolute().exists():
+            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}").absolute().mkdir(
+                parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "pretrained_models").absolute().exists():
+            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "pretrained_models").absolute().mkdir(parents=True, exist_ok=True)
+        if not Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots").absolute().exists():
+            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots").absolute().mkdir(parents=True, exist_ok=True)
 
 
 
