@@ -16,12 +16,9 @@ model:
   layers:
     layer1:
       n_in: 768
-      n_out: 768
-    layer2:
-      n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
   output_path: ./outputs/
 name: hate_sl
-seed: 2
+seed: 0
