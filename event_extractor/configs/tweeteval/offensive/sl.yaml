@@ -21,4 +21,4 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/
 name: offensive_sl
-seed: 0
+seed: 1

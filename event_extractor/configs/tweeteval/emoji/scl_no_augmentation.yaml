@@ -26,4 +26,4 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/
 name: emoji_scl_no_augmentation
-seed: 0
+seed: 1
