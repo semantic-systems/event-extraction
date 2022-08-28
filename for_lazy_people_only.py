@@ -152,13 +152,13 @@ class LatexTableWriter(object):
                 scores[task]["max"] = df['metric_score'].max()
         scores["stance"] = {"avg": 0, "std": 0, "max": 0}
         scores["stance"]["avg"] = np.mean(stance_avg_score)
-        scores["stance"]["std"] = np.mean(stance_avg_score)
-        scores["stance"]["max"] = np.mean(stance_avg_score)
+        scores["stance"]["std"] = np.std(stance_avg_score)
+        scores["stance"]["max"] = np.max(stance_avg_score)
         scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
         scores = {k.capitalize(): v for k, v in scores.items()}
         latex_column = self.latex_table_column_name[1:-1]
         for i, task in enumerate(latex_column):
-            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
+            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
             if i == len(latex_column)-1:
                 tex += str(round(100*scores["All"], 1))
                 tex += "\\\ \n"
@@ -189,6 +189,6 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/")
-    # writer = LatexTableWriter("./outputs")
-    # print(writer.write_to_tex())
+    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/")
+    writer = LatexTableWriter("./outputs/tweeteval/baseline/")
+    print(writer.write_to_tex())

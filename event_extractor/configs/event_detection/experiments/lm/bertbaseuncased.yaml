@@ -1,22 +1,27 @@
-name: "bert_base_uncased"
-seed: 42
+name: crisis_bert_base_uncased
+seed: 0
 model:
-  from_pretrained: "bert-base-uncased"
+  from_pretrained: bert-base-uncased
   layers:
     layer1:
       n_in: 768
+      n_out: 768
+    layer2:
+      n_in: 768
       n_out: 20
-  num_transformer_layers: 2
-  freeze_transformer_layers: "none"
-  learning_rate: 0.0001
+  num_transformer_layers: full
+  freeze_transformer_layers: none
+  learning_rate: 1.0e-05
   dropout_rate: 0.5
-  epochs: 10
-  output_path: "./outputs/"
-
+  epochs: 20
+  output_path: ./outputs/crisis/
+  L2_normalize_encoded_feature: false
 data:
-  name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
+  name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   batch_size: 32
-  label_column: "label"
-
-
+  label_column: label
+  validation: false
+early_stopping:
+  delta: 0
+  tolerance: 5
 
