@@ -77,7 +77,7 @@ class LatexTableWriter(object):
         self.latex_table_column_name = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
         self.result_df_column_name = ["seed", "model", "metric_name", "metric_score", "task"]
         self.result_df = self.get_result_df(self.result_instances)
-        self.write_to_csv(self.result_df, "./outputs/results.csv")
+        self.write_to_csv(self.result_df, "./outputs/tweeteval/results.csv")
 
     @staticmethod
     def write_to_csv(df: pd.DataFrame, path: str):
@@ -114,7 +114,7 @@ class LatexTableWriter(object):
         return pd.DataFrame(data)
 
     def write_to_tex(self):
-        with open("./outputs/latex_table.tex", "w") as f:
+        with open("./outputs/tweeteval/latex_table.tex", "w") as f:
             f.write("\\scalebox{0.75}{\n"
                     "\\begin{center}\n"
                     "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n"
