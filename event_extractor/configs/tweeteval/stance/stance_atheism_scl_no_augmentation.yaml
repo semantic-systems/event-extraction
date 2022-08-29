@@ -24,6 +24,6 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/
+  output_path: ./outputs/tweeteval/
 name: stance_atheism_scl_no_augmentation
 seed: 2
