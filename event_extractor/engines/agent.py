@@ -97,7 +97,7 @@ class BatchLearningAgent(Agent):
         back_translation_aug = naw.BackTranslationAug(
             from_model_name='facebook/wmt19-en-de',
             to_model_name='facebook/wmt19-de-en',
-            device='gpu'
+            device='cuda'
         )
         return back_translation_aug
 
