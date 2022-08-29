@@ -75,7 +75,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             loss = self.loss(head_output.output, input_feature.labels)
             new_shape = (self.cfg.data.batch_size, self.cfg.data.batch_size, head_output.output.shape[-1])
             contrastive_features = head_output.output.reshape(new_shape)
-            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels)
+            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:self.cfg.data.batch_size])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
