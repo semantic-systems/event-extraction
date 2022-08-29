@@ -1,10 +1,9 @@
 data:
   batch_size: 32
-  config: emotion
+  config: sentiment
   label_column: label
   name: tweet_eval
   validation: true
-  subset: 0.1
 early_stopping:
   delta: 0
   tolerance: 5
@@ -16,7 +15,7 @@ model:
     contrastive_loss_ratio: 0.9
     temperature: 0.3
   dropout_rate: 0.5
-  epochs: 5
+  epochs: 50
   freeze_transformer_layers: none
   from_pretrained: roberta-base
   layers:
@@ -24,7 +23,7 @@ model:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
-  num_transformer_layers: 1
+  num_transformer_layers: full
   output_path: ./outputs/tweeteval/
-name: emotion_scl_back_translation
+name: sentiment_scl_back_translation
 seed: 2
