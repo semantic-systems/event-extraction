@@ -96,7 +96,8 @@ class BatchLearningAgent(Agent):
     def instantiate_augmenter():
         back_translation_aug = naw.BackTranslationAug(
             from_model_name='facebook/wmt19-en-de',
-            to_model_name='facebook/wmt19-de-en'
+            to_model_name='facebook/wmt19-de-en',
+            device='gpu'
         )
         return back_translation_aug
 
