@@ -104,7 +104,7 @@ class BatchLearningAgent(Agent):
         augmented_text_de_en = self.Augmenter.augment(batch["text"])
         augmented_batch = deepcopy(batch)
         augmented_batch["text"].extend(augmented_text_de_en)
-        augmented_batch["label"].extend(batch["label"])
+        augmented_batch["label"] = torch.cat((batch["label"], batch["label"]), dim=0)
         return augmented_batch
 
 
