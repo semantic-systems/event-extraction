@@ -47,7 +47,7 @@ class BatchLearningAgent(Agent):
     def __init__(self, config: DictConfig, device: torch.device):
         super(BatchLearningAgent, self).__init__(config, device)
         self.policy = self.instantiate_policy()
-        self.Augmenter = self.instantiate_augmenter() if self.config.model.contrastive.contrastive_loss_ratio > 0 else None
+        self.Augmenter = self.instantiate_augmenter(device) if self.config.model.contrastive.contrastive_loss_ratio > 0 else None
 
     @property
     def policy_class(self) -> Type[PolicyClasses]:
@@ -93,11 +93,11 @@ class BatchLearningAgent(Agent):
         return y_predict, y_true, loss
 
     @staticmethod
-    def instantiate_augmenter():
+    def instantiate_augmenter(device):
         back_translation_aug = naw.BackTranslationAug(
             from_model_name='facebook/wmt19-en-de',
             to_model_name='facebook/wmt19-de-en',
-            device='cuda'
+            device=device
         )
         return back_translation_aug
 
