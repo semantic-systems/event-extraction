@@ -1,6 +1,6 @@
 data:
   batch_size: 32
-  config: atheism
+  config: stance_atheism
   label_column: label
   name: tweet_eval
   validation: true

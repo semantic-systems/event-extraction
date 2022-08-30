@@ -1,6 +1,6 @@
 data:
   batch_size: 32
-  config: feminist
+  config: stance_feminist
   label_column: label
   name: tweet_eval
   validation: true

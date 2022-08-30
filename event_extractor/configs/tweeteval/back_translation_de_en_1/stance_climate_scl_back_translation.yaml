@@ -1,6 +1,6 @@
 data:
   batch_size: 32
-  config: climate
+  config: stance_climate
   label_column: label
   name: tweet_eval
   validation: true

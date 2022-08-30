@@ -1,6 +1,6 @@
 data:
   batch_size: 32
-  config: hillary
+  config: stance_hillary
   label_column: label
   name: tweet_eval
   validation: true

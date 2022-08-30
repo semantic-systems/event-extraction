@@ -1,6 +1,6 @@
 data:
   batch_size: 32
-  config: abortion
+  config: stance_abortion
   label_column: label
   name: tweet_eval
   validation: true
