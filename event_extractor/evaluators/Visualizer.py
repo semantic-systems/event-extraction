@@ -1,7 +1,6 @@
 from typing import Optional, Union, Dict, Tuple
 
 import numpy as np
-import random
 from abc import abstractmethod
 
 import pandas as pd
@@ -12,7 +11,6 @@ from datasets import tqdm
 from omegaconf import DictConfig
 from torch import tensor
 
-from event_extractor.engines import StaticEnvironment
 from event_extractor.schema import FeatureToVisualize, InputFeature, SingleLabelClassificationForwardOutput
 # from mayavi import mlab
 from sklearn.preprocessing import normalize
@@ -22,9 +20,10 @@ from event_extractor.models.SingleLabelSequenceClassification import SingleLabel
 
 Model = Union[SingleLabelSequenceClassification, SingleLabelContrastiveSequenceClassification]
 
+
 class Visualizer(object):
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self):
+        self.name = self.__class__
 
     @abstractmethod
     def visualize(self, data: FeatureToVisualize, path_to_save: Optional[str]=None):
@@ -32,8 +31,8 @@ class Visualizer(object):
 
 
 class SphericalVisualize(Visualizer):
-    def __init__(self, name: str):
-        super(SphericalVisualize, self).__init__(name)
+    def __init__(self):
+        super(SphericalVisualize, self).__init__()
 
     def visualize(self, data: FeatureToVisualize, path_to_save: Optional[str]=None):
         # Create a sphere
@@ -60,12 +59,12 @@ class SphericalVisualize(Visualizer):
         return normalize(x, norm="l2")
 
 
-class TSNEVisualize(Visualizer):
-    def __init__(self, name: str, n_components=2, perplexity=15, n_iter=1000):
-        super(TSNEVisualize, self).__init__(name)
-        self.model = TSNE(n_components=n_components, verbose=1, perplexity=perplexity, n_iter=n_iter)
+class TSNEVisualizer(Visualizer):
+    def __init__(self, n_components=2, perplexity=15, n_iter=1000):
+        super(TSNEVisualizer, self).__init__()
+        self.model = TSNE(n_components=n_components, verbose=0, perplexity=perplexity, n_iter=n_iter)
 
-    def visualize(self, data: FeatureToVisualize, path_to_save: Optional[str]=None):
+    def visualize(self, data: FeatureToVisualize, path_to_save: Optional[str] = None):
         tsne_results = self.model.fit_transform(data.feature)
         df = pd.DataFrame()
         df["y"] = data.labels
@@ -74,7 +73,7 @@ class TSNEVisualize(Visualizer):
 
         sns.scatterplot(x="comp-1", y="comp-2", hue=df.y.tolist(),
                         palette=sns.color_palette("hls", len(list(set(data.labels)))),
-                        data=df).set(title="Tweets T-SNE projection")
+                        data=df).set(title="T-SNE projection")
         if path_to_save is not None:
             plt.savefig(path_to_save)
 
@@ -109,9 +108,10 @@ def get_feature(batch: Dict, model: Model, device: Optional[str] = "cpu") -> Fea
 if __name__ == "__main__":
     # data = FeatureToVisualize(feature=np.random.random((100, 3)), labels=[str(n) for n in list(range(0, 50))+list(range(0, 50))])
     path_to_model = "./outputs/crisis/crisis_bert_base_uncased/seed_0/pretrained_models/crisis_bert_base_uncased_30_08_2022_05_28_06.pt"
-    visualizer = TSNEVisualize("crisis")
+    visualizer = TSNEVisualizer()
     model, config, index_label_map = load_model(path_to_model, model_type="sl")
     config.data.batch_size = 200
+    from event_extractor.engines.environment import StaticEnvironment
     env = StaticEnvironment(config)
     data_loader = env.load_environment("test", "batch_training")
     features = None

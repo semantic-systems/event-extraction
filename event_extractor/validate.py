@@ -17,6 +17,7 @@ class ConfigValidator(object):
             self.validate_model()
             self.validate_data()
             self.validate_episode()
+            self.validate_visualizer()
             return self.config
         except ValueError:
             logger.error(f"Validation of config failed.")
@@ -71,6 +72,11 @@ class ConfigValidator(object):
 
     def validate_episode(self):
         pass
+
+    def validate_visualizer(self):
+        if "visualizer" not in self.config:
+            with open_dict(self.config):
+                self.config.visualizer = []
 
     def create_output_path(self):
         if not Path(self.config.model.output_path, self.config.name).absolute().exists():

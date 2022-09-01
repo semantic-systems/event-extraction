@@ -31,9 +31,11 @@ class SingleLabelSequenceClassification(SequenceClassification):
             return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         elif mode == "test":
-            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
@@ -82,9 +84,11 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         elif mode == "test":
-            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 

@@ -183,12 +183,12 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 2
+            config["visualizer"] = ["tsne"]
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/")
-    writer = LatexTableWriter("./outputs/tweeteval/baseline/")
-    print(writer.write_to_tex())
+    ConfigWriter.change_field_of_all("./event_extractor/configs/event_detection/experiments/")
+    # writer = LatexTableWriter("./outputs/tweeteval/baseline/")
+    # print(writer.write_to_tex())

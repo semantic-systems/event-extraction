@@ -13,8 +13,9 @@ from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
 from event_extractor.data_generators.samplers import FixedSizeCategoricalSampler
+from event_extractor.evaluators.Visualizer import TSNEVisualizer
 from event_extractor.helper import log_metrics
-from event_extractor.schema import ClassificationResult
+from event_extractor.schema import ClassificationResult, TSNEFeature, FeatureToVisualize
 
 
 @dataclass
@@ -49,17 +50,31 @@ class Environment(object):
     def return_state_as_dict(self):
         return asdict(self.state)
 
+    def get_path_to_plot(self, name: str) -> str:
+        path_to_plot: str = str(
+            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots", f"{name}")
+                .absolute())
+        return path_to_plot
+
 
 class StaticEnvironment(Environment):
     def __init__(self, config: DictConfig):
         super(StaticEnvironment, self).__init__(config)
         self.label_index_map = self.environment.label_index_map
+        self.index_label_map = {str(value): key for key, value in self.label_index_map.items()}
+        self.tsne_visualizer = self.instantiate_tsne_visualizer()
 
     def instantiate_environment(self) -> DataGenerator:
         if "subset" in self.config.data:
             return DataGeneratorSubSample(self.config)
         else:
             return DataGenerator(self.config)
+
+    def instantiate_tsne_visualizer(self) -> Union[TSNEVisualizer, None]:
+        if "tsne" in self.config.visualizer:
+            return TSNEVisualizer()
+        else:
+            return None
 
     def instantiate_sampler(self, mode: str, training_type: str) -> Union[Sampler, None]:
         data_source = self.environment.training_dataset if mode == "train" else self.environment.testing_dataset
@@ -94,6 +109,23 @@ class StaticEnvironment(Environment):
         else:
             normalized_labels = labels
         return normalized_labels
+
+    def visualize_embedding(self, tsne_feature: TSNEFeature, epoch: Optional[int] = None):
+        encoded_features: FeatureToVisualize = FeatureToVisualize(**{"feature": tsne_feature.encoded_features,
+                                                                     "labels": tsne_feature.labels})
+        final_hidden_states: FeatureToVisualize = FeatureToVisualize(**{"feature": tsne_feature.final_hidden_states,
+                                                                        "labels": tsne_feature.labels})
+        if epoch is not None:
+            self.tsne_visualizer.visualize(data=encoded_features,
+                                           path_to_save=self.get_path_to_plot(f'tsne_validation_encoder_output_epoch_{epoch}.png'))
+            self.tsne_visualizer.visualize(data=final_hidden_states,
+                                           path_to_save=self.get_path_to_plot(f'tsne_validation_head_output_epoch_{epoch}.png'))
+
+        else:
+            self.tsne_visualizer.visualize(data=encoded_features,
+                                           path_to_save=self.get_path_to_plot(f'tsne_test_encoder_output.png'))
+            self.tsne_visualizer.visualize(data=final_hidden_states,
+                                           path_to_save=self.get_path_to_plot(f'tsne_test_head_output.png'))
 
     @log_metrics
     def evaluate(self,

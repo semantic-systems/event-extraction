@@ -10,8 +10,23 @@ from torch import tensor
 class SingleLabelClassificationForwardOutput:
     loss: Optional[tensor] = None
     prediction_logits: tensor = None
-    hidden_states: Optional[Tuple[tensor]] = None
+    encoded_features: Optional[tensor] = None
     attentions: Optional[Tuple[tensor]] = None
+
+
+@dataclass
+class TSNEFeature:
+    final_hidden_states: List
+    encoded_features: List
+    labels: List
+
+
+@dataclass
+class AgentPolicyOutput:
+    y_predict: List
+    y_true: List
+    loss: float
+    tsne_feature: Optional[TSNEFeature] = None
 
 
 @dataclass
@@ -83,6 +98,7 @@ class ContrastiveConfig:
     base_temperature: float = 0.07
     contrast_mode: str = "all"
     L2_normalize_encoded_feature: bool = True
+
 
 @dataclass
 class ModelConfig:

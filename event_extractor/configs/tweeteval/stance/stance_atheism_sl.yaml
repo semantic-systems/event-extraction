@@ -22,3 +22,5 @@ model:
   output_path: ./outputs/tweeteval/
 name: stance_atheism_sl
 seed: 2
+visualizer:
+- tsne

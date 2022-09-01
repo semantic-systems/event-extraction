@@ -27,3 +27,5 @@ model:
   output_path: ./outputs/tweeteval/
 name: stance_atheism_scl_no_augmentation
 seed: 2
+visualizer:
+- tsne

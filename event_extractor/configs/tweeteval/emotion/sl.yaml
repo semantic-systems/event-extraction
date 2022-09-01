@@ -22,3 +22,5 @@ model:
   output_path: ./outputs/tweeteval/
 name: emotion_sl
 seed: 2
+visualizer:
+- tsne

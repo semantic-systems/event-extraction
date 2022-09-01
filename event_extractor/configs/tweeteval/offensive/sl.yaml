@@ -22,3 +22,5 @@ model:
   output_path: ./outputs/tweeteval/
 name: offensive_sl
 seed: 2
+visualizer:
+- tsne

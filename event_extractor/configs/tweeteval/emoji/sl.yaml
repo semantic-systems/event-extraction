@@ -22,3 +22,5 @@ model:
   output_path: ./outputs/tweeteval/
 name: emoji_sl
 seed: 2
+visualizer:
+- tsne

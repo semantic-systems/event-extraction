@@ -15,7 +15,7 @@ model:
     contrastive_loss_ratio: 0.9
     temperature: 0.3
   dropout_rate: 0.5
-  epochs: 50
+  epochs: 2
   freeze_transformer_layers: none
   from_pretrained: roberta-base
   layers:
@@ -23,7 +23,9 @@ model:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
-  num_transformer_layers: full
+  num_transformer_layers: 1
   output_path: ./outputs/tweeteval/
 name: stance_hillary_scl_no_augmentation
 seed: 2
+visualizer:
+- tsne

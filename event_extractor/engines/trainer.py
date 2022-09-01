@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 from event_extractor.engines.agent import Agent, BatchLearningAgent, MetaLearningAgent
 from event_extractor.engines.environment import Environment, StaticEnvironment
 from event_extractor.helper import fill_config_with_num_classes, get_data_time, set_run_training, set_run_testing
-from event_extractor.schema import ClassificationResult
+from event_extractor.schema import ClassificationResult, AgentPolicyOutput
 from utils import set_seed
 from event_extractor.validate import ConfigValidator
 
@@ -190,7 +190,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         # start new run
         for n in range(self.config.model.epochs):
             # training
-            y_predict, y_true, train_loss = self.agent.act(data_loader, mode="train")
+            agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="train")
+            y_predict, y_true, train_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
             train_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
                                                                                      y_true,
                                                                                      train_loss,
@@ -208,7 +209,14 @@ class BatchLearningTrainer(SingleAgentTrainer):
 
             # validation
             if self.config.data.validation:
-                y_predict, y_true, validation_loss = self.agent.act(validation_data_loader, mode="validation")
+                agent_output: AgentPolicyOutput = self.agent.act(validation_data_loader, mode="validation")
+                y_predict, y_true, validation_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
+                if "tsne" in self.config.visualizer:
+                    tsne_feature = agent_output.tsne_feature
+                    labels = [label.item() for label in y_true]
+                    tsne_feature.labels = list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+                    self.environment.visualize_embedding(tsne_feature=tsne_feature, epoch=n)
+
                 validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
                                                                                               y_true,
                                                                                               validation_loss,
@@ -244,7 +252,13 @@ class BatchLearningTrainer(SingleAgentTrainer):
         self.agent.policy.eval()
         test_result = []
         with torch.no_grad():
-            y_predict, y_true, loss = self.agent.act(data_loader, mode="test")
+            agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="test")
+            y_predict, y_true, loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
+            if "tsne" in self.config.visualizer:
+                tsne_feature = agent_output.tsne_feature
+                labels = [label.item() for label in y_true]
+                tsne_feature.labels = list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+                self.environment.visualize_embedding(tsne_feature=tsne_feature)
             result = self.environment.evaluate(y_predict, y_true, loss, mode="test")
             logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
                            f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}, "
