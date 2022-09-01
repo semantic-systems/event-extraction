@@ -76,6 +76,7 @@ class TSNEVisualizer(Visualizer):
                         data=df).set(title="T-SNE projection")
         if path_to_save is not None:
             plt.savefig(path_to_save)
+        plt.clf()
 
 
 def load_model(path_to_pretrained_model: str, model_type: str) -> Tuple[Model, DictConfig, dict]:
