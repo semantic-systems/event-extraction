@@ -7,7 +7,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import torch
-from datasets import tqdm
+from tqdm import tqdm
 from omegaconf import DictConfig
 from torch import tensor
 
