@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/
 name: hate_scl_back_translation
-seed: 2
+seed: 1
 visualizer:
 - tsne
