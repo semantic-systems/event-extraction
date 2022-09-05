@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/
 name: sentiment_scl_back_translation
-seed: 1
+seed: 0
 visualizer:
 - tsne
