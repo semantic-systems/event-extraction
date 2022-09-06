@@ -1,5 +1,4 @@
-from pathlib import Path
-from typing import Dict, Union, Type, Tuple, List, Optional
+from typing import Dict, Union, Type
 
 import torch
 from omegaconf import DictConfig
@@ -9,6 +8,7 @@ from torch import tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter
 from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, \
     PrototypicalNetworksForwardOutput, AgentPolicyOutput, TSNEFeature
@@ -49,14 +49,18 @@ class BatchLearningAgent(Agent):
     def __init__(self, config: DictConfig, device: torch.device):
         super(BatchLearningAgent, self).__init__(config, device)
         self.policy = self.instantiate_policy()
-        self.Augmenter = self.instantiate_augmenter(device) if self.config.model.contrastive.contrastive_loss_ratio > 0 else None
+        self.Augmenter = self.instantiate_augmenter(device) if self.is_contrastive else None
 
     @property
     def policy_class(self) -> Type[PolicyClasses]:
-        if self.config.model.contrastive.contrastive_loss_ratio > 0:
+        if self.is_contrastive:
             return SingleLabelContrastiveSequenceClassification
         else:
             return SingleLabelSequenceClassification
+
+    @property
+    def is_contrastive(self) -> bool:
+        return self.config.model.contrastive.contrastive_loss_ratio > 0
 
     def instantiate_policy(self):
         return self.policy_class(self.config)
@@ -102,17 +106,12 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(device):
-        back_translation_aug = naw.BackTranslationAug(
-            from_model_name='facebook/wmt19-en-de',
-            to_model_name='facebook/wmt19-de-en',
-            device=device
-        )
-        return back_translation_aug
+        return FSMTBackTranslationAugmenter(device)
 
     def augment(self, batch: Dict) -> Dict:
-        augmented_text_de_en = self.Augmenter.augment(batch["text"])
+        augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1, temperature=0.7)
         augmented_batch = deepcopy(batch)
-        augmented_batch["text"].extend(augmented_text_de_en)
+        augmented_batch["text"].extend(augmented_text_a)
         augmented_batch["label"] = torch.cat((batch["label"], batch["label"]), dim=0)
         return augmented_batch
 
