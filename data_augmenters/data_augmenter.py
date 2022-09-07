@@ -1,6 +1,6 @@
 from typing import Union, Tuple, List, Optional
 from tqdm import tqdm
-from transformers import FSMTModel, FSMTTokenizer, FSMTForConditionalGeneration
+from transformers import FSMTModel, FSMTTokenizer, FSMTForConditionalGeneration, PreTrainedModel
 from data_augmenters.tweet_normalizer import normalizeTweet
 from utils import instantiate_config
 import nlpaug.augmenter.word as naw
@@ -83,6 +83,14 @@ class RandomAugmenter(TweetsAugmenter):
         """actions: swap, delete, substitute or crop"""
         return naw.RandomWordAug(action=action, aug_p=aug_p, aug_max=aug_max)
 
+
+class DropoutAugmenter(TweetsAugmenter):
+    def augment(self, data: Union[str, list], num_return_sequences: int = 1) -> List:
+        normalized_data = self.normalize_tweets(data)
+        augmented_text = []
+        for n in range(num_return_sequences):
+            augmented_text += normalized_data
+        return list(map(self.clean_up_tokenization, augmented_text))
 
 
 if __name__ == "__main__":
