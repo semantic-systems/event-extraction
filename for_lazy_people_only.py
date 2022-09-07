@@ -13,7 +13,7 @@ class Result(object):
         self.result = self.read_json(path)
         self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
                       "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
-        self.models = ["back_translation", "scl_no_augmentation"]#, "sc"]
+        self.models = ["back_translation", "scl_no_augmentation", "random_aug"]#, "sc"]
         self.seeds = [0, 1, 2]
         self.seed = self.get_seed()
         self.task = self.get_task()
@@ -41,7 +41,8 @@ class Result(object):
     def get_model(self) -> str:
         model_map = {#"sl": "Rob-Bs",
                      "scl_no_augmentation": "SCL(no aug)",
-                     "back_translation": "SCL(de-en)"}
+                     "back_translation": "SCL(de-en)",
+                     "random_aug": "SCL(random)"}
         for model in self.models:
             if model in self.path:
                 return model_map[model]
@@ -78,7 +79,7 @@ class LatexTableWriter(object):
         self.latex_table_column_name = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
         self.result_df_column_name = ["seed", "model", "metric_name", "metric_score", "task"]
         self.result_df = self.get_result_df(self.result_instances)
-        self.write_to_csv(self.result_df, "./outputs/tweeteval/en-de/results.csv")
+        self.write_to_csv(self.result_df, "./outputs/tweeteval/random_aug/results.csv")
 
     @staticmethod
     def write_to_csv(df: pd.DataFrame, path: str):
@@ -115,7 +116,7 @@ class LatexTableWriter(object):
         return pd.DataFrame(data)
 
     def write_to_tex(self):
-        with open("./outputs/tweeteval/en-de/latex_table.tex", "w") as f:
+        with open("./outputs/tweeteval/random_aug/latex_table.tex", "w") as f:
             f.write("\\scalebox{0.75}{\n"
                     "\\begin{center}\n"
                     "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n"
@@ -191,5 +192,5 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./outputs/tweeteval/en-de/")
+    writer = LatexTableWriter("./outputs/tweeteval/random_aug/")
     print(writer.write_to_tex())
