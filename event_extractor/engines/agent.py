@@ -8,11 +8,10 @@ from torch import tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter
+from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter, RandomAugmenter
 from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, \
     PrototypicalNetworksForwardOutput, AgentPolicyOutput, TSNEFeature
-import nlpaug.augmenter.word as naw
 
 PolicyClasses = Union[SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification]
 
@@ -106,10 +105,10 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(device):
-        return FSMTBackTranslationAugmenter(device)
+        return RandomAugmenter()
 
     def augment(self, batch: Dict) -> Dict:
-        augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1, temperature=0.7)
+        augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1)
         augmented_batch = deepcopy(batch)
         augmented_batch["text"].extend(augmented_text_a)
         augmented_batch["label"] = torch.cat((batch["label"], batch["label"]), dim=0)
