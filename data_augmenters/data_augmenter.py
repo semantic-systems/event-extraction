@@ -1,8 +1,9 @@
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Optional
 from tqdm import tqdm
 from transformers import FSMTModel, FSMTTokenizer, FSMTForConditionalGeneration
 from data_augmenters.tweet_normalizer import normalizeTweet
 from utils import instantiate_config
+import nlpaug.augmenter.word as naw
 
 
 class DataAugmenter(object):
@@ -58,6 +59,32 @@ class FSMTBackTranslationAugmenter(TweetsAugmenter):
         return model, tokenizer
 
 
+class RandomAugmenter(TweetsAugmenter):
+    def __init__(self):
+        self.swap_augmenter = self.instantiate_augmenter("swap", 0.1, aug_max=2)
+        self.delete_augmenter = self.instantiate_augmenter("delete", 0.1, aug_max=2)
+        self.substitute_augmenter = self.instantiate_augmenter("substitute", 0.1, aug_max=2)
+
+    def augment(self, data: Union[str, list], num_return_sequences: int = 1, num_thread: int = 1) -> List:
+        normalized_data = self.normalize_tweets(data)
+        if isinstance(data, str) or (isinstance(data, list) and len(data) == 1):
+            augmented_text = self.swap_augmenter.augment(normalized_data[0], n=num_return_sequences, num_thread=num_thread)
+            augmented_text = self.delete_augmenter.augment(augmented_text, n=num_return_sequences, num_thread=num_thread)
+            augmented_text = self.swap_augmenter.augment(augmented_text, n=num_return_sequences, num_thread=num_thread)
+            augmented_text = list(augmented_text)
+        else:
+            augmented_text = self.swap_augmenter.augment(normalized_data)
+            augmented_text = self.delete_augmenter.augment(augmented_text)
+            augmented_text = self.substitute_augmenter.augment(augmented_text)
+        return list(map(self.clean_up_tokenization, augmented_text))
+
+    @staticmethod
+    def instantiate_augmenter(action: str, aug_p: float, aug_max: Optional[int] = None):
+        """actions: swap, delete, substitute or crop"""
+        return naw.RandomWordAug(action=action, aug_p=aug_p, aug_max=aug_max)
+
+
+
 if __name__ == "__main__":
     from event_extractor.engines.environment import StaticEnvironment
     from event_extractor.validate import ConfigValidator
@@ -68,10 +95,10 @@ if __name__ == "__main__":
     config = validator()
     env = StaticEnvironment(cfg)
     data_loader = env.load_environment("train", "batch_training")
-    augmenter = FSMTBackTranslationAugmenter()
+    augmenter = RandomAugmenter()
     for i, batch in enumerate(tqdm(data_loader)):
         normalized_tweets = list(map(normalizeTweet, batch['text']))
-        augmented_text = augmenter.augment(normalized_tweets, 2)
+        augmented_text = augmenter.augment(normalized_tweets)
         print(f"original text: "
               f"{batch['text']}\n"
               f"normalized: "
