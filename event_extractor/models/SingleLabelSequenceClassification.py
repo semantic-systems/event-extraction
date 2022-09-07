@@ -28,7 +28,8 @@ class SingleLabelSequenceClassification(SequenceClassification):
             loss = self.loss(head_output.output, input_feature.labels)
             loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
             return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
@@ -81,7 +82,8 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output)
+            return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
             return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
