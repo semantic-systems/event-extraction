@@ -1,6 +1,6 @@
 data:
-  batch_size: 32
-  config: emoji
+  batch_size: 64
+  config: emotion
   label_column: label
   name: tweet_eval
   validation: true
@@ -24,8 +24,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/dropout_aug/less_cl/
-name: emoji_dropout_aug
+  output_path: ./outputs/tweeteval/dropout_aug/larger_batch_size/
+name: emotion_dropout_aug_larger_batch_size
 seed: 0
 visualizer:
 - tsne

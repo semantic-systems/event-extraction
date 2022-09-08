@@ -12,7 +12,7 @@ model:
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 0.9
+    contrastive_loss_ratio: 0.7
     temperature: 0.3
   dropout_rate: 0.5
   epochs: 50
@@ -24,7 +24,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/dropout_aug/
+  output_path: ./outputs/tweeteval/dropout_aug/less_cl/
 name: sentiment_dropout_aug
 seed: 0
 visualizer:
