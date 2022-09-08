@@ -8,7 +8,7 @@ from torch import tensor
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter, RandomAugmenter
+from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter, RandomAugmenter, DropoutAugmenter
 from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, \
     PrototypicalNetworksForwardOutput, AgentPolicyOutput, TSNEFeature
@@ -105,7 +105,7 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(device):
-        return RandomAugmenter()
+        return DropoutAugmenter()
 
     def augment(self, batch: Dict) -> Dict:
         augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1)
