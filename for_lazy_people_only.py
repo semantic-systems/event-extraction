@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -13,7 +14,7 @@ class Result(object):
         self.result = self.read_json(path)
         self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
                       "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
-        self.models = ["back_translation", "scl_no_augmentation", "random_aug"]#, "sc"]
+        self.models = ["back_translation", "scl_no_augmentation", "random_aug", "dropout_aug"]#, "sc"]
         self.seeds = [0, 1, 2]
         self.seed = self.get_seed()
         self.task = self.get_task()
@@ -42,7 +43,8 @@ class Result(object):
         model_map = {#"sl": "Rob-Bs",
                      "scl_no_augmentation": "SCL(no aug)",
                      "back_translation": "SCL(de-en)",
-                     "random_aug": "SCL(random)"}
+                     "random_aug": "SCL(random)",
+                     "dropout_aug": "SCL(dropout)"}
         for model in self.models:
             if model in self.path:
                 return model_map[model]
@@ -72,14 +74,14 @@ class Result(object):
 
 class LatexTableWriter(object):
     def __init__(self, output_path: str):
-        output_path = output_path
+        self.output_path = output_path
         test_result_path = self.fetch_test_results_from_dir(output_path)
         self.result_instances = self.retrieve_result_instance(test_result_path)
         self.task_list = self.result_instances[0].tasks
         self.latex_table_column_name = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
         self.result_df_column_name = ["seed", "model", "metric_name", "metric_score", "task"]
         self.result_df = self.get_result_df(self.result_instances)
-        self.write_to_csv(self.result_df, "./outputs/tweeteval/random_aug/results.csv")
+        self.write_to_csv(self.result_df, str(Path(self.output_path, "results.csv").absolute()))
 
     @staticmethod
     def write_to_csv(df: pd.DataFrame, path: str):
@@ -116,7 +118,7 @@ class LatexTableWriter(object):
         return pd.DataFrame(data)
 
     def write_to_tex(self):
-        with open("./outputs/tweeteval/random_aug/latex_table.tex", "w") as f:
+        with open(str(Path(self.output_path, "latex_table.tex").absolute()), "w") as f:
             f.write("\\scalebox{0.75}{\n"
                     "\\begin{center}\n"
                     "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n"
@@ -192,5 +194,5 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./outputs/tweeteval/random_aug/")
+    writer = LatexTableWriter("./outputs/tweeteval/dropout_aug/")
     print(writer.write_to_tex())
