@@ -95,10 +95,10 @@ class BatchLearningAgent(Agent):
             prediction = outputs.prediction_logits.argmax(1)
             y_predict.extend(prediction)
             if mode in ["train", "validation"]:
-                loss = (loss + outputs.loss.item())/(i+1)
+                loss = (loss + outputs.loss)/(i+1)
             if "tsne" in self.config.visualizer and mode in ["validation", "test"]:
-                tsne_features["encoded_features"].extend(outputs.encoded_features.tolist())
-                tsne_features["final_hidden_states"].extend(outputs.prediction_logits.tolist())
+                tsne_features["encoded_features"].extend(outputs.encoded_features)
+                tsne_features["final_hidden_states"].extend(outputs.prediction_logits.detach().numpy())
 
         return AgentPolicyOutput(**{"y_predict": y_predict, "y_true": y_true, "loss": loss,
                                     "tsne_feature": TSNEFeature(**tsne_features)})

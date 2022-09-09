@@ -65,7 +65,7 @@ class TSNEVisualizer(Visualizer):
         self.model = TSNE(n_components=n_components, verbose=0, perplexity=perplexity, n_iter=n_iter)
 
     def visualize(self, data: FeatureToVisualize, path_to_save: Optional[str] = None):
-        tsne_results = self.model.fit_transform(np.asarray(data.feature))
+        tsne_results = self.model.fit_transform(data.feature)
         df = pd.DataFrame()
         df["y"] = data.labels
         df["comp-1"] = tsne_results[:, 0]

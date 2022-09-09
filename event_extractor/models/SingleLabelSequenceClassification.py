@@ -28,15 +28,15 @@ class SingleLabelSequenceClassification(SequenceClassification):
             loss = self.loss(head_output.output, input_feature.labels)
             loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         elif mode == "test":
             return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
@@ -82,15 +82,15 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=total_loss, prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss, prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         elif mode == "test":
             return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+                                                          encoded_features=encoded_feature.encoded_feature.detach().numpy())
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
