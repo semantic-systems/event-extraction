@@ -1,3 +1,5 @@
+import json
+import pickle
 from pathlib import Path
 from typing import Dict, Union, List, Optional
 from abc import abstractmethod
@@ -5,7 +7,7 @@ from abc import abstractmethod
 import torch
 import emoji
 from matplotlib import pyplot as plt
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf, open_dict
 from dataclasses import dataclass, asdict
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, recall_score, precision_score
@@ -20,14 +22,13 @@ from event_extractor.schema import ClassificationResult, TSNEFeature, FeatureToV
 
 @dataclass
 class EnvironmentState(object):
-    task: str = 'classification'
-    num_agent: int = 1
+    config: Dict
 
 
 class Environment(object):
     def __init__(self, config: DictConfig):
         self.config = config
-        self.state = EnvironmentState()
+        self.state = EnvironmentState({"config": self.config})
         self.environment = self.instantiate_environment()
 
     @abstractmethod
@@ -44,17 +45,26 @@ class Environment(object):
         raise NotImplementedError
 
     @abstractmethod
-    def update_state(self, state: Dict):
+    def update_state(self, state: EnvironmentState):
         raise NotImplementedError
 
     def return_state_as_dict(self):
         return asdict(self.state)
 
     def get_path_to_plot(self, name: str) -> str:
-        path_to_plot: str = str(
-            Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots", f"{name}")
-                .absolute())
-        return path_to_plot
+        return str(Path(self.path_to_output, "plots", f"{name}").absolute())
+
+    @property
+    def path_to_output(self):
+        return Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}").absolute()
+
+    def dump_config(self):
+        with open(Path(self.path_to_output, f"config.yaml"), "w") as final:
+            OmegaConf.save(config=self.config, f=final)
+
+    def dump_result(self, result: List, mode: str):
+        with open(Path(self.path_to_output, f"{mode}_result.json"), "w") as final:
+            json.dump(result, final, indent=2)
 
 
 class StaticEnvironment(Environment):

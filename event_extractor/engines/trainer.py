@@ -107,11 +107,6 @@ class Trainer(object):
                      f"{self.config.name}_best_model.pt").absolute(),
                 index_label_map=label_index_map)
 
-    def dump_result(self, result: List, mode: str):
-        with open(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}",
-                       f"{mode}_result.json"), "w") as final:
-            json.dump(result, final, indent=2)
-
     def save_final_model(self):
         label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
         self.agent.policy.save_model(
@@ -239,9 +234,10 @@ class BatchLearningTrainer(SingleAgentTrainer):
                     logger.warning(f"Early stopping reached at epoch: {n}")
                     break
 
-        self.dump_result(train_result, mode='train')
+        self.environment.dump_result(train_result, mode='train')
+        self.environment.dump_config()
         if self.config.data.validation:
-            self.dump_result(validation_result, mode='validation')
+            self.environment.dump_result(validation_result, mode='validation')
         else:
             # save the final trained model -> not recommended
             self.save_final_model()
@@ -266,7 +262,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                            f"Recall macro: {result.recall_macro}, "
                            f"Other: {result.other}")
             self.log_result(result_per_epoch=result, final_result=test_result)
-            self.dump_result(test_result, mode='test')
+            self.environment.dump_result(test_result, mode='test')
 
 
 class MetaLearningTrainer(BatchLearningTrainer):

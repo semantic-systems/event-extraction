@@ -16,7 +16,7 @@ model:
     contrastive_loss_ratio: 0.9
     temperature: 0.3
   dropout_rate: 0.5
-  epochs: 5
+  epochs: 1
   freeze_transformer_layers: none
   from_pretrained: roberta-base
   layers:
