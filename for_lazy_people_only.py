@@ -83,19 +83,47 @@ class TweetEvalResultTable(Table):
         return string
 
 
+class CrisisResultTable(Table):
+    name: str = "Crisis"
+    column: List = ["", "Event Type"]
+    benchmark_data: str = "\\scalebox{0.75}{\n" \
+                          "\\begin{center}\n" \
+                          "\\begin{tabular}{c|c}\n" \
+                          "\\hline\n" \
+                          "&Event Type\\\ \n" \
+                          "\\hline\\hline \n"
+
+    def __init__(self, result_df: pd.DataFrame):
+        super(CrisisResultTable, self).__init__(result_df)
+
+    def write_row(self, row_name: str, task_list: List):
+        tex = f"{row_name}&"
+        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list}
+        for i, task in enumerate(task_list):
+            df = self.result_df[(self.result_df['model'] == row_name) & (self.result_df['task'] == task)]
+            scores[task]["avg"] = df['metric_score'].mean()
+            scores[task]["std"] = df['metric_score'].std()
+            scores[task]["max"] = df['metric_score'].max()
+        for i, task in enumerate(self.column[1:]):
+            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
+            tex += "\\\ \n"
+        return tex
+
+    def write_end(self) -> str:
+        string = "\\hline\\hline\n" \
+                 "\\textbf{Metric}&M-F1\n" \
+                 "\\end{tabular}\n" \
+                 "\\end{center}}"
+        return string
+
+
 class Result(object):
     def __init__(self, path: str, root: str):
         self.root = root
         self.path = path
         self.result = self.read_json(path)
-        self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
-                      "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
+        self.tasks = []
         self.seeds = [0, 1, 2]
-        self.seed = self.get_seed()
-        self.task = self.get_task()
-        self.model = self.get_model()
-        self.metric_name = self.get_metric_name(self.task)
-        self.metric = self.get_metric(self.metric_name)
 
     @staticmethod
     def read_json(path: str):
@@ -118,16 +146,7 @@ class Result(object):
 
     @staticmethod
     def get_metric_name(task):
-        metric_dict = {"stance": ["other"],
-                       "sentiment": ["recall_macro"],
-                       "offensive": ["f1_macro"],
-                       "irony": ["f1_per_class", "irony"],
-                       "hate": ["f1_macro"],
-                       "emotion": ["f1_macro"],
-                       "emoji": ["f1_macro"]}
-
-        task = "stance" if "stance" in task else task
-        return metric_dict[task]
+        raise NotImplementedError
 
     def get_metric(self, metric_name) -> float:
         if len(metric_name) == 1:
@@ -139,9 +158,58 @@ class Result(object):
         return metric
 
 
+class CrisisResult(Result):
+    def __init__(self, path: str, root: str):
+        super(CrisisResult, self).__init__(path, root)
+        self.tasks = ["Event Type"]
+        self.seeds = [0, 1, 2]
+        self.task = "Event Type"
+        self.seed = self.get_seed()
+        self.model = self.get_model()
+        self.metric_name = self.get_metric_name(self.task)
+        self.metric = self.get_metric(self.metric_name)
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"Event Type": ["f1_macro"]}
+        return metric_dict[task]
+
+
+class TweetEvalResult(Result):
+    def __init__(self, path: str, root: str):
+        super(TweetEvalResult, self).__init__(path, root)
+        self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
+                      "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
+        self.seeds = [0, 1, 2]
+        self.seed = self.get_seed()
+        self.task = self.get_task()
+        self.model = self.get_model()
+        self.metric_name = self.get_metric_name(self.task)
+        self.metric = self.get_metric(self.metric_name)
+
+    def get_task(self) -> str:
+        for task in self.tasks:
+            if task in self.path:
+                return task
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"stance": ["other"],
+                       "sentiment": ["recall_macro"],
+                       "offensive": ["f1_macro"],
+                       "irony": ["f1_per_class", "irony"],
+                       "hate": ["f1_macro"],
+                       "emotion": ["f1_macro"],
+                       "emoji": ["f1_macro"]}
+
+        task = "stance" if "stance" in task else task
+        return metric_dict[task]
+
+
 class LatexTableWriter(object):
-    def __init__(self, output_path: str, table_class: type(Table)):
+    def __init__(self, output_path: str, table_class: type(Table), result_class: type(Result)):
         self.output_path = output_path
+        self.result_class = result_class
         test_result_path = self.fetch_test_results_from_dir(output_path)
         self.result_instances = self.retrieve_result_instance(test_result_path)
         self.row_list = self.get_model_list(test_result_path)
@@ -161,7 +229,7 @@ class LatexTableWriter(object):
         return [fname for fname in self.walk_through_files(root, "test_result.json")]
 
     def retrieve_result_instance(self, result_path: List[str]) -> List[Result]:
-        return [Result(file, root=self.output_path) for file in result_path]
+        return [self.result_class(file, root=self.output_path) for file in result_path]
 
     @staticmethod
     def walk_through_files(path, file_extension='.csv'):
@@ -224,7 +292,9 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable)
-    print(writer.write_to_tex())
+    writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
+    writer.write_to_tex()
+    writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
+    writer.write_to_tex()
 
 
