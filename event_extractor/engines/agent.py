@@ -83,8 +83,8 @@ class BatchLearningAgent(Agent):
         for i, batch in enumerate(tqdm(data_loader)):
             if mode == "train":
                 self.policy.optimizer.zero_grad()
-                if self.Augmenter is not None:
-                    batch = self.augment(batch)
+                # if self.Augmenter is not None:
+                #     batch = self.augment(batch)
             if mode == "test":
                 test_input.extend(batch["text"])
             labels: tensor = batch["label"].to(self.device)
