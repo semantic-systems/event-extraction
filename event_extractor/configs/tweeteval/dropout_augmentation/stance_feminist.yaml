@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/dropout_aug/less_cl/
 name: stance_feminist_dropout_aug
-seed: 1
+seed: 2
 visualizer:
 - tsne
