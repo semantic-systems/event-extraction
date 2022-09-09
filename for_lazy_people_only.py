@@ -1,5 +1,7 @@
+import abc
 import json
 import os
+import re
 from pathlib import Path
 
 import numpy as np
@@ -8,18 +10,90 @@ import yaml
 from typing import Dict, List
 
 
+class Table(object):
+    name: str
+    column: List
+    benchmark_data: str
+
+    def __init__(self, result_df: pd.DataFrame):
+        self.result_df = result_df
+
+    @abc.abstractmethod
+    def write_row(self, row_name: str, task_list: List):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def write_end(self, **kwargs):
+        raise NotImplementedError
+
+
+class TweetEvalResultTable(Table):
+    name: str = "TweetEval"
+    column: List = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
+    benchmark_data: str = "\\scalebox{0.75}{\n" \
+                          "\\begin{center}\n" \
+                          "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n" \
+                          "\\hline\n" \
+                          "&Emoji&Emotion&Hate&Irony&Offensive&Sentiment&Stance&All\\\ \n" \
+                          "\\hline\\hline \n" \
+                          "SVM& 29.3& 64.7&36.7&61.7&52.3&62.9&67.3&53.5\\\ \n" \
+                          "FastText& 25.8& 65.2&50.6&63.1&73.4&62.9&65.4&58.1\\\ \n" \
+                          "BLSTM& 24.7& 66.0&52.6&62.8&71.7&58.3&59.4&56.5\\\ \n" \
+                          "Rob-Bs& 30.9\small$\pm$0.2\\thinspace(30.8)& 76.1\small$\pm$0.5\\thinspace(76.6)& 46.6\small$\pm$2.5\\thinspace(44.9)&59.7\small$\pm$5.0\\thinspace(55.2)&79.5\small$\pm$0.7\\thinspace(78.7)& 71.3\small$\pm$1.1\\thinspace(72.0)&68.0\small$\pm$0.8\\thinspace(70.9)&61.3\\\ \n" \
+                          "Rob-RT& 31.4\small$\pm$0.4\\thinspace(31.6)& 78.5\small$\pm$1.2\\thinspace(79.8)& 52.3\small$\pm$0.2\\thinspace(55.5)&61.7\small$\pm$0.6\\thinspace(62.5)&80.5\small$\pm$1.4\\thinspace(81.6)& 72.6\small$\pm$0.4\\thinspace(72.9)&69.3\small$\pm$1.1\\thinspace(72.6)&65.2\\\ \n " \
+                          "Rob-Tw& 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n " \
+                          "XLM-R& 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n " \
+                          "XLM-Tw& 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n"  \
+                          "\\hline\n"
+
+    def __init__(self, result_df: pd.DataFrame):
+        super(TweetEvalResultTable, self).__init__(result_df)
+
+    def write_row(self, row_name: str, task_list: List):
+        tex = f"{row_name}&"
+        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
+        stance_avg_score = []
+        for i, task in enumerate(task_list):
+            df = self.result_df[(self.result_df['model'] == row_name) & (self.result_df['task'] == task)]
+            if "stance" in task:
+                stance_avg_score.append(df['metric_score'].mean())
+            else:
+                scores[task]["avg"] = df['metric_score'].mean()
+                scores[task]["std"] = df['metric_score'].std()
+                scores[task]["max"] = df['metric_score'].max()
+        scores["stance"] = {"avg": 0, "std": 0, "max": 0}
+        scores["stance"]["avg"] = np.mean(stance_avg_score)
+        scores["stance"]["std"] = np.std(stance_avg_score)
+        scores["stance"]["max"] = np.max(stance_avg_score)
+        scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
+        scores = {k.capitalize(): v for k, v in scores.items()}
+        latex_column = self.column[1:-1]
+        for i, task in enumerate(latex_column):
+            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
+            if i == len(latex_column)-1:
+                tex += str(round(100*scores["All"], 1))
+                tex += "\\\ \n"
+        return tex
+
+    def write_end(self) -> str:
+        string = "\\hline\\hline\n" \
+                 "\\textbf{Metric}&M-F1&M-F1&M-F1&F$^{(i)}$&M-F1&M-Rec&AVG(F$^{(a)}$, F$^{(f)}$)&TE\n" \
+                 "\\end{tabular}\n" \
+                 "\\end{center}}"
+        return string
+
+
 class Result(object):
-    def __init__(self, path: str):
+    def __init__(self, path: str, root: str):
+        self.root = root
         self.path = path
         self.result = self.read_json(path)
         self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
                       "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
-        self.models = ["back_translation", "scl_no_augmentation", "random_aug", "dropout_aug", "less_cl", "larger_batch_size"]#, "sc"]
         self.seeds = [0, 1, 2]
         self.seed = self.get_seed()
         self.task = self.get_task()
         self.model = self.get_model()
-        self.name = f"{self.get_task()}_{self.model}_{self.seed}"
         self.metric_name = self.get_metric_name(self.task)
         self.metric = self.get_metric(self.metric_name)
 
@@ -40,16 +114,7 @@ class Result(object):
                 return task
 
     def get_model(self) -> str:
-        model_map = {#"sl": "Rob-Bs",
-                     "scl_no_augmentation": "SCL(no aug)",
-                     "back_translation": "SCL(de-en)",
-                     "random_aug": "SCL(random)",
-                     "dropout_aug": "SCL(dropout)",
-                     "less_cl": "SCL(dropout_less_cl)",
-                     "larger_batch_size": "SCL(dropout_less_cl_64_bz)"}
-        for model in self.models:
-            if model in self.path:
-                return model_map[model]
+        return re.search(f"{self.root}(.*)/", self.path).group(1).split("/")[0]
 
     @staticmethod
     def get_metric_name(task):
@@ -75,27 +140,35 @@ class Result(object):
 
 
 class LatexTableWriter(object):
-    def __init__(self, output_path: str):
+    def __init__(self, output_path: str, table_class: type(Table)):
         self.output_path = output_path
         test_result_path = self.fetch_test_results_from_dir(output_path)
         self.result_instances = self.retrieve_result_instance(test_result_path)
+        self.row_list = self.get_model_list(test_result_path)
         self.task_list = self.result_instances[0].tasks
-        self.latex_table_column_name = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
-        self.result_df_column_name = ["seed", "model", "metric_name", "metric_score", "task"]
         self.result_df = self.get_result_df(self.result_instances)
+        self.table = table_class(self.result_df)
         self.write_to_csv(self.result_df, str(Path(self.output_path, "results.csv").absolute()))
+
+    def get_model_list(self, path_list: list) -> list:
+        return list(set([re.search(f"{self.output_path}(.*)/", path).group(1).split("/")[0] for path in path_list]))
 
     @staticmethod
     def write_to_csv(df: pd.DataFrame, path: str):
         df.to_csv(path)
 
-    @staticmethod
-    def fetch_test_results_from_dir(root: str):
-        return [f"{path}/{name}" for path, subdirs, files in os.walk(root) for name in files if "test" in name and name.endswith("json")]
+    def fetch_test_results_from_dir(self, root: str):
+        return [fname for fname in self.walk_through_files(root, "test_result.json")]
+
+    def retrieve_result_instance(self, result_path: List[str]) -> List[Result]:
+        return [Result(file, root=self.output_path) for file in result_path]
 
     @staticmethod
-    def retrieve_result_instance(result_path: List[str]) -> List[Result]:
-        return [Result(file) for file in result_path]
+    def walk_through_files(path, file_extension='.csv'):
+        for (dirpath, dirnames, filenames) in os.walk(path):
+            for filename in filenames:
+                if filename.endswith(file_extension):
+                    yield os.path.join(dirpath, filename)
 
     @staticmethod
     def get_result_df(result_instances: List[Result]) -> pd.DataFrame:
@@ -110,7 +183,6 @@ class LatexTableWriter(object):
                 metric_name.append(f"{metric[0]}: {metric[1]}")
             else:
                 raise NotImplementedError
-
         data = {'seed': [result.seed for result in result_instances],
                 'task': [result.task for result in result_instances],
                 'model': [result.model for result in result_instances],
@@ -120,55 +192,11 @@ class LatexTableWriter(object):
         return pd.DataFrame(data)
 
     def write_to_tex(self):
-        with open(str(Path(self.output_path, "latex_table.tex").absolute()), "w") as f:
-            f.write("\\scalebox{0.75}{\n"
-                    "\\begin{center}\n"
-                    "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n"
-                    "\\hline\n"
-                    "&Emoji&Emotion&Hate&Irony&Offensive&Sentiment&Stance&All\\\ \n" 
-                     "\\hline\\hline \n"
-                     "SVM& 29.3& 64.7&36.7&61.7&52.3&62.9&67.3&53.5\\\ \n"
-                     "FastText& 25.8& 65.2&50.6&63.1&73.4&62.9&65.4&58.1\\\ \n" 
-                     "BLSTM& 24.7& 66.0&52.6&62.8&71.7&58.3&59.4&56.5\\\ \n"
-                     "Rob-Bs& 30.9\small$\pm$0.2\\thinspace(30.8)& 76.1\small$\pm$0.5\\thinspace(76.6)& 46.6\small$\pm$2.5\\thinspace(44.9)&59.7\small$\pm$5.0\\thinspace(55.2)&79.5\small$\pm$0.7\\thinspace(78.7)& 71.3\small$\pm$1.1\\thinspace(72.0)&68.0\small$\pm$0.8\\thinspace(70.9)&61.3\\\ \n"
-                     "Rob-RT& 31.4\small$\pm$0.4\\thinspace(31.6)& 78.5\small$\pm$1.2\\thinspace(79.8)& 52.3\small$\pm$0.2\\thinspace(55.5)&61.7\small$\pm$0.6\\thinspace(62.5)&80.5\small$\pm$1.4\\thinspace(81.6)& 72.6\small$\pm$0.4\\thinspace(72.9)&69.3\small$\pm$1.1\\thinspace(72.6)&65.2\\\ \n "
-                     "Rob-Tw& 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n "
-                     "XLM-R& 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n "
-                     "XLM-Tw& 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n" 
-                     "\\hline\n"
-                    )
-            for model in list(set(self.result_df["model"])):
-                f.write(self.write_tex_per_model(model))
-            f.write("\\hline\\hline\n"
-                    "\\textbf{Metric}&M-F1&M-F1&M-F1&F$^{(i)}$&M-F1&M-Rec&AVG(F$^{(a)}$, F$^{(f)}$)&TE\n")
-            f.write("\\end{tabular}\n")
-            f.write("\\end{center}}")
-
-    def write_tex_per_model(self, model: str):
-        tex = f"{model}&"
-        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in self.task_list if "stance" not in task}
-        stance_avg_score = []
-        for i, task in enumerate(self.task_list):
-            df = self.result_df[(self.result_df['model'] == model) & (self.result_df['task'] == task)]
-            if "stance" in task:
-                stance_avg_score.append(df['metric_score'].mean())
-            else:
-                scores[task]["avg"] = df['metric_score'].mean()
-                scores[task]["std"] = df['metric_score'].std()
-                scores[task]["max"] = df['metric_score'].max()
-        scores["stance"] = {"avg": 0, "std": 0, "max": 0}
-        scores["stance"]["avg"] = np.mean(stance_avg_score)
-        scores["stance"]["std"] = np.std(stance_avg_score)
-        scores["stance"]["max"] = np.max(stance_avg_score)
-        scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
-        scores = {k.capitalize(): v for k, v in scores.items()}
-        latex_column = self.latex_table_column_name[1:-1]
-        for i, task in enumerate(latex_column):
-            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
-            if i == len(latex_column)-1:
-                tex += str(round(100*scores["All"], 1))
-                tex += "\\\ \n"
-        return tex
+        with open(str(Path(self.output_path, f"{self.table.name}_latex_table.tex").absolute()), "w") as f:
+            f.write(self.table.benchmark_data)
+            for model in self.row_list:
+                f.write(self.table.write_row(row_name=model, task_list=self.task_list))
+            f.write(self.table.write_end())
 
 
 class ConfigWriter(object):
@@ -196,5 +224,7 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./outputs/tweeteval/dropout_aug/less_cl/")
+    writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable)
     print(writer.write_to_tex())
+
+
