@@ -27,6 +27,7 @@ class AgentPolicyOutput:
     y_true: List
     loss: float
     tsne_feature: Optional[TSNEFeature] = None
+    test_input_text: Optional[List] = None
 
 
 @dataclass

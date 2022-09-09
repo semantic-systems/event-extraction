@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict, Union, List, Optional
 from abc import abstractmethod
 
+import pandas as pd
 import torch
 import emoji
 from matplotlib import pyplot as plt
@@ -65,6 +66,10 @@ class Environment(object):
     def dump_result(self, result: List, mode: str):
         with open(Path(self.path_to_output, f"{mode}_result.json"), "w") as final:
             json.dump(result, final, indent=2)
+
+    def dump_csv(self, data: Dict):
+        df = pd.DataFrame.from_dict(data)
+        df.to_csv(Path(self.path_to_output, 'test_result.csv'), index=True, header=True)
 
 
 class StaticEnvironment(Environment):

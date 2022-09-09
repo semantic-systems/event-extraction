@@ -1,11 +1,13 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
 from abc import abstractmethod
 
 import torch
 from omegaconf import DictConfig
+from torch import tensor
+
 from event_extractor.engines.agent import Agent, BatchLearningAgent, MetaLearningAgent
 from event_extractor.engines.environment import Environment, StaticEnvironment
 from event_extractor.helper import fill_config_with_num_classes, get_data_time, set_run_training, set_run_testing
@@ -114,6 +116,10 @@ class Trainer(object):
                  f"{self.config.name}_{get_data_time()}.pt").absolute(),
             index_label_map=label_index_map)
 
+    def convert_tensor_index_to_label(self, labels: List[tensor]) -> List:
+        labels = [label.item() for label in labels]
+        return list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+
 
 class SingleAgentTrainer(Trainer):
     def __init__(self, config: DictConfig):
@@ -208,8 +214,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                 y_predict, y_true, validation_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
                 if "tsne" in self.config.visualizer:
                     tsne_feature = agent_output.tsne_feature
-                    labels = [label.item() for label in y_true]
-                    tsne_feature.labels = list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+                    tsne_feature.labels = self.convert_tensor_index_to_label(y_true)
                     self.environment.visualize_embedding(tsne_feature=tsne_feature, epoch=n)
 
                 validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
@@ -247,9 +252,13 @@ class BatchLearningTrainer(SingleAgentTrainer):
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
         test_result = []
+        test_data: Dict = {"text": [], "label": [], "prediction": []}
         with torch.no_grad():
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="test")
             y_predict, y_true, loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
+            test_data: Dict = {"text": agent_output.test_input_text,
+                               "label": self.convert_tensor_index_to_label(y_true),
+                               "prediction": self.convert_tensor_index_to_label(y_predict)}
             if "tsne" in self.config.visualizer:
                 tsne_feature = agent_output.tsne_feature
                 labels = [label.item() for label in y_true]
@@ -263,6 +272,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                            f"Other: {result.other}")
             self.log_result(result_per_epoch=result, final_result=test_result)
             self.environment.dump_result(test_result, mode='test')
+            self.environment.dump_csv(test_data)
 
 
 class MetaLearningTrainer(BatchLearningTrainer):

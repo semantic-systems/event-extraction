@@ -1,4 +1,4 @@
-from typing import Dict, Union, Type
+from typing import Dict, Union, Type, List
 
 import torch
 from omegaconf import DictConfig
@@ -78,11 +78,15 @@ class BatchLearningAgent(Agent):
         y_predict, y_true = [], []
         loss = 0
         tsne_features: Dict = {"final_hidden_states": [], "encoded_features": [], "labels": []}
+        test_input: List = []
+
         for i, batch in enumerate(tqdm(data_loader)):
             if mode == "train":
                 self.policy.optimizer.zero_grad()
                 if self.Augmenter is not None:
                     batch = self.augment(batch)
+            if mode == "test":
+                test_input.extend(batch["text"])
             labels: tensor = batch["label"].to(self.device)
             y_true.extend(labels)
             batch = self.policy.preprocess(batch)
@@ -99,9 +103,8 @@ class BatchLearningAgent(Agent):
             if "tsne" in self.config.visualizer and mode in ["validation", "test"]:
                 tsne_features["encoded_features"].extend(outputs.encoded_features)
                 tsne_features["final_hidden_states"].extend(outputs.prediction_logits.detach().numpy())
-
         return AgentPolicyOutput(**{"y_predict": y_predict, "y_true": y_true, "loss": loss,
-                                    "tsne_feature": TSNEFeature(**tsne_features)})
+                                    "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input})
 
     @staticmethod
     def instantiate_augmenter(device):

@@ -13,7 +13,7 @@ model:
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 0.9
+    contrastive_loss_ratio: 0
     temperature: 0.3
   dropout_rate: 0.5
   epochs: 1
