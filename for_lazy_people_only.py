@@ -14,7 +14,7 @@ class Result(object):
         self.result = self.read_json(path)
         self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
                       "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
-        self.models = ["back_translation", "scl_no_augmentation", "random_aug", "dropout_aug"]#, "sc"]
+        self.models = ["back_translation", "scl_no_augmentation", "random_aug", "dropout_aug", "less_cl", "larger_batch_size"]#, "sc"]
         self.seeds = [0, 1, 2]
         self.seed = self.get_seed()
         self.task = self.get_task()
@@ -44,7 +44,9 @@ class Result(object):
                      "scl_no_augmentation": "SCL(no aug)",
                      "back_translation": "SCL(de-en)",
                      "random_aug": "SCL(random)",
-                     "dropout_aug": "SCL(dropout)"}
+                     "dropout_aug": "SCL(dropout)",
+                     "less_cl": "SCL(dropout_less_cl)",
+                     "larger_batch_size": "SCL(dropout_less_cl_64_bz)"}
         for model in self.models:
             if model in self.path:
                 return model_map[model]
@@ -194,5 +196,5 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./outputs/tweeteval/dropout_aug/")
+    writer = LatexTableWriter("./outputs/tweeteval/dropout_aug/less_cl/")
     print(writer.write_to_tex())

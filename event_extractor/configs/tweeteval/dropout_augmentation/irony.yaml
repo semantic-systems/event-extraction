@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/dropout_aug/less_cl/
 name: irony_dropout_aug
-seed: 0
+seed: 1
 visualizer:
 - tsne
