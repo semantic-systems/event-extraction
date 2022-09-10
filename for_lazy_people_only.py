@@ -285,16 +285,16 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 0
+            config["seed"] = 1
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/back_translation_de_en_1/")
-    writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
-    writer.write_to_tex()
-    writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
-    writer.write_to_tex()
+    ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/random_augmentation/")
+    # writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
+    # writer.write_to_tex()
+    # writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
+    # writer.write_to_tex()
 
 
