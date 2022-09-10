@@ -3,14 +3,13 @@ data:
   label_column: label
   name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   validation: true
-  subset: 0.1
 early_stopping:
   delta: 0
   tolerance: 5
 model:
   L2_normalize_encoded_feature: false
   dropout_rate: 0.5
-  epochs: 1
+  epochs: 50
   freeze_transformer_layers: none
   from_pretrained: bert-base-uncased
   layers:
@@ -21,8 +20,8 @@ model:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
-  num_transformer_layers: 1
-  output_path: ./outputs/crisis/
+  num_transformer_layers: full
+  output_path: ./outputs/crisis/clean/
 name: crisis_bert_base_uncased
 seed: 0
 visualizer:
