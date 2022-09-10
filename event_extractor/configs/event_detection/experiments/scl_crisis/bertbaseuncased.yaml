@@ -26,7 +26,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/clean/
+  output_path: ./outputs/crisis/scl/
 name: crisis_bert_base_uncased
 seed: 0
 visualizer:

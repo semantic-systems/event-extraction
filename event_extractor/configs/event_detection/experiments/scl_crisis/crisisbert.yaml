@@ -16,7 +16,7 @@ model:
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
-  from_pretrained: bert-base-uncased
+  from_pretrained: language_models/CoyPu-CrisisLM-v1
   layers:
     layer1:
       n_in: 768
@@ -26,8 +26,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/clean/
-name: crisis_bert_base_uncased
+  output_path: ./outputs/crisis/scl/
+name: crisis_crisisbert
 seed: 0
 visualizer:
 - tsne
