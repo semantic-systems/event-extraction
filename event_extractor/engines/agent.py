@@ -108,7 +108,7 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(device):
-        return DropoutAugmenter()
+        return RandomAugmenter() #DropoutAugmenter()
 
     def augment(self, batch: Dict) -> Dict:
         augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1)

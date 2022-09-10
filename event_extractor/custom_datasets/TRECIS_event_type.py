@@ -91,14 +91,16 @@ class DataProcessorEventType(object):
 class TrecisDataset(datasets.GeneratorBasedBuilder):
     """TREC-IS Dataset"""
 
-    _URL = {"train": "../../../../data/trec_is/data/train.tsv",
-            "test": "../../../../data/trec_is/data/test.tsv"}
+    _URL = {"train": "../../../../data/trec_is/train_final_clean.tsv",
+            "validation": "../../../../data/trec_is/validation_final_clean.tsv",
+            "test": "../../../../data/trec_is/test_final_clean.tsv"}
 
-    train_data_label = ['out-of-scope', 'mudslide', 'wildfire', 'earthquake', 'flood', 'typhoon', 'shooting', 'bombing', 'pandemic', 'explosion', 'storm', 'fire', 'hostage', 'tornado']
+    # train_data_label = ['out-of-scope', 'mudslide', 'wildfire', 'earthquake', 'flood', 'typhoon', 'shooting', 'bombing', 'pandemic', 'explosion', 'storm', 'fire', 'hostage', 'tornado']
+    train_data_label = ['tropical_storm', 'flood', 'shooting', 'covid', 'earthquake', 'hostage', 'fire', 'wildfire', 'explosion']
     BUILDER_CONFIGS = [
         TrecisConfig(
             name="trecis",
-            version=datasets.Version("1.0.0"),
+            version=datasets.Version("2.0.0"),
             description="TREC-IS Dataset: TREC Incident Stream Dataset",
         ),
     ]
@@ -109,10 +111,8 @@ class TrecisDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=['wildfire', 'earthquake', 'flood', 'typhoon',
-                                                                 'shooting', 'bombing', 'pandemic', 'explosion',
-                                                                 'storm', 'fire', 'hostage', 'tornado', 'out-of-scope',
-                                                                 'mudslide']),
+                    "label": datasets.features.ClassLabel(names=['tropical_storm', 'flood', 'shooting', 'covid',
+                                                                 'earthquake', 'hostage', 'fire', 'wildfire', 'explosion']),
                 }
             ),
             supervised_keys=None,
@@ -126,6 +126,9 @@ class TrecisDataset(datasets.GeneratorBasedBuilder):
         return [
             datasets.SplitGenerator(
                 name=datasets.Split.TRAIN, gen_kwargs={"filepath": os.path.join(data_dir["train"])}
+            ),
+            datasets.SplitGenerator(
+                name=datasets.Split.VALIDATION, gen_kwargs={"filepath": os.path.join(data_dir["validation"])}
             ),
             datasets.SplitGenerator(
                 name=datasets.Split.TEST, gen_kwargs={"filepath": os.path.join(data_dir["test"])}

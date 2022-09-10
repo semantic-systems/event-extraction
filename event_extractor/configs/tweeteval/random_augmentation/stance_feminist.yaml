@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/random_aug/
 name: stance_feminist_random_aug_1
-seed: 0
+seed: 1
 visualizer:
 - tsne
