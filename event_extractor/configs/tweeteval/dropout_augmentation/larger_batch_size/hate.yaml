@@ -26,6 +26,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/dropout_aug/larger_batch_size/
 name: hate_dropout_aug_larger_batch_size
-seed: 0
+seed: 1
 visualizer:
 - tsne
