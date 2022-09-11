@@ -286,7 +286,8 @@ class ConfigWriter(object):
         for file in files:
             config = ConfigWriter.read_yaml(file)
             config["seed"] = [0, 1, 2]
-            config["output_path"] = "./outputs/tweeteval/dropout_aug/less_cl/adjusted_early_stopping_patience/"
+            config["model"]["output_path"] = "./outputs/tweeteval/dropout_aug/less_cl/adjusted_early_stopping_patience/"
+            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.5
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
