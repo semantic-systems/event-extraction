@@ -291,10 +291,10 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/random_augmentation/")
+    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/random_augmentation/")
     # writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
     # writer.write_to_tex()
-    # writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
-    # writer.write_to_tex()
+    writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
+    writer.write_to_tex()
 
 
