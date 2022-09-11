@@ -26,6 +26,10 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/dropout_aug/larger_batch_size/
 name: emoji_dropout_aug_larger_batch_size
-seed: 1
+output_path: ./outputs/tweeteval/dropout_aug/less_cl/adjusted_early_stopping_patience/
+seed:
+- 0
+- 1
+- 2
 visualizer:
 - tsne

@@ -6,6 +6,7 @@ from pathlib import Path
 from time import sleep
 
 import torch
+from omegaconf import DictConfig, ListConfig
 
 from event_extractor.engines.trainer import MetaLearningTrainer, BatchLearningTrainer
 from event_extractor.parsers.parser import parse
@@ -19,6 +20,23 @@ def get_trainer(config_name: str):
         return BatchLearningTrainer
 
 
+def run(cfg: DictConfig):
+    if isinstance(cfg.seed, int):
+        trainer = trainer_class(cfg)
+        trainer.run()
+        torch.cuda.empty_cache()
+        sleep(10)
+    elif isinstance(cfg.seed, ListConfig):
+        for seed in cfg.seed:
+            cfg.seed = seed
+            trainer = trainer_class(cfg)
+            trainer.run()
+            torch.cuda.empty_cache()
+            sleep(10)
+    else:
+        raise ValueError(f"Seed must be of type int or list of int.")
+
+
 if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
@@ -28,8 +46,7 @@ if __name__ == "__main__":
     if Path(args.config).is_file():
         cfg = instantiate_config(args.config)
         trainer_class = get_trainer(args.config)
-        trainer = trainer_class(cfg)
-        trainer.run()
+        run(cfg)
     elif Path(args.config).is_dir():
         configs = glob.glob(str(Path(args.config)) + "/*.yaml")
         if not configs:
@@ -40,10 +57,7 @@ if __name__ == "__main__":
         for config in configs:
             cfg = instantiate_config(config)
             trainer_class = get_trainer(config)
-            trainer = trainer_class(cfg)
-            trainer.run()
-            torch.cuda.empty_cache()
-            sleep(10)
+            run(cfg)
     else:
         raise FileNotFoundError(f"{args.config} does not exist.")
 

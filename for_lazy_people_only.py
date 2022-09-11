@@ -285,7 +285,8 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 1
+            config["seed"] = [0, 1, 2]
+            config["output_path"] = "./outputs/tweeteval/dropout_aug/less_cl/adjusted_early_stopping_patience/"
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
