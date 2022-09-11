@@ -3,6 +3,10 @@ import logging
 import os
 import warnings
 from pathlib import Path
+from time import sleep
+
+import torch
+
 from event_extractor.engines.trainer import MetaLearningTrainer, BatchLearningTrainer
 from event_extractor.parsers.parser import parse
 from utils import instantiate_config
@@ -38,6 +42,8 @@ if __name__ == "__main__":
             trainer_class = get_trainer(config)
             trainer = trainer_class(cfg)
             trainer.run()
+            torch.cuda.empty_cache()
+            sleep(10)
     else:
         raise FileNotFoundError(f"{args.config} does not exist.")
 
