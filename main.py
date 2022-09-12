@@ -59,8 +59,6 @@ if __name__ == "__main__":
         trainer_class = get_trainer(args.config)
         run(cfg)
     elif Path(args.config).is_dir():
-        # configs = glob.glob(str(Path(args.config)) + "/*.yaml")
-        # if not configs:
         configs = fetch_files_from_dir(args.config, ".yaml")
         logger.warning(f"List of experiments to be run with the following configs: \n"
                        f"{configs}")
