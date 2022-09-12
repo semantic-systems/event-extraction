@@ -20,6 +20,17 @@ def get_trainer(config_name: str):
         return BatchLearningTrainer
 
 
+def fetch_files_from_dir(root: str, file_extension: str = ".yaml"):
+    return [fname for fname in walk_through_files(root, file_extension)]
+
+
+def walk_through_files(path, file_extension='.csv'):
+    for (dirpath, dirnames, filenames) in os.walk(path):
+        for filename in filenames:
+            if filename.endswith(file_extension):
+                yield os.path.join(dirpath, filename)
+
+
 def run(cfg: DictConfig):
     if isinstance(cfg.seed, int):
         trainer = trainer_class(cfg)
@@ -48,10 +59,9 @@ if __name__ == "__main__":
         trainer_class = get_trainer(args.config)
         run(cfg)
     elif Path(args.config).is_dir():
-        configs = glob.glob(str(Path(args.config)) + "/*.yaml")
-        if not configs:
-            configs = [os.path.join(path, name) for path, subdirs, files in os.walk(str(Path(args.config))) for name in files if
-                     name.endswith(".yaml")]
+        # configs = glob.glob(str(Path(args.config)) + "/*.yaml")
+        # if not configs:
+        configs = fetch_files_from_dir(args.config, ".yaml")
         logger.warning(f"List of experiments to be run with the following configs: \n"
                        f"{configs}")
         for config in configs:

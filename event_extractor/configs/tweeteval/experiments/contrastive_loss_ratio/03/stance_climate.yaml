@@ -1,0 +1,34 @@
+data:
+  batch_size: 64
+  config: stance_climate
+  label_column: label
+  name: tweet_eval
+  validation: true
+early_stopping:
+  delta: 0
+  tolerance: 15
+model:
+  L2_normalize_encoded_feature: true
+  contrastive:
+    base_temperature: 0.3
+    contrast_mode: all
+    contrastive_loss_ratio: 0.5
+    temperature: 0.3
+  dropout_rate: 0.5
+  epochs: 50
+  freeze_transformer_layers: none
+  from_pretrained: roberta-base
+  layers:
+    layer1:
+      n_in: 768
+      n_out: 20
+  learning_rate: 1.0e-05
+  num_transformer_layers: full
+  output_path: ./outputs/tweeteval/dropout_aug/less_cl/adjusted_early_stopping_patience/
+name: stance_climate_dropout_aug_larger_batch_size
+seed:
+- 0
+- 1
+- 2
+visualizer:
+- tsne
