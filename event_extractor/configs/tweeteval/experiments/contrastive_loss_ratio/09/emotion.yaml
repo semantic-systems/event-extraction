@@ -24,7 +24,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/contrastive_loss_ratio/09/
+  output_path: ./outputs/tweeteval/experiments/preprocessed_data/contrastive_loss_ratio/09/
 name: emotion_dropout_aug_larger_batch_size
 seed:
 - 0
