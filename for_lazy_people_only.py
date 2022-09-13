@@ -293,10 +293,10 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/experiments/contrastive_loss_ratio/07/")
+    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/experiments/contrastive_loss_ratio/07/")
     # writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
     # writer.write_to_tex()
-    # writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
-    # writer.write_to_tex()
+    writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
+    writer.write_to_tex()
 
 

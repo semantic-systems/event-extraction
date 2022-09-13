@@ -23,8 +23,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/scl/linear/
-name: crisis_bertweet
+  output_path: ./outputs/crisis/lower_case/scl/linear/
+name: bertweet_scl_linear
 seed:
 - 0
 - 1
