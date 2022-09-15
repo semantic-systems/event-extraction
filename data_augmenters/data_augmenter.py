@@ -1,7 +1,7 @@
 from typing import Union, Tuple, List, Optional
 from tqdm import tqdm
 from transformers import FSMTModel, FSMTTokenizer, FSMTForConditionalGeneration, PreTrainedModel
-from data_augmenters.tweet_normalizer import normalizeTweet
+from data_augmenters.tweet_normalizer import normalizeTweet, clean_up_tokenization
 from utils import instantiate_config
 import nlpaug.augmenter.word as naw
 
@@ -24,11 +24,7 @@ class TweetsAugmenter(object):
     @staticmethod
     def clean_up_tokenization(out_string: str) -> str:
         # rules for post-processing the decoded sequence
-        out_string = (
-            out_string.replace("@ ", "@")
-                      .replace("# ", "#")
-        )
-        return out_string
+        return clean_up_tokenization(out_string)
 
 
 class FSMTBackTranslationAugmenter(TweetsAugmenter):

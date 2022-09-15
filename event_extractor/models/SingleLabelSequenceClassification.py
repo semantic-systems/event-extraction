@@ -76,9 +76,13 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
 
         if mode == "train":
             loss = self.loss(head_output.output, input_feature.labels)
-            new_shape = (int(head_output.output.shape[0]/2), 2, head_output.output.shape[-1])
+            new_shape = (
+                int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1)),
+                self.cfg.augmenter.num_samples+1,
+                head_output.output.shape[-1]
+            )
             contrastive_features = head_output.output.reshape(new_shape)
-            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/2)])
+            contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()

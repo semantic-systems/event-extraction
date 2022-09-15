@@ -48,7 +48,7 @@ class BatchLearningAgent(Agent):
     def __init__(self, config: DictConfig, device: torch.device):
         super(BatchLearningAgent, self).__init__(config, device)
         self.policy = self.instantiate_policy()
-        self.Augmenter = self.instantiate_augmenter(device) if self.is_contrastive else None
+        self.Augmenter = self.instantiate_augmenter(config.augmenter.name) if self.is_contrastive else None
 
     @property
     def policy_class(self) -> Type[PolicyClasses]:
@@ -85,7 +85,7 @@ class BatchLearningAgent(Agent):
             if mode == "train":
                 self.policy.optimizer.zero_grad()
                 if self.Augmenter is not None:
-                    batch = self.augment(batch)
+                    batch = self.augment(batch, self.config.augmenter.num_samples)
             if mode == "test":
                 test_input.extend(batch["text"])
             labels: tensor = batch["label"].to(self.device)
@@ -108,14 +108,25 @@ class BatchLearningAgent(Agent):
                                     "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input})
 
     @staticmethod
-    def instantiate_augmenter(device):
-        return DropoutAugmenter() #RandomAugmenter()
+    def instantiate_augmenter(name: str, **kwargs):
+        if name == "dropout":
+            augmenter = DropoutAugmenter()
+        elif name == "random":
+            augmenter = RandomAugmenter()
+        elif name == "back_translation":
+            augmenter = FSMTBackTranslationAugmenter(device=kwargs.get("device"),
+                                                     from_model=kwargs.get("from_model"),
+                                                     to_model=kwargs.get("to_model"))
+        else:
+            raise NotImplementedError
+        return augmenter
 
-    def augment(self, batch: Dict) -> Dict:
-        augmented_text_a = self.Augmenter.augment(batch["text"], num_return_sequences=1)
+    def augment(self, batch: Dict, num_augmented_samples: int) -> Dict:
+        augmented_text = self.Augmenter.augment(batch["text"], num_return_sequences=num_augmented_samples)
         augmented_batch = deepcopy(batch)
-        augmented_batch["text"].extend(augmented_text_a)
-        augmented_batch["label"] = torch.cat((batch["label"], batch["label"]), dim=0)
+        augmented_batch["text"].extend(augmented_text)
+        # label need to repeat n times + the original copy
+        augmented_batch["label"] = batch["label"].repeat(num_augmented_samples+1)
         return augmented_batch
 
 
