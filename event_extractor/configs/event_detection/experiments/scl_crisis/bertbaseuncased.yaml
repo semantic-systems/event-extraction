@@ -11,7 +11,7 @@ model:
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 0.7
+    contrastive_loss_ratio: 0.3
     temperature: 0.3
   dropout_rate: 0.5
   epochs: 50
@@ -23,7 +23,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/lower_case/scl/linear/
+  output_path: ./outputs/crisis/lower_case/scl/linear/03
 name: bert_scl_linear
 seed:
 - 0
