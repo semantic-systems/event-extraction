@@ -252,7 +252,6 @@ class BatchLearningTrainer(SingleAgentTrainer):
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
         test_result = []
-        test_data: Dict = {"text": [], "label": [], "prediction": []}
         with torch.no_grad():
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="test")
             y_predict, y_true, loss = agent_output.y_predict, agent_output.y_true, agent_output.loss

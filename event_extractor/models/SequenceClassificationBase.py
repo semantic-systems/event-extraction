@@ -3,10 +3,11 @@ import copy
 from pathlib import Path
 
 import torch
-from typing import Union, Dict
+from typing import Union, Dict, List
 from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
+from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet
 
 
 class SequenceClassification(Module):
@@ -74,6 +75,13 @@ class SequenceClassification(Module):
         else:
             raise ValueError(f"Currently, only 'all', 'none' and integer (<=num_transformer_layers) "
                              f"are valid value for freeze_transformer_layer")
+
+    def normalize(self, text: List[str]) -> List[str]:
+        normalized_text = text
+        if self.cfg.data.name in ["tweet_eval"]:
+            normalized_text: List[str] = [normalizeTweet(tweet) for tweet in text]
+            normalized_text = [clean_up_tokenization(tweet) for tweet in normalized_text]
+        return normalized_text
 
     def preprocess(self, batch):
         return self.tokenizer(batch["text"], padding=True, truncation=True, return_tensors="pt")

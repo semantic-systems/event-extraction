@@ -51,6 +51,34 @@ def normalizeTweet(tweet):
     return " ".join(normTweet.split())
 
 
+def clean_up_tokenization(out_string: str) -> str:
+    # rules for post-processing the decoded sequence
+    out_string = (
+        out_string.replace("@ ", "@")
+                  .replace("# ", "#")
+                  .replace(" ,", ",")
+                  .replace(" .", ".")
+            .replace(" ?", "?")
+            .replace(" !", "!")
+            .replace(" &", "&")
+            .replace(" $", "$")
+            .replace(" %", "%")
+            .replace(" _", "_")
+            .replace(" -", "-")
+            .replace(" +", "+")
+            .replace(" *", "*")
+            .replace(" :", ":")
+            .replace(" ;", ";")
+            .replace("( ", "(")
+            .replace(" )", ")")
+            .replace(" \\'", "'")
+            .replace("\\'", "'")
+            .replace(" \'", "'")
+
+    )
+    return out_string.lower()
+
+
 if __name__ == "__main__":
     print(
         normalizeTweet(

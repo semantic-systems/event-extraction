@@ -27,6 +27,9 @@ model:
   num_transformer_layers: 1
   output_path: ./outputs/test/
 name: emotion_sl
-seed: 0
+seed:
+- 0
+- 1
+- 2
 visualizer:
 - tsne

@@ -285,15 +285,17 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 1
+            # config["seed"] = [0, 1, 2]
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/preprocessed_data/contrastive_loss_ratio/09/"
+            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/random_augmentation/")
-    # writer = LatexTableWriter("./tables/tweeteval/", TweetEvalResultTable, TweetEvalResult)
-    # writer.write_to_tex()
+    # ConfigWriter.change_field_of_all("./event_extractor/configs/tweeteval/experiments/contrastive_loss_ratio/03/")
+    writer = LatexTableWriter("./tables/tweeteval/contrastive_loss_ratio/dropout/preprocessed/", TweetEvalResultTable, TweetEvalResult)
+    writer.write_to_tex()
     # writer = LatexTableWriter("./tables/crisis/", CrisisResultTable, CrisisResult)
     # writer.write_to_tex()
 
