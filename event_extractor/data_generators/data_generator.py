@@ -48,18 +48,19 @@ class OOSDatasetGenerator(object):
 class DataGenerator(object):
     def __init__(self, cfg: DictConfig):
         self.oos_generator = None
+        if cfg.data.include_oos:
+            self.oos_generator = OOSDatasetGenerator(cfg, deepcopy(self.testing_dataset.features))
         self.cfg = cfg
-        self.num_labels = self.training_dataset.features['label'].num_classes
-        self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
-                                      for label in self.training_dataset.features['label'].names}
+        self.num_labels = self.oos_generator.updated_features['label'].num_classes
+        self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
+                                      for label in self.oos_generator.updated_features['label'].names}
 
     @property
     def training_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
         if self.cfg.data.label_column != 'label':
             dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
-        if self.cfg.data.include_oos and self.oos_generator is None:
-            self.oos_generator = OOSDatasetGenerator(self.cfg, deepcopy(dataset.features))
+        if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "train")
         return dataset
 
