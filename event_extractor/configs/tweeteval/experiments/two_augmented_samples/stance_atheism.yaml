@@ -25,7 +25,7 @@ model:
   learning_rate: 1.0e-05
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/experiments/preprocessed_data/two_augmented_samples/
-name: stance
+name: stance_atheism
 seed:
 - 0
 - 1
