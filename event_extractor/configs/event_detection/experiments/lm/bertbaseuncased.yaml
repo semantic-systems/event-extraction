@@ -3,6 +3,7 @@ data:
   label_column: label
   name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   validation: true
+  include_oos: true
 early_stopping:
   delta: 0
   tolerance: 5
