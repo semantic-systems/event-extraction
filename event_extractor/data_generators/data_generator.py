@@ -47,10 +47,10 @@ class OOSDatasetGenerator(object):
 
 class DataGenerator(object):
     def __init__(self, cfg: DictConfig):
+        self.cfg = cfg
         self.oos_generator = None
         if cfg.data.include_oos:
             self.oos_generator = OOSDatasetGenerator(cfg, deepcopy(self.testing_dataset.features))
-        self.cfg = cfg
         self.num_labels = self.oos_generator.updated_features['label'].num_classes
         self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
                                       for label in self.oos_generator.updated_features['label'].names}
