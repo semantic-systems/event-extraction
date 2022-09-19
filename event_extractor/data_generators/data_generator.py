@@ -1,9 +1,11 @@
 from copy import deepcopy
 from typing import Optional, Dict
-
+import datasets
 from datasets import load_dataset, concatenate_datasets, ClassLabel, Features, Dataset
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader, Sampler, RandomSampler
+
+datasets.logging.set_verbosity_info()
 
 
 class OOSDatasetGenerator(object):
@@ -35,7 +37,7 @@ class OOSDatasetGenerator(object):
                     load_dataset("tweet_eval", "stance_hillary", split=mode)
                     ]
         aligned_datasets = list(map(lambda x: x.cast(self.updated_features), datasets))
-        concatenated_dataset = concatenate_datasets(aligned_datasets)
+        concatenated_dataset = concatenate_datasets(aligned_datasets).train_test_split(test_size=0.1)["test"]
         updated_dataset = concatenated_dataset.map(change_label)
         return updated_dataset
 

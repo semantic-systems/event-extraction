@@ -149,8 +149,6 @@ class StaticEnvironment(Environment):
                  loss: int,
                  mode: str,
                  num_epoch: Optional[int] = None) -> ClassificationResult:
-        print(self.labels_list)
-        print(self.num_labels)
         # y_predict = torch.stack(y_predict)
         # y_true = torch.stack(y_true)
         y_predict = torch.tensor(y_predict)
