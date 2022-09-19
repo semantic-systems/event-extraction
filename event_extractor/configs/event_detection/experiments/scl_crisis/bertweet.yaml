@@ -1,5 +1,5 @@
 data:
-  batch_size: 32
+  batch_size: 40
   label_column: label
   name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   validation: true
@@ -24,11 +24,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/lower_case/scl/linear/03
+  output_path: ./outputs/crisis/lower_case/scl/linear/03/oos/
 name: bertweet_scl_linear
-seed:
-- 0
-- 1
-- 2
+seed: 1
 visualizer:
 - tsne

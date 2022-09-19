@@ -1,5 +1,5 @@
 data:
-  batch_size: 32
+  batch_size: 64
   label_column: label
   name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   validation: true
@@ -24,8 +24,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/linear/
-name: crisis_bert_base_uncased
-seed: 0
+  output_path: ./outputs/crisis/linear/oos/
+name: bert_base_uncased
+seed: 1
 visualizer:
 - tsne
