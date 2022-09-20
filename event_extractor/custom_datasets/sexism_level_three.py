@@ -37,17 +37,17 @@ class SexismLevelThreeDataset(datasets.GeneratorBasedBuilder):
             "validation": "../../../../data/sexism/sexism_level_three_validation.tsv",
             "test": "../../../../data/sexism/sexism_level_three_test.tsv"}
 
-    train_data_label = ['none', '2.3 dehumanising attacks & overt sexual objectification',
-                       '2.1 descriptive attacks',
-                       '1.2 incitement and encouragement of harm',
-                       '3.1 casual use of gendered slurs, profanities, and insults',
-                       '4.2 supporting systemic discrimination against women as a group',
-                       '2.2 aggressive and emotive attacks',
-                       '3.2 immutable gender differences and gender stereotypes',
-                       '3.4 condescending explanations or unwelcome advice',
-                       '3.3 backhanded gendered compliments',
-                       '4.1 supporting mistreatment of individual women',
-                       '1.1 threats of harm']
+    train_data_label = ['none', '2_3_dehumanising_attacks_overt_sexual_objectification',
+       '2_1_descriptive_attacks',
+       '1_2_incitement_and_encouragement_of_harm',
+       '3_1_casual_use_of_gendered_slurs_profanities_and_insults',
+       '4_2_supporting_systemic_discrimination_against_women_as_a_group',
+       '2_2_aggressive_and_emotive_attacks',
+       '3_2_immutable_gender_differences_and_gender_stereotypes',
+       '3_4_condescending_explanations_or_unwelcome_advice',
+       '3_3_backhanded_gendered_compliments',
+       '4_1_supporting_mistreatment_of_individual_women',
+       '1_1_threats_of_harm']
     BUILDER_CONFIGS = [
         SexismLevelThreeConfig(
             name="sexism level three",
@@ -62,17 +62,17 @@ class SexismLevelThreeDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=['none', '2.3 dehumanising attacks & overt sexual objectification',
-                                                                   '2.1 descriptive attacks',
-                                                                   '1.2 incitement and encouragement of harm',
-                                                                   '3.1 casual use of gendered slurs, profanities, and insults',
-                                                                   '4.2 supporting systemic discrimination against women as a group',
-                                                                   '2.2 aggressive and emotive attacks',
-                                                                   '3.2 immutable gender differences and gender stereotypes',
-                                                                   '3.4 condescending explanations or unwelcome advice',
-                                                                   '3.3 backhanded gendered compliments',
-                                                                   '4.1 supporting mistreatment of individual women',
-                                                                   '1.1 threats of harm']),
+                    "label": datasets.features.ClassLabel(names=['none', '2_3_dehumanising_attacks_overt_sexual_objectification',
+       '2_1_descriptive_attacks',
+       '1_2_incitement_and_encouragement_of_harm',
+       '3_1_casual_use_of_gendered_slurs_profanities_and_insults',
+       '4_2_supporting_systemic_discrimination_against_women_as_a_group',
+       '2_2_aggressive_and_emotive_attacks',
+       '3_2_immutable_gender_differences_and_gender_stereotypes',
+       '3_4_condescending_explanations_or_unwelcome_advice',
+       '3_3_backhanded_gendered_compliments',
+       '4_1_supporting_mistreatment_of_individual_women',
+       '1_1_threats_of_harm']),
                 }
             ),
             supervised_keys=None,

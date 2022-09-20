@@ -37,7 +37,7 @@ class SexismLevelTwoDataset(datasets.GeneratorBasedBuilder):
             "validation": "../../../../data/sexism/sexism_level_two_validation.tsv",
             "test": "../../../../data/sexism/sexism_level_two_test.tsv"}
 
-    train_data_label = ['none', '2. derogation',  '1. threats, plans to harm and incitement', '3. animosity', '4. prejudiced discussions']
+    train_data_label = ['none', '2_derogation',  '1_threats_plans_to_harm_and_incitement', '3_animosity', '4_prejudiced_discussions']
     BUILDER_CONFIGS = [
         SexismLevelTwoConfig(
             name="sexism level two",
@@ -52,7 +52,7 @@ class SexismLevelTwoDataset(datasets.GeneratorBasedBuilder):
             features=datasets.Features(
                 {
                     "text": datasets.Value("string"),
-                    "label": datasets.features.ClassLabel(names=['none', '2. derogation',  '1. threats, plans to harm and incitement', '3. animosity', '4. prejudiced discussions']),
+                    "label": datasets.features.ClassLabel(names=['none', '2_derogation',  '1_threats_plans_to_harm_and_incitement', '3_animosity', '4_prejudiced_discussions']),
                 }
             ),
             supervised_keys=None,
