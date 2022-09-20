@@ -9,6 +9,7 @@ emoji
 envisage
 fastbpe
 hydra-optuna-sweeper
+jupyter
 mkl-fft
 mkl-random
 mkl-service
@@ -23,7 +24,6 @@ openpyxl
 pip-chill
 pipreqs
 py7zr
-pygments
 pyopenssl
 pysocks
 pytest
@@ -36,6 +36,5 @@ sklearn
 subword-nmt
 torchaudio
 torchvision
-tornado
 transformers
 vtk
