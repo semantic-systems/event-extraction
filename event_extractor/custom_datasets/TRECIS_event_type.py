@@ -95,7 +95,6 @@ class TrecisDataset(datasets.GeneratorBasedBuilder):
             "validation": "../../../../data/trec_is/validation_final_clean.tsv",
             "test": "../../../../data/trec_is/test_final_clean.tsv"}
 
-    # train_data_label = ['out-of-scope', 'mudslide', 'wildfire', 'earthquake', 'flood', 'typhoon', 'shooting', 'bombing', 'pandemic', 'explosion', 'storm', 'fire', 'hostage', 'tornado']
     train_data_label = ['tropical_storm', 'flood', 'shooting', 'covid', 'earthquake', 'hostage', 'fire', 'wildfire', 'explosion']
     BUILDER_CONFIGS = [
         TrecisConfig(
