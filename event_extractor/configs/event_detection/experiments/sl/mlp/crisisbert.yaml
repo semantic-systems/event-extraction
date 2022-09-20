@@ -1,5 +1,5 @@
 data:
-  batch_size: 64
+  batch_size: 32
   label_column: label
   name: ./event_extractor/custom_datasets/TRECIS_event_type.py
   validation: true
@@ -12,7 +12,7 @@ model:
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
-  from_pretrained: roberta-base
+  from_pretrained: language_models/CoyPu-CrisisLM-v1
   layers:
     layer1:
       n_in: 768
@@ -22,8 +22,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/experiments/mlp/oos/
-name: roberta_base
+  output_path: ./outputs/crisis/experiments/sl/mlp/
+name: crisisbert
 seed: 1
 visualizer:
 - tsne
