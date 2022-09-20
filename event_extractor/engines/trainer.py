@@ -1,5 +1,6 @@
 import json
 import logging
+from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional, Dict
 from abc import abstractmethod
@@ -52,6 +53,7 @@ class Trainer(object):
         self.config.model.layers = fill_config_with_num_classes(self.config.model.layers,
                                                                 self.environment.num_labels)
         self.agent = self.instantiate_agent()
+        self.best_agent = None
         self.print_trainer_info()
 
     def run(self):
@@ -108,6 +110,7 @@ class Trainer(object):
                 Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "pretrained_models",
                      f"{self.config.name}_best_model.pt").absolute(),
                 index_label_map=label_index_map)
+            self.best_agent = deepcopy(self.agent)
 
     def save_final_model(self):
         label_index_map = dict([(str(value), key) for key, value in self.environment.label_index_map.items()])
@@ -249,6 +252,9 @@ class BatchLearningTrainer(SingleAgentTrainer):
 
     @set_run_testing
     def test(self):
+        if self.best_agent is not None:
+            self.agent = self.best_agent
+            self.best_agent = None
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
         test_result = []

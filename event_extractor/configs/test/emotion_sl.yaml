@@ -7,7 +7,7 @@ data:
   subset: 0.1
 early_stopping:
   delta: 0
-  tolerance: 5
+  tolerance: 1
 model:
   L2_normalize_encoded_feature: false
   contrastive:
@@ -16,14 +16,14 @@ model:
     contrastive_loss_ratio: 0
     temperature: 0.3
   dropout_rate: 0.5
-  epochs: 1
+  epochs: 5
   freeze_transformer_layers: none
   from_pretrained: roberta-base
   layers:
     layer1:
       n_in: 768
       n_out: 20
-  learning_rate: 1.0e-05
+  learning_rate: 1.0e-04
   num_transformer_layers: 1
   output_path: ./outputs/test/
 name: emotion_sl
