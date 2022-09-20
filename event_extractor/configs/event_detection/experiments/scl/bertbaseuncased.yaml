@@ -24,7 +24,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/crisis/lower_case/scl/linear/03/oos/
+  output_path: ./outputs/crisis/experiments/scl/
 name: bert_scl
 seed: 1
 visualizer:
