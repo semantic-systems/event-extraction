@@ -1,6 +1,7 @@
 data:
   batch_size: 64
   config: stance_climate
+  include_oos: false
   label_column: label
   name: tweet_eval
   validation: true
