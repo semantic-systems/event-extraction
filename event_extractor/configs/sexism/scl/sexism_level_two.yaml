@@ -3,6 +3,7 @@ data:
   label_column: label
   name: ./event_extractor/custom_datasets/sexism_level_two.py
   validation: true
+  include_oos: false
 early_stopping:
   delta: 0
   tolerance: 5
