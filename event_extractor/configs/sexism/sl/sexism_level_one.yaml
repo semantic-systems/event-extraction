@@ -1,12 +1,12 @@
 data:
   batch_size: 32
+  include_oos: false
   label_column: label
   name: ./event_extractor/custom_datasets/sexism_level_one.py
   validation: true
-  include_oos: false
 early_stopping:
   delta: 0
-  tolerance: 5
+  tolerance: 15
 model:
   L2_normalize_encoded_feature: false
   dropout_rate: 0.5
