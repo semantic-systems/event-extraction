@@ -53,9 +53,13 @@ class DataGenerator(object):
         self.oos_generator = None
         if cfg.data.include_oos:
             self.oos_generator = OOSDatasetGenerator(cfg, deepcopy(self.testing_dataset.features))
-        self.num_labels = self.oos_generator.updated_features['label'].num_classes
-        self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
-                                      for label in self.oos_generator.updated_features['label'].names}
+            self.num_labels = self.oos_generator.updated_features['label'].num_classes
+            self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
+                                          for label in self.oos_generator.updated_features['label'].names}
+        else:
+            self.num_labels = self.training_dataset.features['label'].num_classes
+            self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
+                                          for label in self.training_dataset.features['label'].names}
 
     @property
     def training_dataset(self):
