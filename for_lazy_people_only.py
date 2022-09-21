@@ -1,4 +1,5 @@
 import abc
+import itertools
 import json
 import os
 import re
@@ -7,24 +8,194 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Dict, List
+from typing import Dict, List, Tuple
+
+
+class Result(object):
+    def __init__(self, path: str, root: str):
+        self.root = root
+        self.path = path
+        self.result = self.read_json(path)
+        config_path = path.replace("test_result.json", "config.yaml")
+        self.config = self.read_yaml(config_path)
+        self.task = self.get_task()
+        self.seed = self.config.get("seed")
+        self.name = self.config.get("name")
+        self.include_oos = self.config.get("data").get("include_oos", False)
+        self.batch_size = self.config.get("data").get("batch_size")
+        self.early_stopping_patience = self.config.get("early_stopping").get("tolerance")
+        self.l2_normalized_encoded_feature = self.config.get("model").get("L2_normalize_encoded_feature")
+        self.epochs = self.config.get("model").get("epochs")
+        self.freeze_transformer_layers = self.config.get("model").get("freeze_transformer_layers")
+        self.model = self.get_model()
+        self.head_type = "linear" if len(self.config.get("model").get("layers")) == 1 else "mlp"
+        self.learning_rate = self.config.get("model").get("learning_rate")
+        self.contrastive = self.is_contrastive()
+        self.contrastive_loss_ratio = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("contrastive_loss_ratio")
+        self.contrastive_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("temperature")
+        self.contrast_mode = np.nan if not self.contrastive else self.config.get("model").get("contrastive").get("contrast_mode")
+        self.augmenter = self.get_augmenter()
+        self.num_augmented_samples = self.config.get("augmenter").get("num_samples", None) if self.augmenter else np.nan
+        self.metric_name = self.get_metric_name(self.task)
+        self.metric = self.get_metric(self.metric_name)
+
+    @staticmethod
+    def read_yaml(yaml_to_read: str) -> Dict:
+        with open(yaml_to_read, 'r') as f:
+            data = yaml.safe_load(f)
+        return data
+
+    @staticmethod
+    def read_json(path: str):
+        with open(path, "r") as f:
+            d = json.load(f)
+        return d
+
+    def get_task(self) -> str:
+        data = self.config.get("data").get("name")
+        task = self.config.get("data").get("config", None)
+        if task is not None:
+            return task
+        else:
+            task = data.split("/")[-1].split(".py")[0]
+            if task == "TRECIS_event_type":
+                return "Event Type"
+            elif "sexism" in task:
+                return task
+            else:
+                raise ValueError("task not known.")
+
+    def get_model(self) -> str:
+        model_map = {"roberta-base": "Rob-bs",
+                     "vinai/bertweet-base": "Bertweet",
+                     "bert-base-uncased": "Bert-bs-uncased",
+                     "language_models/CoyPu-CrisisLM-v1": "CrisisLM"}
+        model = self.config.get("model").get("from_pretrained")
+        return model_map[model]
+
+    def is_contrastive(self) -> bool:
+        if self.config.get("model").get("contrastive", None) is None:
+            is_contrastive = False
+        elif self.config.get("model").get("contrastive").get("contrastive_loss_ratio") == 0:
+            is_contrastive = False
+        else:
+            is_contrastive = True
+        return is_contrastive
+
+    def get_augmenter(self) -> bool:
+        if self.config.get("augmenter") is None:
+            augmenter = None
+        else:
+            augmenter = self.config.get("augmenter").get("name")
+        return augmenter
+
+    @staticmethod
+    def get_metric_name(task):
+        raise NotImplementedError
+
+    def get_metric(self, metric_name) -> float:
+        if len(metric_name) == 1:
+            metric = self.result[0].get(metric_name[0])
+        elif len(metric_name) == 2:
+            metric = self.result[0].get(metric_name[0]).get(metric_name[1])
+        else:
+            raise ValueError
+        return metric
+
+
+class CrisisResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"Event Type": ["f1_macro"]}
+        return metric_dict[task]
+
+
+class SexismResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"sexism_level_three": ["f1_macro"],
+                       "sexism_level_two": ["f1_macro"],
+                       "sexism_level_one": ["f1_macro"]}
+        return metric_dict[task]
+
+
+class TweetEvalResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"stance": ["other"],
+                       "sentiment": ["recall_macro"],
+                       "offensive": ["f1_macro"],
+                       "irony": ["f1_per_class", "irony"],
+                       "hate": ["f1_macro"],
+                       "emotion": ["f1_macro"],
+                       "emoji": ["f1_macro"]}
+
+        task = "stance" if "stance" in task else task
+        return metric_dict[task]
 
 
 class Table(object):
-    name: str
-    column: List
-    benchmark_data: str
-
     def __init__(self, result_df: pd.DataFrame):
         self.result_df = result_df
 
-    @abc.abstractmethod
-    def write_row(self, row_name: str, task_list: List):
-        raise NotImplementedError
+    @staticmethod
+    def write_top(session_to_include: List, task_list: List):
+        table_alignment = ""
+        column_string = ""
+        for i, col in enumerate(session_to_include+task_list):
+            table_alignment += "c|"
+            column_string += f"{col.replace('_', '-')}&"
+            if i == len(session_to_include+task_list)-1:
+                table_alignment = table_alignment[:-1]
+                column_string = column_string[:-1]
+        top_string = "\\scalebox{0.75}{\n" \
+                      "\\begin{center}\n" \
+                      f"\\begin{{tabular}}{{{table_alignment}}}\n" \
+                      "\\hline\n" \
+                      f"{column_string}\\\ \n" \
+                      "\\hline\\hline \n"
+        return top_string
 
-    @abc.abstractmethod
-    def write_end(self, **kwargs):
-        raise NotImplementedError
+    def get_target_df(self, row: Tuple):
+        df = self.result_df
+        for (key, value) in row:
+            df = df[(df[key] == value)]
+        return df
+
+    def write_row(self, row: Tuple, task_list: List):
+        tex = ""
+        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list}
+        for element in row:
+            tex += f"{list(element)[1]}&"
+        for i, task in enumerate(task_list):
+            df = self.get_target_df(row)
+            scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
+            scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
+            scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
+        for i, task in enumerate(task_list):
+            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&"
+            if i == len(task_list)-1:
+                tex = tex[:-1]
+        tex += "\\\ \n"
+        return tex
+
+    def write_end(self, session_to_include: List, task_list: List, result: Result) -> str:
+        metric_string = ""
+        for i, col in enumerate(session_to_include+task_list):
+            if i <= len(session_to_include)-1:
+                metric_string += "&"
+            else:
+                metric_string += f"{result.get_metric_name(col)[0].replace('_', '-')}&"
+            if i == len(session_to_include+task_list):
+                metric_string = metric_string[:-1]
+        string = "\\hline\\hline\n" \
+                 f"\\textbf{{Metric}}{metric_string}\n" \
+                 "\\end{tabular}\n" \
+                 "\\end{center}}"
+        return string
 
 
 class TweetEvalResultTable(Table):
@@ -49,12 +220,12 @@ class TweetEvalResultTable(Table):
     def __init__(self, result_df: pd.DataFrame):
         super(TweetEvalResultTable, self).__init__(result_df)
 
-    def write_row(self, row_name: str, task_list: List):
-        tex = f"{row_name}&"
+    def write_row(self, model: str, task_list: list, **kwargs):
+        tex = f"{model}&"
         scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
         stance_avg_score = []
         for i, task in enumerate(task_list):
-            df = self.result_df[(self.result_df['model'] == row_name) & (self.result_df['task'] == task)]
+            df = self.result_df[(self.result_df['model'] == model) & (self.result_df['task'] == task)]
             if "stance" in task:
                 stance_avg_score.append(df['metric_score'].mean())
             else:
@@ -83,139 +254,15 @@ class TweetEvalResultTable(Table):
         return string
 
 
-class CrisisResultTable(Table):
-    name: str = "Crisis"
-    column: List = ["", "Event Type"]
-    benchmark_data: str = "\\scalebox{0.75}{\n" \
-                          "\\begin{center}\n" \
-                          "\\begin{tabular}{c|c}\n" \
-                          "\\hline\n" \
-                          "&Event Type\\\ \n" \
-                          "\\hline\\hline \n"
-
-    def __init__(self, result_df: pd.DataFrame):
-        super(CrisisResultTable, self).__init__(result_df)
-
-    def write_row(self, row_name: str, task_list: List):
-        tex = f"{row_name}&"
-        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list}
-        for i, task in enumerate(task_list):
-            df = self.result_df[(self.result_df['model'] == row_name) & (self.result_df['task'] == task)]
-            scores[task]["avg"] = df['metric_score'].mean()
-            scores[task]["std"] = df['metric_score'].std()
-            scores[task]["max"] = df['metric_score'].max()
-        for i, task in enumerate(self.column[1:]):
-            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
-            tex += "\\\ \n"
-        return tex
-
-    def write_end(self) -> str:
-        string = "\\hline\\hline\n" \
-                 "\\textbf{Metric}&M-F1\n" \
-                 "\\end{tabular}\n" \
-                 "\\end{center}}"
-        return string
-
-
-class Result(object):
-    def __init__(self, path: str, root: str):
-        self.root = root
-        self.path = path
-        self.result = self.read_json(path)
-        self.tasks = []
-        self.seeds = [0, 1, 2]
-
-    @staticmethod
-    def read_json(path: str):
-        with open(path, "r") as f:
-            d = json.load(f)
-        return d
-
-    def get_seed(self) -> int:
-        for seed in self.seeds:
-            if f"seed_{seed}" in self.path:
-                return seed
-
-    def get_task(self) -> str:
-        for task in self.tasks:
-            if task in self.path:
-                return task
-
-    def get_model(self) -> str:
-        return re.search(f"{self.root}(.*)/", self.path).group(1).split("/")[0]
-
-    @staticmethod
-    def get_metric_name(task):
-        raise NotImplementedError
-
-    def get_metric(self, metric_name) -> float:
-        if len(metric_name) == 1:
-            metric = self.result[0].get(metric_name[0])
-        elif len(metric_name) == 2:
-            metric = self.result[0].get(metric_name[0]).get(metric_name[1])
-        else:
-            raise ValueError
-        return metric
-
-
-class CrisisResult(Result):
-    def __init__(self, path: str, root: str):
-        super(CrisisResult, self).__init__(path, root)
-        self.tasks = ["Event Type"]
-        self.seeds = [0, 1, 2]
-        self.task = "Event Type"
-        self.seed = self.get_seed()
-        self.model = self.get_model()
-        self.metric_name = self.get_metric_name(self.task)
-        self.metric = self.get_metric(self.metric_name)
-
-    @staticmethod
-    def get_metric_name(task):
-        metric_dict = {"Event Type": ["f1_macro"]}
-        return metric_dict[task]
-
-
-class TweetEvalResult(Result):
-    def __init__(self, path: str, root: str):
-        super(TweetEvalResult, self).__init__(path, root)
-        self.tasks = ["stance_atheism", "stance_feminist", "stance_climate", "stance_abortion", "stance_hillary",
-                      "offensive", "sentiment", "hate", "irony", "emotion", "emoji"]
-        self.seeds = [0, 1, 2]
-        self.seed = self.get_seed()
-        self.task = self.get_task()
-        self.model = self.get_model()
-        self.metric_name = self.get_metric_name(self.task)
-        self.metric = self.get_metric(self.metric_name)
-
-    def get_task(self) -> str:
-        for task in self.tasks:
-            if task in self.path:
-                return task
-
-    @staticmethod
-    def get_metric_name(task):
-        metric_dict = {"stance": ["other"],
-                       "sentiment": ["recall_macro"],
-                       "offensive": ["f1_macro"],
-                       "irony": ["f1_per_class", "irony"],
-                       "hate": ["f1_macro"],
-                       "emotion": ["f1_macro"],
-                       "emoji": ["f1_macro"]}
-
-        task = "stance" if "stance" in task else task
-        return metric_dict[task]
-
-
 class LatexTableWriter(object):
-    def __init__(self, output_path: str, table_class: type(Table), result_class: type(Result)):
+    def __init__(self, output_path: str, result_class: type(Result)):
         self.output_path = output_path
         self.result_class = result_class
         test_result_path = self.fetch_test_results_from_dir(output_path)
         self.result_instances = self.retrieve_result_instance(test_result_path)
-        self.row_list = self.get_model_list(test_result_path)
-        self.task_list = self.result_instances[0].tasks
+        self.task_list = list(set(result.task for result in self.result_instances))
         self.result_df = self.get_result_df(self.result_instances)
-        self.table = table_class(self.result_df)
+        self.table = Table(self.result_df)
         self.write_to_csv(self.result_df, str(Path(self.output_path, "results.csv").absolute()))
 
     def get_model_list(self, path_list: list) -> list:
@@ -254,17 +301,44 @@ class LatexTableWriter(object):
         data = {'seed': [result.seed for result in result_instances],
                 'task': [result.task for result in result_instances],
                 'model': [result.model for result in result_instances],
+                'name': [result.name for result in result_instances],
+                'include_oos': [result.include_oos for result in result_instances],
+                'batch_size': [result.batch_size for result in result_instances],
+                'early_stopping_patience': [result.early_stopping_patience for result in result_instances],
+                'L2_normalize_encoded_feature': [result.l2_normalized_encoded_feature for result in result_instances],
+                'epochs': [result.epochs for result in result_instances],
+                'freeze_transformer_layers': [result.freeze_transformer_layers for result in result_instances],
+                'head_type': [result.head_type for result in result_instances],
+                'learning_rate': [result.learning_rate for result in result_instances],
+                'contrastive': [result.contrastive for result in result_instances],
+                'contrastive_loss_ratio': [result.contrastive_loss_ratio for result in result_instances],
+                'contrastive_temperature': [result.contrastive_temperature for result in result_instances],
+                'contrast_mode': [result.contrast_mode for result in result_instances],
+                'augmenter': [result.augmenter for result in result_instances],
+                'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
                 'metric_name': metric_name,
                 'metric_score': [result.metric for result in result_instances]
                 }
         return pd.DataFrame(data)
 
-    def write_to_tex(self):
-        with open(str(Path(self.output_path, f"{self.table.name}_latex_table.tex").absolute()), "w") as f:
-            f.write(self.table.benchmark_data)
-            for model in self.row_list:
-                f.write(self.table.write_row(row_name=model, task_list=self.task_list))
-            f.write(self.table.write_end())
+    def write_to_tex(self, name: str, session_to_include: List):
+        rows = self.get_rows(session_to_include)
+        with open(str(Path(self.output_path, f"{name}_latex_table.tex").absolute()), "w") as f:
+            f.write(self.table.write_top(session_to_include=session_to_include, task_list=self.task_list))
+            for row in rows:
+                f.write(self.table.write_row(row=row, task_list=self.task_list))
+            f.write(self.table.write_end(session_to_include=session_to_include, task_list=self.task_list, result=self.result_instances[0]))
+
+    def get_rows(self, session_to_include: List):
+        session_dict = {key: self.result_df[key].unique() for key in session_to_include}
+        a = []
+        for key, values in session_dict.items():
+            session_list = []
+            for value in values:
+                session_list.append([key, value])
+            a.append(session_list)
+        rows = list(itertools.product(*a))
+        return rows
 
 
 class ConfigWriter(object):
@@ -298,10 +372,13 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
-    # writer = LatexTableWriter("./tables/tweeteval/contrastive_loss_ratio/dropout/preprocessed/", TweetEvalResultTable, TweetEvalResult)
-    # writer.write_to_tex()
-    # writer = LatexTableWriter("./tables/crisis/experiments/sl_linear/", CrisisResultTable, CrisisResult)
-    # writer.write_to_tex()
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    writer = LatexTableWriter("./tables/tweeteval/preprocessed_data/", TweetEvalResult)
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrast_mode"])
+    # writer = LatexTableWriter("./tables/crisis/experiments/include_oos/sl_linear/", CrisisResult)
+    # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive"])
+    # writer = LatexTableWriter("./tables/sexism/", SexismResult)
+    # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
+
 
 

@@ -18,6 +18,7 @@ class ConfigValidator(object):
             self.validate_data()
             self.validate_episode()
             self.validate_visualizer()
+            self.validate_early_stopping()
             self.validate_augmenter()
             return self.config
         except ValueError:
@@ -84,11 +85,18 @@ class ConfigValidator(object):
 
     def validate_augmenter(self):
         if "augmenter" not in self.config:
-            with open_dict(self.config):
-                self.config.augmenter = {
-                    "name": "dropout",
-                    "num_samples": 2
-                   }
+            if self.config.model.contrastive.contrastive_loss_ratio > 0:
+                with open_dict(self.config):
+                    self.config.augmenter = {
+                        "name": "dropout",
+                        "num_samples": 2
+                       }
+            else:
+                with open_dict(self.config):
+                    self.config.augmenter = {
+                        "name": None,
+                        "num_samples": None
+                       }
 
     def create_output_path(self):
         if not Path(self.config.model.output_path, self.config.name).absolute().exists():
