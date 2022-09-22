@@ -372,7 +372,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/")
     # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)

@@ -20,10 +20,11 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/sl/lm/roberta_base/
+  output_path: ./outputs/tweeteval/sl/head_layer/mlp/
 name: hate
 seed:
 - 0
+- 1
 - 2
 visualizer:
 - tsne
