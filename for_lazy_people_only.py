@@ -246,7 +246,7 @@ class TweetEvalResultTable(Table):
                 tex += "\\\ \n"
         return tex
 
-    def write_end(self) -> str:
+    def write_end(self, session_to_include: List, task_list: List, result: Result) -> str:
         string = "\\hline\\hline\n" \
                  "\\textbf{Metric}&M-F1&M-F1&M-F1&F$^{(i)}$&M-F1&M-Rec&AVG(F$^{(a)}$, F$^{(f)}$)&TE\n" \
                  "\\end{tabular}\n" \
@@ -359,9 +359,9 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            # config["seed"] = 1 #[0, 1, 2]
-            config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/temperature/09/"
+            config["seed"] = [0, 1, 2]
+            # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
+            config["model"]["output_path"] = "./outputs/tweeteval/sl/head_layer/mlp/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # del config["model"]["contrastive_loss_ratio"]
             # if "augmenter" not in config:
@@ -372,11 +372,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
-    writer = LatexTableWriter("./tables/tweeteval/preprocessed_data/", TweetEvalResult)
-    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrast_mode"])
-    # writer = LatexTableWriter("./tables/crisis/experiments/include_oos/sl_linear/", CrisisResult)
-    # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
+    # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
 

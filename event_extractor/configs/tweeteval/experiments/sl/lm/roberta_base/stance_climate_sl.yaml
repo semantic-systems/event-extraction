@@ -22,6 +22,8 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/sl/lm/roberta_base/
 name: stance_climate
-seed: 1
+seed:
+- 0
+- 2
 visualizer:
 - tsne

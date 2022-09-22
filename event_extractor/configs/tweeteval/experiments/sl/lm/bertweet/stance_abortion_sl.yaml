@@ -20,8 +20,10 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/lm/bertweet/
+  output_path: ./outputs/tweeteval/sl/lm/bertweet/
 name: stance_abortion
-seed: 1
+seed:
+- 0
+- 2
 visualizer:
 - tsne
