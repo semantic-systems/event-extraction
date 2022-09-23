@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 
 class Result(object):
@@ -147,7 +147,12 @@ class Table(object):
         column_string = ""
         for i, col in enumerate(session_to_include+task_list):
             table_alignment += "c|"
+            if col == "contrastive_loss_ratio":
+                col = "ratio"
+            if col == "head_type":
+                col = "cls"
             column_string += f"{col.replace('_', '-')}&"
+
             if i == len(session_to_include+task_list)-1:
                 table_alignment = table_alignment[:-1]
                 column_string = column_string[:-1]
@@ -198,71 +203,105 @@ class Table(object):
         return string
 
 
-class TweetEvalResultTable(Table):
-    name: str = "TweetEval"
-    column: List = ["", "Emoji", "Emotion", "Hate", "Irony", "Offensive", "Sentiment", "Stance", "All"]
-    benchmark_data: str = "\\scalebox{0.75}{\n" \
-                          "\\begin{center}\n" \
-                          "\\begin{tabular}{c|c|c|c|c|c|c|c||c}\n" \
-                          "\\hline\n" \
-                          "&Emoji&Emotion&Hate&Irony&Offensive&Sentiment&Stance&All\\\ \n" \
-                          "\\hline\\hline \n" \
-                          "SVM& 29.3& 64.7&36.7&61.7&52.3&62.9&67.3&53.5\\\ \n" \
-                          "FastText& 25.8& 65.2&50.6&63.1&73.4&62.9&65.4&58.1\\\ \n" \
-                          "BLSTM& 24.7& 66.0&52.6&62.8&71.7&58.3&59.4&56.5\\\ \n" \
-                          "Rob-Bs& 30.9\small$\pm$0.2\\thinspace(30.8)& 76.1\small$\pm$0.5\\thinspace(76.6)& 46.6\small$\pm$2.5\\thinspace(44.9)&59.7\small$\pm$5.0\\thinspace(55.2)&79.5\small$\pm$0.7\\thinspace(78.7)& 71.3\small$\pm$1.1\\thinspace(72.0)&68.0\small$\pm$0.8\\thinspace(70.9)&61.3\\\ \n" \
-                          "Rob-RT& 31.4\small$\pm$0.4\\thinspace(31.6)& 78.5\small$\pm$1.2\\thinspace(79.8)& 52.3\small$\pm$0.2\\thinspace(55.5)&61.7\small$\pm$0.6\\thinspace(62.5)&80.5\small$\pm$1.4\\thinspace(81.6)& 72.6\small$\pm$0.4\\thinspace(72.9)&69.3\small$\pm$1.1\\thinspace(72.6)&65.2\\\ \n " \
-                          "Rob-Tw& 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n " \
-                          "XLM-R& 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n " \
-                          "XLM-Tw& 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n"  \
-                          "\\hline\n"
-
+class TweetEvalMainTable(Table):
     def __init__(self, result_df: pd.DataFrame):
-        super(TweetEvalResultTable, self).__init__(result_df)
+        super(TweetEvalMainTable, self).__init__(result_df)
 
-    def write_row(self, model: str, task_list: list, **kwargs):
-        tex = f"{model}&"
+    @staticmethod
+    def write_top(session_to_include: List, task_list: List):
+        table_alignment = ""
+        column_string = ""
+        empty_grids = "&"*len(session_to_include)
+        col_list = [task for task in task_list if not task.startswith("stance_")]
+        col_order = {'emoji': 0, 'emotion': 1, 'hate': 2, 'irony': 3, 'offensive': 4, 'sentiment': 5, 'stance': 6}
+        col_list.sort(key=lambda col: col_order[col])
+        col_list.extend(["Stance", "All"])
+        for i, col in enumerate(session_to_include+col_list):
+            table_alignment += "c|"
+            if i == len(session_to_include+col_list)-2:
+                table_alignment += "|"
+            if col == "contrastive_loss_ratio":
+                col = "ratio"
+            if col == "head_type":
+                col = "cls"
+            column_string += f"{col.capitalize().replace('_', '-')}&"
+            if i == len(session_to_include+col_list)-1:
+                table_alignment = table_alignment[:-1]
+                column_string = column_string[:-1]
+        top_string = "\\scalebox{0.7}{\n" \
+                      "\\begin{center}\n" \
+                      f"\\begin{{tabular}}{{{table_alignment}}}\n" \
+                      "\\hline\n" \
+                      f"{column_string}\\\ \n" \
+                      "\\hline\\hline \n" \
+                     f"SVM{empty_grids} 29.3& 64.7&36.7&61.7&52.3&62.9&67.3&53.5\\\ \n" \
+                     f"FastText{empty_grids} 25.8& 65.2&50.6&63.1&73.4&62.9&65.4&58.1\\\ \n" \
+                     f"BLSTM{empty_grids} 24.7& 66.0&52.6&62.8&71.7&58.3&59.4&56.5\\\ \n" \
+                     f"Rob-Bs{empty_grids} 30.9\small$\pm$0.2\\thinspace(30.8)& 76.1\small$\pm$0.5\\thinspace(76.6)& 46.6\small$\pm$2.5\\thinspace(44.9)&59.7\small$\pm$5.0\\thinspace(55.2)&79.5\small$\pm$0.7\\thinspace(78.7)& 71.3\small$\pm$1.1\\thinspace(72.0)&68.0\small$\pm$0.8\\thinspace(70.9)&61.3\\\ \n" \
+                     f"Rob-RT{empty_grids} 31.4\small$\pm$0.4\\thinspace(31.6)& 78.5\small$\pm$1.2\\thinspace(79.8)& 52.3\small$\pm$0.2\\thinspace(55.5)&61.7\small$\pm$0.6\\thinspace(62.5)&80.5\small$\pm$1.4\\thinspace(81.6)& 72.6\small$\pm$0.4\\thinspace(72.9)&69.3\small$\pm$1.1\\thinspace(72.6)&65.2\\\ \n " \
+                     f"Rob-Tw{empty_grids} 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n " \
+                     f"XLM-R{empty_grids} 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n " \
+                     f"XLM-Tw{empty_grids} 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n" \
+                     "\\hline\n"
+        return top_string
+
+    def write_row(self, row: Tuple, task_list: List):
+        tex = ""
         scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
-        stance_avg_score = []
+        col_list = [task for task in task_list if not task.startswith("stance_")]
+        col_order = {'emoji': 0, 'emotion': 1, 'hate': 2, 'irony': 3, 'offensive': 4, 'sentiment': 5, 'stance': 6}
+        col_list.sort(key=lambda col: col_order[col])
+        col_list.extend(["stance", "all"])
+        stance_avg_score = {}
+        for element in row:
+            tex += f"{list(element)[1]}&"
         for i, task in enumerate(task_list):
-            df = self.result_df[(self.result_df['model'] == model) & (self.result_df['task'] == task)]
+            df = self.get_target_df(row)
+            if df.empty:
+                return ""
             if "stance" in task:
-                stance_avg_score.append(df['metric_score'].mean())
+                for seed in df['seed'].unique():
+                    stance_avg_score.update({seed: df.loc[df['seed'] == seed, 'metric_score'].mean()})
             else:
-                scores[task]["avg"] = df['metric_score'].mean()
-                scores[task]["std"] = df['metric_score'].std()
-                scores[task]["max"] = df['metric_score'].max()
+                scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
+                scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
+                scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
         scores["stance"] = {"avg": 0, "std": 0, "max": 0}
-        scores["stance"]["avg"] = np.mean(stance_avg_score)
-        scores["stance"]["std"] = np.std(stance_avg_score)
-        scores["stance"]["max"] = np.max(stance_avg_score)
+        a = list(stance_avg_score.values())
+        scores["stance"]["avg"] = np.mean(list(stance_avg_score.values()))
+        scores["stance"]["std"] = np.std(list(stance_avg_score.values()))
+        scores["stance"]["max"] = np.max(list(stance_avg_score.values()))
         scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
-        scores = {k.capitalize(): v for k, v in scores.items()}
-        latex_column = self.column[1:-1]
-        for i, task in enumerate(latex_column):
-            tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&\n"
-            if i == len(latex_column)-1:
-                tex += str(round(100*scores["All"], 1))
+        scores = {k: v for k, v in scores.items()}
+        for i, task in enumerate(col_list):
+            if i < len(col_list) - 1:
+                tex += f"{round(100 * scores[task]['avg'], 1)}\small$\pm${round(100 * scores[task]['std'], 1)}\\thinspace({round(100 * scores[task]['max'], 1)})&\n"
+            else:
+                tex += str(round(100 * scores[task], 1))
                 tex += "\\\ \n"
         return tex
 
     def write_end(self, session_to_include: List, task_list: List, result: Result) -> str:
+        metric_string = ""
+        for i, col in enumerate(session_to_include + task_list):
+            if i <= len(session_to_include) - 1:
+                metric_string += "&"
         string = "\\hline\\hline\n" \
-                 "\\textbf{Metric}&M-F1&M-F1&M-F1&F$^{(i)}$&M-F1&M-Rec&AVG(F$^{(a)}$, F$^{(f)}$)&TE\n" \
+                 f"\\textbf{{Metric}}{metric_string}M-F1&M-F1&M-F1&F$^{{(i)}}$&M-F1&M-Rec&AVG(F$^{{(a)}}$, F$^{{(f)}}$)&TE\n" \
                  "\\end{tabular}\n" \
                  "\\end{center}}"
         return string
 
 
 class LatexTableWriter(object):
-    def __init__(self, output_path: str, result_class: type(Result)):
+    def __init__(self, output_path: str, result_class: type(Result), table: Optional[Table] = Table):
         self.output_path = output_path
         self.result_class = result_class
         test_result_path = self.fetch_test_results_from_dir(output_path)
         self.result_instances = self.retrieve_result_instance(test_result_path)
         self.task_list = list(set(result.task for result in self.result_instances))
         self.result_df = self.get_result_df(self.result_instances)
-        self.table = Table(self.result_df)
+        self.table = table(self.result_df)
         self.write_to_csv(self.result_df, str(Path(self.output_path, "results.csv").absolute()))
 
     def get_model_list(self, path_list: list) -> list:
@@ -372,9 +411,9 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/")
-    # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/")
+    writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
