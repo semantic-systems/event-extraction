@@ -13,14 +13,14 @@ model:
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
-  from_pretrained: roberta-base
+  from_pretrained: vinai/bertweet-base
   layers:
     layer1:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/sl/head_layer/mlp/
+  output_path: ./outputs/tweeteval/sl/lm/bertweet/
 name: stance_hillary
 seed:
 - 0
