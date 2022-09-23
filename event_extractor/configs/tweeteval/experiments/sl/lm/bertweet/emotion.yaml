@@ -24,7 +24,6 @@ model:
 name: emotion
 seed:
 - 0
-- 1
 - 2
 visualizer:
 - tsne
