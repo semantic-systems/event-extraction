@@ -411,9 +411,9 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/")
-    writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
-    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)

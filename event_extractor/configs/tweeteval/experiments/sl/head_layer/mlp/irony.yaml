@@ -27,7 +27,6 @@ model:
 name: irony
 seed:
 - 0
-- 1
 - 2
 visualizer:
 - tsne
