@@ -398,7 +398,7 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = [0, 2]
+            config["seed"] = 1
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
             # config["model"]["output_path"] = "./outputs/tweeteval/sl/lm/roberta_base/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
@@ -411,7 +411,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/bertweet")
     # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
