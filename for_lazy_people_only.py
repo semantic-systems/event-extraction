@@ -406,20 +406,20 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = [0]
+            config["seed"] = [0, 1, 2]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/bertweet/"
-            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
-            # config["model"]["from_pretrained"] = "vinai/bertweet-base"
+            config["model"]["output_path"] = "./outputs/tweeteval/experiments/sl/bertweet/mlp/"
+            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
+            config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # if "augmenter" not in config:
             #     config["augmenter"] = {"name": "dropout", "num_samples": 2}
-            config["model"]["contrastive"]["temperature"] = 0.5
+            # config["model"]["contrastive"]["temperature"] = 0.5
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/bertweet/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
     # writer = LatexTableWriter("./tables/tweeteval/experiments/scl", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature", "contrast_mode"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
