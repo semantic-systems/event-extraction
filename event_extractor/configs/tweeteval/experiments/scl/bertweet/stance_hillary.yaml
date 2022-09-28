@@ -21,7 +21,7 @@ model:
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
-  from_pretrained: roberta-base
+  from_pretrained: vinai/bertweet-base
   layers:
     layer1:
       n_in: 768
@@ -32,5 +32,7 @@ model:
 name: stance_hillary
 seed:
 - 0
+- 1
+- 2
 visualizer:
 - tsne

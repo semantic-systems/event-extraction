@@ -408,7 +408,7 @@ class ConfigWriter(object):
             config = ConfigWriter.read_yaml(file)
             config["seed"] = [0, 1, 2]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/sl/bertweet/mlp/"
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/sl/bertweet/mlp/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # if "augmenter" not in config:
@@ -419,7 +419,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/head_layer/mlp/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/bertweet/")
     # writer = LatexTableWriter("./tables/tweeteval/experiments/scl", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature", "contrast_mode"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
