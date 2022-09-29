@@ -30,6 +30,8 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/experiments/scl/contrastive_loss_ratio/01/
 name: hate
-seed: 1
+seed:
+- 0
+- 2
 visualizer:
 - tsne

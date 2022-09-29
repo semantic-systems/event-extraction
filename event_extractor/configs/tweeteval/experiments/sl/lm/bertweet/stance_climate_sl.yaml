@@ -22,8 +22,6 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/sl/lm/bertweet/
 name: stance_climate
-seed:
-- 0
-- 2
+seed: 1
 visualizer:
 - tsne

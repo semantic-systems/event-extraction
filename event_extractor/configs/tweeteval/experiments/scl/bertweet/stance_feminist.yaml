@@ -32,7 +32,6 @@ model:
 name: stance_feminist
 seed:
 - 0
-- 1
 - 2
 visualizer:
 - tsne

@@ -32,7 +32,6 @@ model:
 name: hate
 seed:
 - 0
-- 1
 - 2
 visualizer:
 - tsne
