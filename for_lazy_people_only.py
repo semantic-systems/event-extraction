@@ -151,6 +151,10 @@ class Table(object):
                 col = "ratio"
             if col == "head_type":
                 col = "cls"
+            if col == "contrastive_temperature":
+                col = "tmp"
+            if col == "contrast_mode":
+                col = "mode"
             column_string += f"{col.replace('_', '-')}&"
 
             if i == len(session_to_include+task_list)-1:
@@ -224,6 +228,10 @@ class TweetEvalMainTable(Table):
                 col = "ratio"
             if col == "head_type":
                 col = "cls"
+            if col == "contrastive_temperature":
+                col = "tmp"
+            if col == "contrast_mode":
+                col = "mode"
             column_string += f"{col.capitalize().replace('_', '-')}&"
             if i == len(session_to_include+col_list)-1:
                 table_alignment = table_alignment[:-1]
@@ -400,20 +408,21 @@ class ConfigWriter(object):
             config = ConfigWriter.read_yaml(file)
             config["seed"] = 1
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            # config["model"]["output_path"] = "./outputs/tweeteval/sl/lm/roberta_base/"
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/sl/bertweet/mlp/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # if "augmenter" not in config:
             #     config["augmenter"] = {"name": "dropout", "num_samples": 2}
-            # config["model"]["contrastive"]["temperature"] = 0.9
+            # config["model"]["contrastive"]["temperature"] = 0.5
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/bertweet")
-    # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/")
+    # writer = LatexTableWriter("./tables/tweeteval/experiments/sl", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature", "contrast_mode"])
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)

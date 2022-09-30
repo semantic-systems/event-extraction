@@ -93,7 +93,7 @@ if __name__ == "__main__":
     from event_extractor.engines.environment import StaticEnvironment
     from event_extractor.validate import ConfigValidator
 
-    config_path = "./event_extractor/configs/tweeteval/back_translation_de_en_1/emotion_scl_back_translation.yaml"
+    config_path = "./event_extractor/configs/test/emotion_scl.yaml"
     cfg = instantiate_config(config_path)
     validator = ConfigValidator(cfg)
     config = validator()
