@@ -51,14 +51,14 @@ class DataGenerator(object):
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
         self.oos_generator = None
-        task = "multi-label" if cfg.data.classes else "multi-class"
+        task = "multi-class" if cfg.data.classes else "multi-label"
         if cfg.data.include_oos:
             self.oos_generator = OOSDatasetGenerator(cfg, deepcopy(self.testing_dataset.features))
             self.num_labels = self.oos_generator.updated_features['label'].num_classes
             self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
                                           for label in self.oos_generator.updated_features['label'].names}
         else:
-            if task == "multi-label":
+            if task == "multi-class":
                 self.num_labels = len(cfg.data.classes)
                 self.label_index_map: Dict = {label: i
                                               for i, label in enumerate(cfg.data.classes)}
@@ -66,6 +66,8 @@ class DataGenerator(object):
                 self.num_labels = self.training_dataset.features['label'].num_classes
                 self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
                                               for label in self.training_dataset.features['label'].names}
+            else:
+                raise ValueError
 
     @property
     def training_dataset(self):
