@@ -1,9 +1,9 @@
 augmenter:
   name: dropout
-  num_samples: 4
+  num_samples: 2
 data:
   batch_size: 32
-  config: stance_abortion
+  config: stance_atheism
   include_oos: false
   label_column: label
   name: tweet_eval
@@ -25,11 +25,14 @@ model:
   layers:
     layer1:
       n_in: 768
+      n_out: 768
+    layer2:
+      n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/scl/num_aug/4/
-name: stance_abortion
+  output_path: ./outputs/tweeteval/experiments/scl/mlp_dropout/05/
+name: stance_atheism
 seed:
 - 0
 - 1

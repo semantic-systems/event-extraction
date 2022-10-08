@@ -32,6 +32,7 @@ model:
 name: emoji
 seed:
 - 0
+- 1
 - 2
 visualizer:
 - tsne

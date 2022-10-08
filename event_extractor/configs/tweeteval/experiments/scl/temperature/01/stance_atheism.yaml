@@ -32,6 +32,7 @@ model:
 name: stance_atheism
 seed:
 - 0
+- 1
 - 2
 visualizer:
 - tsne
