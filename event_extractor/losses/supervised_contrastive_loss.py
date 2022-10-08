@@ -4,14 +4,87 @@ import torch
 import torch.nn as nn
 
 
+def unique(x, dim=None):
+    """Unique elements of x and indices of those unique elements
+    https://github.com/pytorch/pytorch/issues/36748#issuecomment-619514810
+    e.g.
+    unique(tensor([
+        [1, 2, 3],
+        [1, 2, 4],
+        [1, 2, 3],
+        [1, 2, 5]
+    ]), dim=0)
+    => (tensor([[1, 2, 3],
+                [1, 2, 4],
+                [1, 2, 5]]),
+        tensor([0, 1, 3]))
+    """
+    unique, inverse = torch.unique(
+        x, sorted=True, return_inverse=True, dim=dim)
+    perm = torch.arange(inverse.size(0), dtype=inverse.dtype,
+                        device=inverse.device)
+    inverse, perm = inverse.flip([0]), perm.flip([0])
+    return unique, inverse.new_empty(unique.size(0)).scatter_(0, inverse, perm)
+
+
+class HMLC(nn.Module):
+    def __init__(self, temperature=0.07,
+                 base_temperature=0.07, layer_penalty=None, loss_type='hmce'):
+        super(HMLC, self).__init__()
+        self.temperature = temperature
+        self.base_temperature = base_temperature
+        if not layer_penalty:
+            self.layer_penalty = self.pow_2
+        else:
+            self.layer_penalty = layer_penalty
+        self.sup_con_loss = SupervisedContrastiveLoss(temperature)
+        self.loss_type = loss_type
+
+    def pow_2(self, value):
+        return torch.pow(2, value)
+
+    def forward(self, features, labels):
+        device = (torch.device('cuda')
+                  if features.is_cuda
+                  else torch.device('cpu'))
+        mask = torch.ones(labels.shape).to(device)
+        cumulative_loss = torch.tensor(0.0).to(device)
+        max_loss_lower_layer = torch.tensor(float('-inf'))
+        for l in range(1, labels.shape[1]):
+            mask[:, labels.shape[1]-l:] = 0
+            layer_labels = labels * mask
+            mask_labels = torch.stack([torch.all(torch.eq(layer_labels[i], layer_labels), dim=1)
+                                       for i in range(layer_labels.shape[0])]).type(torch.uint8).to(device)
+            layer_loss = self.sup_con_loss(features, mask=mask_labels)
+            if self.loss_type == 'hmc':
+                cumulative_loss += self.layer_penalty(torch.tensor(
+                  1/(l)).type(torch.float)) * layer_loss
+            elif self.loss_type == 'hce':
+                layer_loss = torch.max(max_loss_lower_layer.to(layer_loss.device), layer_loss)
+                cumulative_loss += layer_loss
+            elif self.loss_type == 'hmce':
+                layer_loss = torch.max(max_loss_lower_layer.to(layer_loss.device), layer_loss)
+                cumulative_loss += self.layer_penalty(torch.tensor(
+                    1/l).type(torch.float)) * layer_loss
+            else:
+                raise NotImplementedError('Unknown loss')
+            _, unique_indices = unique(layer_labels, dim=0)
+            max_loss_lower_layer = torch.max(
+                max_loss_lower_layer.to(layer_loss.device), layer_loss)
+            labels = labels[unique_indices]
+            mask = mask[unique_indices]
+            features = features[unique_indices]
+        return cumulative_loss / labels.shape[1]
+
+
 class SupervisedContrastiveLoss(nn.Module):
     """Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
     It also supports the unsupervised contrastive loss in SimCLR
     modified from https://github.com/HobbitLong/SupContrast/blob/331aab5921c1def3395918c05b214320bef54815/losses.py """
     def __init__(self,
                  temperature,
-                 contrast_mode,
-                 base_temperature):
+                 contrast_mode="all",
+                 base_temperature=0.3):
         super(SupervisedContrastiveLoss, self).__init__()
         self.temperature = temperature
         self.contrast_mode = contrast_mode

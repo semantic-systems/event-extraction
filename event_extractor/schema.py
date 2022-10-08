@@ -15,6 +15,14 @@ class SingleLabelClassificationForwardOutput:
 
 
 @dataclass
+class MultiLabelClassificationForwardOutput:
+    loss: Optional[tensor] = None
+    prediction_logits: tensor = None
+    encoded_features: Optional[tensor] = None
+    attentions: Optional[Tuple[tensor]] = None
+
+
+@dataclass
 class TSNEFeature:
     final_hidden_states: List
     encoded_features: List

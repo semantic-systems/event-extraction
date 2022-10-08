@@ -1,24 +1,24 @@
 from itertools import chain
 from omegaconf import DictConfig
-from torch.nn import Module, NLLLoss, Identity
+from torch.nn import Module, BCELoss, Identity
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer
 from event_extractor.models import SequenceClassification
 from event_extractor.models.heads import DenseLayerHead, DenseLayerContrastiveHead
-from event_extractor.schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
+from event_extractor.schema import MultiLabelClassificationForwardOutput, InputFeature, EncodedFeature
 from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss
 
 
-class SingleLabelSequenceClassification(SequenceClassification):
+class MultiLabelSequenceClassification(SequenceClassification):
     def __init__(self, cfg: DictConfig):
-        super(SingleLabelSequenceClassification, self).__init__(cfg)
+        super(MultiLabelSequenceClassification, self).__init__(cfg)
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.loss = NLLLoss()
+        self.loss = BCELoss()
 
     def forward(self,
                 input_feature: InputFeature,
-                mode: str) -> SingleLabelClassificationForwardOutput:
+                mode: str) -> MultiLabelClassificationForwardOutput:
         output = self.encoder(input_ids=input_feature.input_ids,
                               attention_mask=input_feature.attention_mask).pooler_output
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
@@ -28,15 +28,15 @@ class SingleLabelSequenceClassification(SequenceClassification):
             loss = self.loss(head_output.output, input_feature.labels)
             loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         elif mode == "test":
-            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
@@ -54,13 +54,13 @@ class SingleLabelSequenceClassification(SequenceClassification):
         return DenseLayerHead(self.cfg)
 
 
-class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassification):
+class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassification):
     def __init__(self, cfg: DictConfig):
-        super(SingleLabelContrastiveSequenceClassification, self).__init__(cfg)
+        super(MultiLabelContrastiveSequenceClassification, self).__init__(cfg)
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.loss = NLLLoss()
+        self.loss = BCELoss()
         self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
                                                           base_temperature=cfg.model.contrastive.base_temperature,
                                                           contrast_mode=cfg.model.contrastive.contrast_mode)
@@ -68,7 +68,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
 
     def forward(self,
                 input_feature: InputFeature,
-                mode: str) -> SingleLabelClassificationForwardOutput:
+                mode: str) -> MultiLabelClassificationForwardOutput:
         output = self.encoder(input_ids=input_feature.input_ids,
                               attention_mask=input_feature.attention_mask).pooler_output
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
@@ -86,15 +86,15 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
-            return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
-            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         elif mode == "test":
-            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+            return MultiLabelClassificationForwardOutput(prediction_logits=head_output.output,
+                                                         encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 

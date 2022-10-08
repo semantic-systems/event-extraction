@@ -1,3 +1,4 @@
+from typing import Optional
 from omegaconf import DictConfig
 from torch import tensor
 from torch.nn import Linear, ModuleList, Dropout
@@ -8,13 +9,19 @@ import torch.nn.functional as F
 
 
 class DenseLayerHead(Head):
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, activation: Optional[str] = "softmax"):
         super(DenseLayerHead, self).__init__()
         layer_stacks = [Linear(layer.n_in, layer.n_out) for layer in cfg.model.layers.values()]
         self.head_type = "mlp" if len(layer_stacks) > 1 else "linear"
         self.classification_layer = ModuleList(layer_stacks)
         self.dropout = Dropout(p=cfg.model.dropout_rate)
         self.l2_normalize = cfg.model.L2_normalize_encoded_feature
+        if activation == "softmax":
+            self.activation_func = F.softmax
+        elif activation == "sigmoid":
+            self.activation_func = F.sigmoid
+        else:
+            raise ValueError(f"Activation function {activation} not defined.")
 
     def forward(self, encoded_features: EncodedFeature, mode: str) -> HeadOutput:
         encoded_feature: tensor = encoded_features.encoded_feature
@@ -24,6 +31,7 @@ class DenseLayerHead(Head):
             if self.l2_normalize:
                 norm = output.norm(p=2, dim=1, keepdim=True)
                 output = output.div(norm.expand_as(output))
+            output = self.activation_func(self.classification_layer[0](output))
         else:
             for i, layer in enumerate(self.classification_layer):
                 if i < len(self.classification_layer) - 1:
@@ -36,17 +44,24 @@ class DenseLayerHead(Head):
                     if self.l2_normalize:
                         norm = output.norm(p=2, dim=1, keepdim=True)
                         output = output.div(norm.expand_as(output))
+                    output = self.activation_func(layer(output))
         return HeadOutput(output)
 
 
 class DenseLayerContrastiveHead(Head):
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, activation: Optional[str] = "softmax"):
         super(DenseLayerContrastiveHead, self).__init__()
         layer_stacks = [Linear(layer.n_in, layer.n_out) for layer in cfg.model.layers.values()]
         self.head_type = "mlp" if len(layer_stacks) > 1 else "linear"
         self.classification_layer = ModuleList(layer_stacks)
         self.dropout = Dropout(p=cfg.model.dropout_rate)
         self.l2_normalize = cfg.model.L2_normalize_encoded_feature
+        if activation == "softmax":
+            self.activation_func = F.softmax
+        elif activation == "sigmoid":
+            self.activation_func = F.sigmoid
+        else:
+            raise ValueError(f"Activation function {activation} not defined.")
 
     def forward(self, encoded_features: EncodedFeature, mode: str) -> HeadOutput:
         encoded_feature: tensor = encoded_features.encoded_feature
@@ -55,7 +70,7 @@ class DenseLayerContrastiveHead(Head):
             if self.l2_normalize:
                 norm = output.norm(p=2, dim=-1, keepdim=True)
                 output = output.div(norm.expand_as(output))
-            output = F.softmax(self.classification_layer[0](output))
+            output = self.activation_func(self.classification_layer[0](output))
         else:
             for i, layer in enumerate(self.classification_layer):
                 if i < len(self.classification_layer) - 1:
@@ -67,5 +82,6 @@ class DenseLayerContrastiveHead(Head):
                     if self.l2_normalize:
                         norm = output.norm(p=2, dim=-1, keepdim=True)
                         output = output.div(norm.expand_as(output))
-                    output = F.softmax(layer(output))
+                    output = self.activation_func(layer(output))
         return HeadOutput(output)
+
