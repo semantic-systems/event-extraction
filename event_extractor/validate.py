@@ -63,6 +63,9 @@ class ConfigValidator(object):
         if "include_oos" not in self.config.data:
             with open_dict(self.config):
                 self.config.data.include_oos = False
+        if "classes" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.classes = None
 
     def validate_early_stopping(self):
         if "early_stopping" not in self.config:
