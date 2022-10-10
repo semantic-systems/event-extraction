@@ -73,7 +73,9 @@ class DataGenerator(object):
     def training_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "train")
         return dataset
@@ -82,7 +84,9 @@ class DataGenerator(object):
     def validation_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "validation")
         return dataset
@@ -91,13 +95,15 @@ class DataGenerator(object):
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "test")
         return dataset
 
     @staticmethod
-    def rename_label_column(dataset, original_label_name, new_label_name):
+    def rename_column(dataset, original_label_name, new_label_name):
         return dataset.rename_column(original_label_name, new_label_name)
 
     def __call__(self,
@@ -130,19 +136,25 @@ class DataGeneratorSubSample(DataGenerator):
     def training_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset
 
     @property
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset
 
     @property
     def validation_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation').train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset

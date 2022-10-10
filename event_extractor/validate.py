@@ -66,6 +66,9 @@ class ConfigValidator(object):
         if "classes" not in self.config.data:
             with open_dict(self.config):
                 self.config.data.classes = None
+        if "text_column" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.text_column = "text"
 
     def validate_early_stopping(self):
         if "early_stopping" not in self.config:

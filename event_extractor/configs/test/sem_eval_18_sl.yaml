@@ -2,6 +2,7 @@ data:
   batch_size: 32
   config: subtask5.english
   label_column: label
+  text_column: Tweet
   name: sem_eval_2018_task_1
   validation: true
   subset: 0.1
