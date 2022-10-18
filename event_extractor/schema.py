@@ -12,6 +12,8 @@ class SingleLabelClassificationForwardOutput:
     prediction_logits: tensor = None
     encoded_features: Optional[tensor] = None
     attentions: Optional[Tuple[tensor]] = None
+    cross_entropy_loss: Optional[float] = None
+    contrastive_loss: Optional[float] = None
 
 
 @dataclass
@@ -20,7 +22,8 @@ class MultiLabelClassificationForwardOutput:
     prediction_logits: tensor = None
     encoded_features: Optional[tensor] = None
     attentions: Optional[Tuple[tensor]] = None
-
+    cross_entropy_loss: Optional[float] = None
+    contrastive_loss: Optional[float] = None
 
 @dataclass
 class TSNEFeature:

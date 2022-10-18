@@ -26,7 +26,8 @@ class ConfigValidator(object):
             raise
 
     def validate_model(self):
-        default = {"from_pretrained": "bert-base-uncased",
+        default = {"type": "single-label",
+                   "from_pretrained": "bert-base-uncased",
                    "layers": {"layer1": {
                         "n_in": 768,
                         "n_out": 20

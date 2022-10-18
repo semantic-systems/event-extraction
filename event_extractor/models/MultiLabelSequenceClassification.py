@@ -5,7 +5,7 @@ from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer,
 from event_extractor.models import SequenceClassification
 from event_extractor.models.heads import DenseLayerHead, DenseLayerContrastiveHead
 from event_extractor.schema import MultiLabelClassificationForwardOutput, InputFeature, EncodedFeature
-from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss
+from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss, HMLC
 
 
 class MultiLabelSequenceClassification(SequenceClassification):
@@ -51,7 +51,7 @@ class MultiLabelSequenceClassification(SequenceClassification):
         return Identity()
 
     def instantiate_classification_head(self) -> DenseLayerHead:
-        return DenseLayerHead(self.cfg)
+        return DenseLayerHead(self.cfg, activation="sigmoid")
 
 
 class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassification):
@@ -61,9 +61,9 @@ class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassificati
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.loss = BCELoss()
-        self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
-                                                          base_temperature=cfg.model.contrastive.base_temperature,
-                                                          contrast_mode=cfg.model.contrastive.contrast_mode)
+        self.contrastive_loss = HMLC(temperature=cfg.model.contrastive.temperature,
+                                      base_temperature=cfg.model.contrastive.base_temperature,
+                                      contrast_mode=cfg.model.contrastive.contrast_mode)
         self.contrastive_loss_ratio = cfg.model.contrastive.contrastive_loss_ratio
 
     def forward(self,
@@ -99,4 +99,4 @@ class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassificati
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
     def instantiate_classification_head(self) -> DenseLayerContrastiveHead:
-        return DenseLayerContrastiveHead(self.cfg)
+        return DenseLayerContrastiveHead(self.cfg, activation="sigmoid")

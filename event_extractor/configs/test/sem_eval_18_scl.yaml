@@ -16,7 +16,7 @@ model:
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 0
+    contrastive_loss_ratio: 0.5
     temperature: 0.3
   dropout_rate: 0.5
   epochs: 5
@@ -29,6 +29,9 @@ model:
   learning_rate: 1.0e-04
   num_transformer_layers: 1
   output_path: ./outputs/test/
-name: sem_eval_2018_task_1_sl
+name: sem_eval_2018_task_1_scl
 seed:
 - 0
+augmenter:
+  name: dropout
+  num_samples: 2

@@ -1,5 +1,6 @@
 from typing import Dict, Union, Type, List
 
+import numpy as np
 import torch
 from omegaconf import DictConfig
 from dataclasses import dataclass
@@ -9,11 +10,16 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from data_augmenters.data_augmenter import FSMTBackTranslationAugmenter, RandomAugmenter, DropoutAugmenter
-from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification
+from event_extractor.models import SingleLabelSequenceClassification, PrototypicalNetworks, \
+    SingleLabelContrastiveSequenceClassification, MultiLabelSequenceClassification, MultiLabelContrastiveSequenceClassification
 from event_extractor.schema import InputFeature, SingleLabelClassificationForwardOutput, \
-    PrototypicalNetworksForwardOutput, AgentPolicyOutput, TSNEFeature
+    PrototypicalNetworksForwardOutput, AgentPolicyOutput, TSNEFeature, MultiLabelClassificationForwardOutput
 
-PolicyClasses = Union[SingleLabelSequenceClassification, PrototypicalNetworks, SingleLabelContrastiveSequenceClassification]
+PolicyClasses = Union[SingleLabelSequenceClassification, PrototypicalNetworks,
+                      SingleLabelContrastiveSequenceClassification, MultiLabelSequenceClassification,
+                      MultiLabelContrastiveSequenceClassification]
+
+ClassificationForwardOutput = Union[SingleLabelClassificationForwardOutput, MultiLabelClassificationForwardOutput]
 
 
 @dataclass
@@ -53,9 +59,16 @@ class BatchLearningAgent(Agent):
     @property
     def policy_class(self) -> Type[PolicyClasses]:
         if self.is_contrastive:
-            return SingleLabelContrastiveSequenceClassification
+            if self.config.model.type == "single-label":
+                return SingleLabelContrastiveSequenceClassification
+            elif self.config.model.type == "multi-label":
+                return MultiLabelContrastiveSequenceClassification
+
         else:
-            return SingleLabelSequenceClassification
+            if self.config.model.type == "single-label":
+                return SingleLabelSequenceClassification
+            elif self.config.model.type == "multi-label":
+                return MultiLabelSequenceClassification
 
     @property
     def is_contrastive(self) -> bool:
@@ -88,6 +101,8 @@ class BatchLearningAgent(Agent):
                     batch = self.augment(batch, self.config.augmenter.num_samples)
             if mode == "test":
                 test_input.extend(batch["text"])
+            if isinstance(batch["label"], list):
+                batch["label"] = torch.stack(batch["label"]).T.float()
             labels: tensor = batch["label"].to(self.device)
             y_true.extend(labels)
             batch = self.policy.preprocess(batch)
@@ -96,8 +111,8 @@ class BatchLearningAgent(Agent):
             # convert labels to None if in testing mode.
             labels = None if mode == "test" else labels
             input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: SingleLabelClassificationForwardOutput = self.policy(input_feature, mode=mode)
-            prediction = outputs.prediction_logits.argmax(1)
+            outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode)
+            prediction = self.get_prediction(outputs)
             y_predict.extend(prediction)
             if mode in ["train", "validation"]:
                 loss = (loss + outputs.loss)/(i+1)
@@ -106,6 +121,15 @@ class BatchLearningAgent(Agent):
                 tsne_features["final_hidden_states"].extend(outputs.prediction_logits.tolist())
         return AgentPolicyOutput(**{"y_predict": y_predict, "y_true": y_true, "loss": loss,
                                     "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input})
+
+    def get_prediction(self, outputs: ClassificationForwardOutput):
+        if self.config.model.type == "single-label":
+            prediction = outputs.prediction_logits.argmax(1)
+        elif self.config.model.type == "multi-label":
+            prediction = torch.round(outputs.prediction_logits)
+        else:
+            raise NotImplementedError
+        return prediction
 
     @staticmethod
     def instantiate_augmenter(name: str, **kwargs):
@@ -126,7 +150,12 @@ class BatchLearningAgent(Agent):
         augmented_batch = deepcopy(batch)
         augmented_batch["text"].extend(augmented_text)
         # label need to repeat n times + the original copy
-        augmented_batch["label"] = batch["label"].repeat(num_augmented_samples+1)
+        # if isinstance(batch["label"], list):
+        if self.config.model.type == "multi-label":
+            batch["label"] = torch.stack(batch["label"]).T.float()
+            augmented_batch["label"] = batch["label"].repeat(num_augmented_samples + 1, 1)
+        else:
+            augmented_batch["label"] = batch["label"].repeat(num_augmented_samples+1)
         return augmented_batch
 
 

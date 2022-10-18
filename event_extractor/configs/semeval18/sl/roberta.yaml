@@ -5,11 +5,10 @@ data:
   text_column: Tweet
   name: sem_eval_2018_task_1
   validation: true
-  subset: 0.1
   classes: [anger, anticipation, disgust, fear, joy, love, optimism, pessimism, sadness, surprise, trust]
 early_stopping:
   delta: 0
-  tolerance: 1
+  tolerance: 5
 model:
   type: multi-label
   L2_normalize_encoded_feature: false
@@ -19,7 +18,7 @@ model:
     contrastive_loss_ratio: 0
     temperature: 0.3
   dropout_rate: 0.5
-  epochs: 5
+  epochs: 50
   freeze_transformer_layers: none
   from_pretrained: roberta-base
   layers:
@@ -28,7 +27,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-04
   num_transformer_layers: 1
-  output_path: ./outputs/test/
-name: sem_eval_2018_task_1_sl
+  output_path: ./outputs/semeval18/sl/
+name: roberta
 seed:
 - 0

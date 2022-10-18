@@ -120,8 +120,18 @@ class Trainer(object):
             index_label_map=label_index_map)
 
     def convert_tensor_index_to_label(self, labels: List[tensor]) -> List:
-        labels = [label.item() for label in labels]
-        return list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+        if self.config.model.type == "single-label":
+            labels = [label.item() for label in labels]
+            return list(map(lambda index: self.environment.index_label_map[str(index)], labels))
+        elif self.config.model.type == "multi-label":
+            final_labels = []
+            for label in labels:
+                index_label = [i for i, l in enumerate(label) if l == 1]
+                text_label = list(map(lambda index: self.environment.index_label_map[str(index)], index_label))
+                final_labels.append(text_label)
+            return final_labels
+        else:
+            raise NotImplementedError
 
 
 class SingleAgentTrainer(Trainer):

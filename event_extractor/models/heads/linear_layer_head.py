@@ -27,7 +27,6 @@ class DenseLayerHead(Head):
         encoded_feature: tensor = encoded_features.encoded_feature
         output = encoded_feature
         if self.head_type == "linear":
-            output = self.classification_layer[0](output)
             if self.l2_normalize:
                 norm = output.norm(p=2, dim=1, keepdim=True)
                 output = output.div(norm.expand_as(output))
@@ -40,7 +39,6 @@ class DenseLayerHead(Head):
                     elif mode in ["validation", "test"]:
                         output = F.relu(layer(output))
                 else:
-                    output = layer(output)
                     if self.l2_normalize:
                         norm = output.norm(p=2, dim=1, keepdim=True)
                         output = output.div(norm.expand_as(output))

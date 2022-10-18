@@ -29,15 +29,16 @@ def unique(x, dim=None):
 
 class HMLC(nn.Module):
     def __init__(self, temperature=0.07,
-                 base_temperature=0.07, layer_penalty=None, loss_type='hmce'):
+                 base_temperature=0.07, layer_penalty=None, loss_type='hmce', contrast_mode="all"):
         super(HMLC, self).__init__()
         self.temperature = temperature
         self.base_temperature = base_temperature
+        self.contrast_mode = contrast_mode
         if not layer_penalty:
             self.layer_penalty = self.pow_2
         else:
             self.layer_penalty = layer_penalty
-        self.sup_con_loss = SupervisedContrastiveLoss(temperature)
+        self.sup_con_loss = SupervisedContrastiveLoss(temperature=temperature, base_temperature=base_temperature, contrast_mode=contrast_mode)
         self.loss_type = loss_type
 
     def pow_2(self, value):

@@ -418,9 +418,9 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/mlp_dropout/")
-    # writer = LatexTableWriter("./tables/tweeteval/experiments/sl", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature", "contrast_mode"])
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/mlp_dropout/")
+    writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])

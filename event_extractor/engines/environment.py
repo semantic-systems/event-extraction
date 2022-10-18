@@ -1,5 +1,4 @@
 import json
-import pickle
 from pathlib import Path
 from typing import Dict, Union, List, Optional
 from abc import abstractmethod
@@ -8,10 +7,11 @@ import pandas as pd
 import torch
 import emoji
 from matplotlib import pyplot as plt
-from omegaconf import DictConfig, OmegaConf, open_dict
+from omegaconf import DictConfig, OmegaConf
 from dataclasses import dataclass, asdict
 
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, recall_score, precision_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, recall_score, \
+    precision_score, accuracy_score, multilabel_confusion_matrix
 from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
@@ -149,37 +149,50 @@ class StaticEnvironment(Environment):
                  loss: int,
                  mode: str,
                  num_epoch: Optional[int] = None) -> ClassificationResult:
-        # y_predict = torch.stack(y_predict)
-        # y_true = torch.stack(y_true)
-        y_predict = torch.tensor(y_predict)
-        y_true = torch.tensor(y_true)
-        acc = (y_predict == y_true).sum().item() / y_predict.size(0)
-        # y_predict = y_predict.cpu().detach().numpy()
-        # y_true = y_true.cpu().detach().numpy()
+        try:
+            y_predict = torch.tensor(y_predict)
+            y_true = torch.tensor(y_true)
+        except ValueError:
+            y_predict = torch.stack(y_predict)
+            y_true = torch.stack(y_true)
+            y_predict = y_predict.cpu().detach().numpy()
+            y_true = y_true.cpu().detach().numpy()
+        acc = accuracy_score(y_true=y_true, y_pred=y_predict)
         f1_micro = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='micro')
         f1_macro = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='macro')
         recall_macro = recall_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='macro')
         precision_macro = precision_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average='macro')
         f1_per_class = f1_score(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels), average=None)
-        cm = confusion_matrix(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels))
+        if self.config.model.type == "single-label":
+            cm = confusion_matrix(y_true=y_true, y_pred=y_predict, labels=range(self.num_labels))
+            cmd_obj = ConfusionMatrixDisplay(cm, display_labels=self.labels_list)
+            fig, ax = plt.subplots(figsize=(10, 10))
+            cmd_obj.plot(xticks_rotation=30, ax=ax)
+            cmd_obj.ax_.set(
+                title='Confusion Matrix',
+                xlabel='Predicted Labels',
+                ylabel='True Labels')
 
-        cmd_obj = ConfusionMatrixDisplay(cm, display_labels=self.labels_list)
-        fig, ax = plt.subplots(figsize=(10, 10))
-        cmd_obj.plot(xticks_rotation=30, ax=ax)
-        cmd_obj.ax_.set(
-            title='Confusion Matrix',
-            xlabel='Predicted Labels',
-            ylabel='True Labels')
-
-        plt.axis('scaled')
-        if num_epoch is not None:
-            path_to_plot: str = str(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
-                                         f'confusion_matrix_{mode}_epoch_{num_epoch}.png').absolute())
+            plt.axis('scaled')
+            if num_epoch is not None:
+                path_to_plot: str = str(
+                    Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                         f'confusion_matrix_{mode}_epoch_{num_epoch}.png').absolute())
+            else:
+                path_to_plot = str(
+                    Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                         f'confusion_matrix_{mode}.png').absolute())
+            plt.savefig(path_to_plot, aspect='auto', dpi=100)
+            plt.close()
         else:
-            path_to_plot = str(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
-                                    f'confusion_matrix_{mode}.png').absolute())
-        plt.savefig(path_to_plot, aspect='auto', dpi=100)
-        plt.close()
+            if num_epoch is not None:
+                path_to_plot: str = str(
+                    Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                         f'confusion_matrix_{mode}_epoch_{num_epoch}.png').absolute())
+            else:
+                path_to_plot = str(
+                    Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
+                         f'confusion_matrix_{mode}.png').absolute())
         f1_per_class = {label: f1_per_class[i] for i, label in enumerate(self.labels_list)}
         if self.config.data.config is not None and "stance" in self.config.data.config:
             other = (f1_per_class["against"] + f1_per_class["favor"])/2
