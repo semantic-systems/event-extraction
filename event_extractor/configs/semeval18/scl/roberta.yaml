@@ -32,7 +32,7 @@ model:
   learning_rate: 1.0e-05
   num_transformer_layers: full
   output_path: ./outputs/semeval18/scl/
-name: sexism_level_one_sl
+name: roberta
 seed:
 - 0
 - 1
