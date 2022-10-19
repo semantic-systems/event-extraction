@@ -411,15 +411,16 @@ class ConfigWriter(object):
             # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/mlp_dropout/05/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            config["model"]["L2_normalize_logits"] = True
+            # config["model"]["L2_normalize_logits"] = True
             # config["augmenter"]["num_samples"] = 2
             # config["model"]["contrastive"]["temperature"] = 0.5
+            config["data"]["batch_size"] = 16
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/sexism/scl/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/semeval18/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])

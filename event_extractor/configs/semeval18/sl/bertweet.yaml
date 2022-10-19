@@ -1,16 +1,26 @@
 data:
-  batch_size: 32
+  batch_size: 16
+  classes:
+  - anger
+  - anticipation
+  - disgust
+  - fear
+  - joy
+  - love
+  - optimism
+  - pessimism
+  - sadness
+  - surprise
+  - trust
   config: subtask5.english
   label_column: label
-  text_column: Tweet
   name: sem_eval_2018_task_1
+  text_column: Tweet
   validation: true
-  classes: [anger, anticipation, disgust, fear, joy, love, optimism, pessimism, sadness, surprise, trust]
 early_stopping:
   delta: 0
   tolerance: 5
 model:
-  type: multi-label
   L2_normalize_encoded_feature: false
   contrastive:
     base_temperature: 0.3
@@ -25,9 +35,10 @@ model:
     layer1:
       n_in: 768
       n_out: 20
-  learning_rate: 1.0e-04
+  learning_rate: 0.0001
   num_transformer_layers: full
   output_path: ./outputs/semeval18/sl/
+  type: multi-label
 name: bertweet
 seed:
 - 0
