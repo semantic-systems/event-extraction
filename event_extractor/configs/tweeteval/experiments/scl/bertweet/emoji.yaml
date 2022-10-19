@@ -13,6 +13,7 @@ early_stopping:
   tolerance: 25
 model:
   L2_normalize_encoded_feature: true
+  L2_normalize_logits: true
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
@@ -32,6 +33,5 @@ model:
 name: emoji
 seed:
 - 0
-- 2
 visualizer:
 - tsne

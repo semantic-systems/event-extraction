@@ -45,7 +45,8 @@ class ConfigValidator(object):
                        "base_temperature": 0.07,
                        "contrast_mode": "all"
                    },
-                   "L2_normalize_encoded_feature": False
+                   "L2_normalize_encoded_feature": False,
+                   "L2_normalize_logits": False
                    }
         self.create_output_path()
         with open_dict(self.config):

@@ -1,9 +1,9 @@
 from itertools import chain
 from omegaconf import DictConfig
-from torch.nn import Module, NLLLoss, Identity
+from torch.nn import Module, CrossEntropyLoss, Identity
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer
 from event_extractor.models import SequenceClassification
-from event_extractor.models.heads import DenseLayerHead, DenseLayerContrastiveHead
+from event_extractor.models.heads import DenseLayerHead
 from event_extractor.schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
 from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss
 
@@ -14,7 +14,7 @@ class SingleLabelSequenceClassification(SequenceClassification):
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.loss = NLLLoss()
+        self.loss = CrossEntropyLoss()
 
     def forward(self,
                 input_feature: InputFeature,
@@ -60,7 +60,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.loss = NLLLoss()
+        self.loss = CrossEntropyLoss()
         self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
                                                           base_temperature=cfg.model.contrastive.base_temperature,
                                                           contrast_mode=cfg.model.contrastive.contrast_mode)
@@ -97,6 +97,3 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                                                           encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
-
-    def instantiate_classification_head(self) -> DenseLayerContrastiveHead:
-        return DenseLayerContrastiveHead(self.cfg)

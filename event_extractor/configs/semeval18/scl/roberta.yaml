@@ -14,6 +14,7 @@ early_stopping:
   tolerance: 15
 model:
   type: multi-label
+  L2_normalize_logits: true
   L2_normalize_encoded_feature: true
   contrastive:
     base_temperature: 0.3

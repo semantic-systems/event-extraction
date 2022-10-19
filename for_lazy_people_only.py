@@ -406,21 +406,22 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = [0, 1, 2]
-            config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/mlp_dropout/05/"
+            # config["seed"] = [0]
+            # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/mlp_dropout/05/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            config["augmenter"]["num_samples"] = 2
+            config["model"]["L2_normalize_logits"] = True
+            # config["augmenter"]["num_samples"] = 2
             # config["model"]["contrastive"]["temperature"] = 0.5
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/mlp_dropout/")
-    writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
-    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/sexism/scl/")
+    # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
