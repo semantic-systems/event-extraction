@@ -31,7 +31,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/sexism/level_one/scl/
+  output_path: ./outputs/semeval18/scl/
 name: sexism_level_one_sl
 seed:
 - 0

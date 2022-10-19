@@ -26,8 +26,10 @@ model:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-04
-  num_transformer_layers: 1
+  num_transformer_layers: full
   output_path: ./outputs/semeval18/sl/
 name: roberta
 seed:
 - 0
+- 1
+- 2
