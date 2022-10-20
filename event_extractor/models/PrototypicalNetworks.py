@@ -57,7 +57,3 @@ class PrototypicalNetworks(SequenceClassification):
         encoder: PreTrainedModel = AutoModel.from_pretrained(self.cfg.model.from_pretrained)
         encoder = self.trim_encoder_layers(encoder, self.cfg.model.num_transformer_layers)
         return encoder
-
-    def instantiate_feature_transformer(self):
-        # this returns an empty Module
-        return Identity()

@@ -26,6 +26,9 @@ class DenseLayerHead(Head):
                 norm = output.norm(p=2, dim=1, keepdim=True)
                 output = output.div(norm.expand_as(output))
             output = self.classification_layer[0](output)
+            if self.l2_normalize_logits:
+                norm = output.norm(p=2, dim=1, keepdim=True)
+                output = output.div(norm.expand_as(output))
         else:
             for i, layer in enumerate(self.classification_layer):
                 if i < len(self.classification_layer) - 1:

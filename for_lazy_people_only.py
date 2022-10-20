@@ -408,19 +408,28 @@ class ConfigWriter(object):
             config = ConfigWriter.read_yaml(file)
             # config["seed"] = [0]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/mlp_dropout/05/"
-            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
+            # output = config["model"]["output_path"]
+            # updated_output = output.replace("/scl/", "/scl_second_training/")
+            # config["model"]["output_path"] = updated_output
+            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            # config["model"]["L2_normalize_logits"] = True
+            # config["model"]["L2_normalize_encoded_feature"] = False
+            # config["model"]["L2_normalize_logits"] = False
+            # config["model"]["freeze_transformer_layers"] = "all"
             # config["augmenter"]["num_samples"] = 2
             # config["model"]["contrastive"]["temperature"] = 0.5
-            config["data"]["batch_size"] = 16
+            output = config["model"]["output_path"]
+            updated_output = output.replace("/scl_second_training/", "/scl/")
+            if updated_output.endswith("/"):
+                updated_output = updated_output[:-1]
+            path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
+            config["model"]["load_ckpt"] = path_to_ckpt
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/semeval18/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl_second_training/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])

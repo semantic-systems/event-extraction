@@ -46,10 +46,6 @@ class SingleLabelSequenceClassification(SequenceClassification):
         encoder = self.freeze_encoder(encoder, self.cfg.model.freeze_transformer_layers)
         return encoder
 
-    def instantiate_feature_transformer(self) -> Module:
-        # this returns an empty Module
-        return Identity()
-
     def instantiate_classification_head(self) -> DenseLayerHead:
         return DenseLayerHead(self.cfg)
 
@@ -81,13 +77,20 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                 self.cfg.augmenter.num_samples+1,
                 head_output.output.shape[-1]
             )
+            # normalize logits for contrastive loss
+            norm = head_output.output.norm(p=2, dim=1, keepdim=True)
+            normalized_logits = head_output.output.div(norm.expand_as(head_output.output))
+            head_output.output = normalized_logits
+            # reshape to compute the loss
             contrastive_features = head_output.output.reshape(new_shape)
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+                                                          encoded_features=encoded_feature.encoded_feature,
+                                                          cross_entropy_loss=loss.item(),
+                                                          contrastive_loss=contrastive_loss.item())
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
             return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,

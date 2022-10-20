@@ -15,15 +15,16 @@ class SequenceClassification(Module):
         super(SequenceClassification, self).__init__()
         self.cfg = cfg
         self.encoder = self.instantiate_encoder()
-        self.feature_transformer = self.instantiate_feature_transformer()
         self.classification_head = self.instantiate_classification_head()
+        if cfg.model.load_ckpt:
+            checkpoint = torch.load(cfg.model.load_ckpt, map_location=self.device)
+            self.load_state_dict(checkpoint['model_state_dict'])
 
     @abc.abstractmethod
     def forward(self, **kwargs):
         """
         steps:
         x = self.encoder(x)
-        x = self.feature_transformer(x)
         x = self.classification_head(x)
 
         """
@@ -31,10 +32,6 @@ class SequenceClassification(Module):
 
     @abc.abstractmethod
     def instantiate_encoder(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def instantiate_feature_transformer(self):
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -90,6 +90,8 @@ class BatchLearningAgent(Agent):
         # action per time step - here it will be a batch
         y_predict, y_true = [], []
         loss = 0
+        ce_loss = 0
+        contrastive_loss = 0
         tsne_features: Dict = {"final_hidden_states": [], "encoded_features": [], "labels": []}
         test_input: List = []
 
@@ -114,13 +116,19 @@ class BatchLearningAgent(Agent):
             outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode)
             prediction = self.get_prediction(outputs)
             y_predict.extend(prediction)
-            if mode in ["train", "validation"]:
+            if mode == "train":
+                loss = (loss + outputs.loss)/(i+1)
+                if self.is_contrastive:
+                    ce_loss = (ce_loss + outputs.cross_entropy_loss) / (i + 1)
+                    contrastive_loss = (contrastive_loss + outputs.contrastive_loss) / (i + 1)
+            if mode == "validation":
                 loss = (loss + outputs.loss)/(i+1)
             if "tsne" in self.config.visualizer and mode in ["validation", "test"]:
                 tsne_features["encoded_features"].extend(outputs.encoded_features.tolist())
                 tsne_features["final_hidden_states"].extend(outputs.prediction_logits.tolist())
         return AgentPolicyOutput(**{"y_predict": y_predict, "y_true": y_true, "loss": loss,
-                                    "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input})
+                                    "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input,
+                                    "cross_entropy_loss": ce_loss, "contrastive_loss": contrastive_loss})
 
     def get_prediction(self, outputs: ClassificationForwardOutput):
         if self.config.model.type == "single-label":

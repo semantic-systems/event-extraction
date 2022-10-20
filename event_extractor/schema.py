@@ -39,6 +39,8 @@ class AgentPolicyOutput:
     loss: float
     tsne_feature: Optional[TSNEFeature] = None
     test_input_text: Optional[List] = None
+    cross_entropy_loss: Optional[float] = 0
+    contrastive_loss: Optional[float] = 0
 
 
 @dataclass
