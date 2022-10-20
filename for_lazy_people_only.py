@@ -121,6 +121,14 @@ class SexismResult(Result):
         return metric_dict[task]
 
 
+class SemevalResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"subtask5.english": ["f1_macro"]}
+        return metric_dict[task]
+
+
 class TweetEvalResult(Result):
 
     @staticmethod
@@ -437,6 +445,8 @@ if __name__ == "__main__":
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
+    writer = LatexTableWriter("./tables/semeval18/", SemevalResult)
+    writer.write_to_tex(name="semeval18", session_to_include=["model", "contrastive"])
 
 
 
