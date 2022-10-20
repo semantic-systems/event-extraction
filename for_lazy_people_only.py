@@ -121,6 +121,14 @@ class SexismResult(Result):
         return metric_dict[task]
 
 
+class SemevalResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"subtask5.english": ["f1_macro"]}
+        return metric_dict[task]
+
+
 class TweetEvalResult(Result):
 
     @staticmethod
@@ -420,7 +428,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/semeval18/")
+    # ConfigWriter.change_field_of_all("event_extractor/configs/semeval18/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
@@ -428,6 +436,8 @@ if __name__ == "__main__":
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
+    writer = LatexTableWriter("./tables/semeval18/", SemevalResult)
+    writer.write_to_tex(name="semeval18", session_to_include=["model", "contrastive"])
 
 
 
