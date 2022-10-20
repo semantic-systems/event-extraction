@@ -41,7 +41,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/semeval18/scl/
+  output_path: ./outputs/semeval18/scl/lm/
   type: multi-label
 name: roberta
 seed:
