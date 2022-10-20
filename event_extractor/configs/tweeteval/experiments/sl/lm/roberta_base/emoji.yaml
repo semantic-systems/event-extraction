@@ -14,6 +14,7 @@ model:
   epochs: 100
   freeze_transformer_layers: none
   from_pretrained: roberta-base
+  load_ckpt: none
   layers:
     layer1:
       n_in: 768
