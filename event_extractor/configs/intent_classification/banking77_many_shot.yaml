@@ -1,19 +1,20 @@
-name: "banking77_many_shot_cohort_1"
-seed: 42
+data:
+  batch_size: 32
+  label_column: label
+  name: banking77
+  subset: 0.1
 model:
-  from_pretrained: "bert-base-cased"
+  L2_normalize_logits: false
+  dropout_rate: 0.5
+  epochs: 2
+  freeze_transformer_layers: none
+  from_pretrained: bert-base-cased
   layers:
     layer1:
       n_in: 768
       n_out: 20
+  learning_rate: 1.0e-05
   num_transformer_layers: 1
-  freeze_transformer_layers: "none"
-  learning_rate: 0.0001
-  dropout_rate: 0.5
-  epochs: 2
-  output_path: "./outputs/"
-data:
-  name: "banking77"
-  batch_size: 32
-  label_column: "label"
-  subset: 0.1
+  output_path: ./outputs/
+name: banking77_many_shot_cohort_1
+seed: 42

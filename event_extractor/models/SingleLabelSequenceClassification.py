@@ -1,7 +1,8 @@
 from itertools import chain
 from omegaconf import DictConfig
 from torch.nn import Module, CrossEntropyLoss, Identity
-from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer
+from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
+    get_linear_schedule_with_warmup
 from event_extractor.models import SequenceClassification
 from event_extractor.models.heads import DenseLayerHead
 from event_extractor.schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
@@ -14,6 +15,7 @@ class SingleLabelSequenceClassification(SequenceClassification):
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
         self.loss = CrossEntropyLoss()
 
     def forward(self,
@@ -56,6 +58,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
         self.loss = CrossEntropyLoss()
         self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
                                                           base_temperature=cfg.model.contrastive.base_temperature,

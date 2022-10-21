@@ -1,30 +1,26 @@
-name: "trec_is_event_type_few_shot"
-seed: 42
+data:
+  batch_size: null
+  label_column: label
+  name: ./event_extractor/custom_datasets/TRECIS_event_type.py
+  subset: 0.01
+episode:
+  iteration: 2
+  k_shot: 2
+  n_query: 2
+  n_way: 2
+  replacement: false
 model:
-  from_pretrained: "../lm/CoyPu-CrisisLM-v1"
+  L2_normalize_logits: false
+  dropout_rate: 0.5
+  epochs: 2
+  freeze_transformer_layers: none
+  from_pretrained: ../lm/CoyPu-CrisisLM-v1
   layers:
     layer1:
       n_in: 768
       n_out: 20
+  learning_rate: 1.0e-05
   num_transformer_layers: 2
-  freeze_transformer_layers: "none"
-  learning_rate: 0.0001
-  dropout_rate: 0.5
-  epochs: 2
-  output_path: "./outputs/"
-
-data:
-  name: "./event_extractor/custom_datasets/TRECIS_event_type.py"
-  batch_size: null
-  label_column: "label"
-  subset: 0.01
-
-episode:
-  n_way: 2
-  k_shot: 2
-  iteration: 2
-  n_query: 2
-  replacement: False
-
-
-
+  output_path: ./outputs/
+name: trec_is_event_type_few_shot
+seed: 42

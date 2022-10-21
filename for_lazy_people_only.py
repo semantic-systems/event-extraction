@@ -121,6 +121,14 @@ class SexismResult(Result):
         return metric_dict[task]
 
 
+class SemevalResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"subtask5.english": ["f1_macro"]}
+        return metric_dict[task]
+
+
 class TweetEvalResult(Result):
 
     @staticmethod
@@ -414,22 +422,22 @@ class ConfigWriter(object):
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # config["model"]["L2_normalize_encoded_feature"] = False
-            # config["model"]["L2_normalize_logits"] = False
+            config["model"]["learning_rate"] = 1.0e-05
             # config["model"]["freeze_transformer_layers"] = "all"
             # config["augmenter"]["num_samples"] = 2
             # config["model"]["contrastive"]["temperature"] = 0.5
-            output = config["model"]["output_path"]
-            updated_output = output.replace("/scl_second_training/", "/scl/")
-            if updated_output.endswith("/"):
-                updated_output = updated_output[:-1]
-            path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
-            config["model"]["load_ckpt"] = path_to_ckpt
+            # output = config["model"]["output_path"]
+            # updated_output = output.replace("/scl_second_training/", "/scl/")
+            # if updated_output.endswith("/"):
+            #     updated_output = updated_output[:-1]
+            # path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
+            # config["model"]["load_ckpt"] = path_to_ckpt
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl_second_training/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
@@ -437,6 +445,8 @@ if __name__ == "__main__":
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
+    # writer = LatexTableWriter("./tables/semeval18/", SemevalResult)
+    # writer.write_to_tex(name="semeval18", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature"])
 
 
 
