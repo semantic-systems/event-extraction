@@ -25,7 +25,7 @@ early_stopping:
   tolerance: 15
 model:
   L2_normalize_encoded_feature: true
-  L2_normalize_logits: true
+  L2_normalize_logits: false
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
@@ -41,7 +41,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/semeval18/scl/ratio/
+  output_path: ./outputs/semeval18/scl/ratio/01
   type: multi-label
 name: roberta
 seed:

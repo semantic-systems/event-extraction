@@ -93,7 +93,8 @@ class Trainer(object):
                        f"    Trainer: {self.__class__.__name__}\n"
                        f"    Agent: {self.agent.__class__.__name__}\n"
                        f"    Environment: {self.environment.__class__.__name__}\n"
-                       f"    Policy: {self.agent.policy.__class__.__name__}")
+                       f"    Policy: {self.agent.policy.__class__.__name__}\n"
+                       f"    OutputPath: {self.config.model.output_path}")
 
     @staticmethod
     def log_result(result_per_epoch: ClassificationResult, final_result: List, epoch: Optional[int] = None):
@@ -204,6 +205,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
         # start new run
         for n in range(self.config.model.epochs):
             # training
+            self.agent.policy.lr_scheduler.step()
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="train")
             y_predict, y_true, train_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
             ce_loss, contrastive_loss = agent_output.cross_entropy_loss, agent_output.contrastive_loss
@@ -220,7 +222,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
                            f"F1 per class: {train_result_per_epoch.f1_per_class}, "
                            f"Precision macro: {train_result_per_epoch.precision_macro}, "
                            f"Recall macro: {train_result_per_epoch.recall_macro}, "
-                           f"Other: {train_result_per_epoch.other}")
+                           f"Other: {train_result_per_epoch.other},"
+                           f"lr: {self.agent.policy.optimizer.param_groups[0]['lr']}")
             self.log_result(result_per_epoch=train_result_per_epoch, final_result=train_result, epoch=n)
 
             # validation
