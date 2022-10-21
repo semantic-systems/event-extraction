@@ -143,9 +143,9 @@ class StaticEnvironment(Environment):
                                            path_to_save=self.get_path_to_plot(f'tsne_test_head_output.png'))
 
     def clustering_score(self, features, labels):
-        features = torch.stack(features)
+        features = torch.tensor(features)
         features = features.cpu().detach().numpy()
-        labels = torch.stack(labels)
+        labels = torch.tensor(labels)
         labels = labels.cpu().detach().numpy()
         if self.config.model.type == "single-label":
             try:
