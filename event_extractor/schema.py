@@ -91,6 +91,8 @@ class ClassificationResult:
     path_to_plot: str
     loss: Optional[float]
     other: Optional[float]
+    encoded_feature_silhouette: Optional[float]
+    final_output_silhouette: Optional[float]
 
 
 @dataclass

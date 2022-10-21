@@ -201,7 +201,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         train_result = []
         validation_result = []
         best_validation_metric = 0
-
+        encoded_feature_silhouette = 0
+        final_output_silhouette = 0
         # start new run
         for n in range(self.config.model.epochs):
             # training
@@ -234,12 +235,18 @@ class BatchLearningTrainer(SingleAgentTrainer):
                     tsne_feature = agent_output.tsne_feature
                     tsne_feature.labels = self.convert_tensor_index_to_label(y_true)
                     self.environment.visualize_embedding(tsne_feature=tsne_feature, epoch=n)
+                    encoded_feature_silhouette = self.environment.clustering_score(tsne_feature.encoded_features,
+                                                                                   y_true)
+                    final_output_silhouette = self.environment.clustering_score(tsne_feature.final_hidden_states,
+                                                                                y_true)
 
                 validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
                                                                                               y_true,
                                                                                               validation_loss,
                                                                                               mode="validation",
                                                                                               num_epoch=n)
+                validation_result_per_epoch.encoded_feature_silhouette = encoded_feature_silhouette
+                validation_result_per_epoch.final_output_silhouette = final_output_silhouette
                 logger.warning(f"Validation results:")
                 logger.warning(
                     f"Epoch: {n}, Average loss: {validation_loss}, Average acc: {validation_result_per_epoch.acc}, "
@@ -248,7 +255,9 @@ class BatchLearningTrainer(SingleAgentTrainer):
                     f"F1 per class: {validation_result_per_epoch.f1_per_class}, "
                     f"Precision macro: {validation_result_per_epoch.precision_macro}, "
                     f"Recall macro: {validation_result_per_epoch.recall_macro}, "
-                    f"Other: {validation_result_per_epoch.other}")
+                    f"Other: {validation_result_per_epoch.other}, "
+                    f"encoded_feature_silhouette: {validation_result_per_epoch.encoded_feature_silhouette}, "
+                    f"final_output_silhouette: {validation_result_per_epoch.final_output_silhouette}")
                 self.log_result(result_per_epoch=validation_result_per_epoch, final_result=validation_result, epoch=n)
                 self.save_best_model(best_validation_metric, validation_result_per_epoch)
                 # early stopping
@@ -273,6 +282,8 @@ class BatchLearningTrainer(SingleAgentTrainer):
         data_loader = self.environment.load_environment("test", self.training_type)
         self.agent.policy.eval()
         test_result = []
+        encoded_feature_silhouette = 0
+        final_output_silhouette = 0
         with torch.no_grad():
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="test")
             y_predict, y_true, loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
@@ -284,12 +295,18 @@ class BatchLearningTrainer(SingleAgentTrainer):
                 labels = [label.item() for label in y_true]
                 tsne_feature.labels = list(map(lambda index: self.environment.index_label_map[str(index)], labels))
                 self.environment.visualize_embedding(tsne_feature=tsne_feature)
+                encoded_feature_silhouette = self.environment.clustering_score(tsne_feature.encoded_features, y_true)
+                final_output_silhouette = self.environment.clustering_score(tsne_feature.final_hidden_states, y_true)
             result = self.environment.evaluate(y_predict, y_true, loss, mode="test")
+            result.encoded_feature_silhouette = encoded_feature_silhouette
+            result.final_output_silhouette = final_output_silhouette
             logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
                            f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}, "
                            f"Precision macro: {result.precision_macro}, "
                            f"Recall macro: {result.recall_macro}, "
-                           f"Other: {result.other}")
+                           f"Other: {result.other}, "
+                           f"encoded_feature_silhouette: {result.encoded_feature_silhouette}, "
+                           f"final_output_silhouette: {result.final_output_silhouette}")
             self.log_result(result_per_epoch=result, final_result=test_result)
             self.environment.dump_result(test_result, mode='test')
             self.environment.dump_csv(test_data)
