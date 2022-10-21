@@ -11,7 +11,7 @@ from omegaconf import DictConfig, OmegaConf
 from dataclasses import dataclass, asdict
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, recall_score, \
-    precision_score, accuracy_score, multilabel_confusion_matrix
+    precision_score, accuracy_score, silhouette_score
 from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
@@ -142,6 +142,16 @@ class StaticEnvironment(Environment):
             self.tsne_visualizer.visualize(data=final_hidden_states,
                                            path_to_save=self.get_path_to_plot(f'tsne_test_head_output.png'))
 
+    def clustering_score(self, features, labels):
+        if self.config.model.type == "single-label":
+            try:
+                silhouette = silhouette_score(features, labels)
+            except ValueError:
+                silhouette = 0
+        else:
+            silhouette = 0
+        return silhouette
+
     @log_metrics
     def evaluate(self,
                  y_predict: List,
@@ -182,7 +192,7 @@ class StaticEnvironment(Environment):
                 path_to_plot = str(
                     Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}", "plots",
                          f'confusion_matrix_{mode}.png').absolute())
-            plt.savefig(path_to_plot, aspect='auto', dpi=100)
+            plt.savefig(path_to_plot, dpi=100)
             plt.close()
         else:
             if num_epoch is not None:
@@ -206,7 +216,9 @@ class StaticEnvironment(Environment):
                                           "precision_macro": precision_macro,
                                           "f1_per_class": f1_per_class,
                                           "path_to_plot": path_to_plot,
-                                          "other": other
+                                          "other": other,
+                                          "encoded_feature_silhouette": 0,
+                                          "final_output_silhouette": 0
                                           }
                                        )
 

@@ -30,6 +30,7 @@ class Result(object):
         self.model = self.get_model()
         self.head_type = "linear" if len(self.config.get("model").get("layers")) == 1 else "mlp"
         self.learning_rate = self.config.get("model").get("learning_rate")
+        self.dropout = self.config.get("model").get("dropout")
         self.contrastive = self.is_contrastive()
         self.contrastive_loss_ratio = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("contrastive_loss_ratio")
         self.contrastive_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("temperature")
@@ -360,6 +361,7 @@ class LatexTableWriter(object):
                 'include_oos': [result.include_oos for result in result_instances],
                 'batch_size': [result.batch_size for result in result_instances],
                 'early_stopping_patience': [result.early_stopping_patience for result in result_instances],
+                'dropout': [result.dropout for result in result_instances],
                 'L2_normalize_encoded_feature': [result.l2_normalized_encoded_feature for result in result_instances],
                 'epochs': [result.epochs for result in result_instances],
                 'freeze_transformer_layers': [result.freeze_transformer_layers for result in result_instances],
@@ -437,10 +439,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/")
+    # ConfigWriter.change_field_of_all("event_extractor/configs/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "head_type"])
+    writer = LatexTableWriter("./outputs/tweeteval/experiments/scl/mlp_dropout", TweetEvalResult, table=TweetEvalMainTable)
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
