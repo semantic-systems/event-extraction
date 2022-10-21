@@ -143,6 +143,10 @@ class StaticEnvironment(Environment):
                                            path_to_save=self.get_path_to_plot(f'tsne_test_head_output.png'))
 
     def clustering_score(self, features, labels):
+        if isinstance(features, torch.Tensor):
+            features = features.cpu().detach().numpy()
+        if isinstance(labels, torch.Tensor):
+            labels = labels.cpu().detach().numpy()
         if self.config.model.type == "single-label":
             try:
                 silhouette = silhouette_score(features, labels)
