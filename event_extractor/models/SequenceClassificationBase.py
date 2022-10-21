@@ -16,7 +16,7 @@ class SequenceClassification(Module):
         self.cfg = cfg
         self.encoder = self.instantiate_encoder()
         self.classification_head = self.instantiate_classification_head()
-        if cfg.model.load_ckpt:
+        if cfg.model.load_ckpt is not None:
             checkpoint = torch.load(cfg.model.load_ckpt, map_location=self.device)
             self.load_state_dict(checkpoint['model_state_dict'])
 
