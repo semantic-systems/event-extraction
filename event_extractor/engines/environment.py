@@ -142,7 +142,7 @@ class StaticEnvironment(Environment):
             self.tsne_visualizer.visualize(data=final_hidden_states,
                                            path_to_save=self.get_path_to_plot(f'tsne_test_head_output.png'))
 
-    def clustering_score(self, features, labels):
+    def clustering_score(self, features, labels) -> float:
         features = torch.tensor(features)
         features = features.cpu().detach().numpy()
         labels = torch.tensor(labels)
@@ -154,7 +154,7 @@ class StaticEnvironment(Environment):
                 silhouette = 0
         else:
             silhouette = 0
-        return silhouette
+        return float(silhouette)
 
     @log_metrics
     def evaluate(self,
