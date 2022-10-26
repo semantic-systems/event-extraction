@@ -20,7 +20,6 @@ model:
       n_in: 768
       n_out: 20
   learning_rate: 1.0e-05
-  load_ckpt: none
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/sl/lm/roberta_base/
 name: emoji
