@@ -1,6 +1,6 @@
 from itertools import chain
 from omegaconf import DictConfig
-from torch.nn import Module, CrossEntropyLoss, Identity
+from torch.nn import CrossEntropyLoss
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
     get_linear_schedule_with_warmup
 from event_extractor.models import SequenceClassification
@@ -21,8 +21,7 @@ class SingleLabelSequenceClassification(SequenceClassification):
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 
@@ -68,8 +67,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 
@@ -103,3 +101,4 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                                                           encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
+

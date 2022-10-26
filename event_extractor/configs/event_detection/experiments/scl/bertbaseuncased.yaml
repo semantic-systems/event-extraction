@@ -30,3 +30,9 @@ name: bert_scl
 seed: 1
 visualizer:
 - tsne
+augmenter:
+  dropout:
+  - 0.1
+  - 0.5
+  name: dropout
+  num_samples: 2
