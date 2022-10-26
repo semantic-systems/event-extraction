@@ -33,6 +33,7 @@ class Result(object):
         self.dropout = self.config.get("model").get("dropout")
         self.contrastive = self.is_contrastive()
         self.contrastive_loss_ratio = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("contrastive_loss_ratio")
+        self.base_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("base_temperature")
         self.contrastive_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("temperature")
         self.contrast_mode = np.nan if not self.contrastive else self.config.get("model").get("contrastive").get("contrast_mode")
         self.augmenter = self.get_augmenter()
@@ -98,7 +99,10 @@ class Result(object):
         if len(metric_name) == 1:
             metric = self.result[0].get(metric_name[0])
         elif len(metric_name) == 2:
-            metric = self.result[0].get(metric_name[0]).get(metric_name[1])
+            try:
+                metric = self.result[0].get(metric_name[0]).get(metric_name[1])
+            except AttributeError:
+                metric
         else:
             raise ValueError
         return metric
@@ -164,6 +168,8 @@ class Table(object):
                 col = "tmp"
             if col == "contrast_mode":
                 col = "mode"
+            if col == "base_temperature":
+                col = "bs_temp"
             column_string += f"{col.replace('_', '-')}&"
 
             if i == len(session_to_include+task_list)-1:
@@ -370,6 +376,7 @@ class LatexTableWriter(object):
                 'contrastive': [result.contrastive for result in result_instances],
                 'contrastive_loss_ratio': [result.contrastive_loss_ratio for result in result_instances],
                 'contrastive_temperature': [result.contrastive_temperature for result in result_instances],
+                'base_temperature': [result.base_temperature for result in result_instances],
                 'contrast_mode': [result.contrast_mode for result in result_instances],
                 'augmenter': [result.augmenter for result in result_instances],
                 'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
@@ -443,7 +450,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/base_temp/07/")
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/base_temp/07/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./outputs/tweeteval/experiments/scl/mlp_dropout", TweetEvalResult, table=TweetEvalMainTable)
@@ -452,7 +459,8 @@ if __name__ == "__main__":
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
-    # writer = LatexTableWriter("./tables/semeval18/", SemevalResult)
+    writer = LatexTableWriter("./tables/semeval18/100epochs/sl/", SemevalResult)
+    writer.write_to_tex(name="semeval18", session_to_include=["model"])
     # writer.write_to_tex(name="semeval18", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature"])
 
 
