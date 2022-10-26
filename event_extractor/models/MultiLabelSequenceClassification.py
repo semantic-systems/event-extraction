@@ -1,6 +1,6 @@
 from itertools import chain
 from omegaconf import DictConfig
-from torch.nn import Module, BCEWithLogitsLoss, Identity, Sigmoid
+from torch.nn import BCEWithLogitsLoss, Sigmoid
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
     get_linear_schedule_with_warmup
 from event_extractor.models import SequenceClassification
@@ -22,8 +22,7 @@ class MultiLabelSequenceClassification(SequenceClassification):
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> MultiLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 
@@ -69,8 +68,7 @@ class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassificati
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> MultiLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 

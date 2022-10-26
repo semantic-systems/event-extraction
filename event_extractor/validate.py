@@ -98,7 +98,8 @@ class ConfigValidator(object):
                 with open_dict(self.config):
                     self.config.augmenter = {
                         "name": "dropout",
-                        "num_samples": 2
+                        "num_samples": 2,
+                        "dropout": [0.5, 0.9]
                        }
             else:
                 with open_dict(self.config):

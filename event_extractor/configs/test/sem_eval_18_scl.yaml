@@ -1,6 +1,7 @@
 augmenter:
   name: dropout
   num_samples: 2
+  dropout: [0.9, 0.7]
 data:
   batch_size: 32
   classes:
