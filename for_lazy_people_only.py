@@ -430,13 +430,13 @@ class ConfigWriter(object):
             # config["model"]["output_path"] = updated_output
             # config["early_stopping"]["tolerance"] = 15
             # config["model"]["epochs"] = 100
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/base_temp/07/"
+            config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/0909/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # config["model"]["L2_normalize_encoded_feature"] = False
             # config["model"]["learning_rate"] = 1.0e-05
             # config["model"]["freeze_transformer_layers"] = "all"
-            config["augmenter"]["dropout"] = [0.1, 0.5]
+            config["augmenter"]["dropout"] = [0.9, 0.9]
             # config["model"]["contrastive"]["base_temperature"] = 0.7
             # config["model"]["contrastive"]["temperature"] = 0.3
             # output = config["model"]["output_path"]
@@ -450,9 +450,9 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/event_detection/experiments/scl/")
-    # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/0909/")
+    # writer = LatexTableWriter("./tables/tweeteval/exp2/sl/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
     # writer = LatexTableWriter("./outputs/tweeteval/experiments/scl/mlp_dropout", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
