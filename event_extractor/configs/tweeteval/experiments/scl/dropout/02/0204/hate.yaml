@@ -1,7 +1,7 @@
 augmenter:
   dropout:
-  - 0.1
-  - 0.7
+  - 0.2
+  - 0.4
   name: dropout
   num_samples: 2
 data:
@@ -20,8 +20,8 @@ model:
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
-    contrastive_loss_ratio: 0.1
-    temperature: 0.5
+    contrastive_loss_ratio: 0.3
+    temperature: 0.3
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
@@ -32,7 +32,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/scl/dropout/0107/
+  output_path: ./outputs/tweeteval/experiments/scl/dropout/0204/
 name: hate
 seed:
 - 0

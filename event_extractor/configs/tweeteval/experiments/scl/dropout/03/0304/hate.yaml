@@ -1,0 +1,40 @@
+augmenter:
+  dropout:
+  - 0.3
+  - 0.4
+  name: dropout
+  num_samples: 2
+data:
+  batch_size: 32
+  config: hate
+  include_oos: false
+  label_column: label
+  name: tweet_eval
+  validation: true
+early_stopping:
+  delta: 0
+  tolerance: 15
+model:
+  L2_normalize_encoded_feature: true
+  L2_normalize_logits: false
+  contrastive:
+    base_temperature: 0.3
+    contrast_mode: all
+    contrastive_loss_ratio: 0.3
+    temperature: 0.3
+  dropout_rate: 0.5
+  epochs: 50
+  freeze_transformer_layers: none
+  from_pretrained: roberta-base
+  layers:
+    layer1:
+      n_in: 768
+      n_out: 20
+  learning_rate: 1.0e-05
+  num_transformer_layers: full
+  output_path: ./outputs/tweeteval/experiments/scl/dropout/0304/
+name: hate
+seed:
+- 0
+visualizer:
+- tsne

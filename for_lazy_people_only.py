@@ -434,17 +434,17 @@ class ConfigWriter(object):
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            config["early_stopping"]["tolerance"] = 15
+            # config["early_stopping"]["tolerance"] = 15
             # config["model"]["epochs"] = 100
             # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
-            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
+            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # config["model"]["L2_normalize_encoded_feature"] = False
             # config["model"]["learning_rate"] = 1.0e-05
             # config["model"]["freeze_transformer_layers"] = "all"
-            # config["augmenter"]["dropout"] = [0.9, 0.9]
-            # config["model"]["contrastive"]["base_temperature"] = 0.7
-            # config["model"]["contrastive"]["temperature"] = 0.3
+            # config["augmenter"]["dropout"] = [0.8, 0.8]
+            config["model"]["contrastive"]["base_temperature"] = 0.3
+            config["model"]["contrastive"]["temperature"] = 0.3
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/scl_second_training/", "/scl/")
             # if updated_output.endswith("/"):
@@ -456,11 +456,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/")
     # writer = LatexTableWriter("./tables/tweeteval/exp2/sl/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
-    writer = LatexTableWriter("./tables/tweeteval/exp2/scl/dropout/", TweetEvalResult, table=TweetEvalMainTable)
-    writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
+    # writer = LatexTableWriter("./tables/tweeteval/1030/scl/dropout/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
