@@ -79,9 +79,9 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                 head_output.output.shape[-1]
             )
             # normalize logits for contrastive loss
-            norm = head_output.output.norm(p=2, dim=1, keepdim=True)
-            normalized_logits = head_output.output.div(norm.expand_as(head_output.output))
-            head_output.output = normalized_logits
+            # norm = head_output.output.norm(p=2, dim=1, keepdim=True)
+            # normalized_logits = head_output.output.div(norm.expand_as(head_output.output))
+            # head_output.output = normalized_logits
             # reshape to compute the loss
             contrastive_features = head_output.output.reshape(new_shape)
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])

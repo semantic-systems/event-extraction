@@ -9,8 +9,8 @@ early_stopping:
   delta: 0
   tolerance: 5
 model:
-  L2_normalize_encoded_feature: false
-  L2_normalize_logits: false
+  L2_normalize_encoded_feature: true
+  L2_normalize_logits: true
   dropout_rate: 0.5
   epochs: 50
   freeze_transformer_layers: none
@@ -28,6 +28,5 @@ model:
 name: offensive
 seed:
 - 0
-- 2
 visualizer:
 - tsne
