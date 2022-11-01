@@ -434,21 +434,21 @@ class ConfigWriter(object):
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            # config["early_stopping"]["tolerance"] = 15
+            config["early_stopping"]["tolerance"] = 5
             # config["model"]["epochs"] = 100
             # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            config["model"]["L2_normalize_encoded_feature"] = True
-            config["model"]["L2_normalize_logits"] = False
+            # config["model"]["L2_normalize_encoded_feature"] = True
+            # config["model"]["L2_normalize_logits"] = False
             # config["model"]["learning_rate"] = 1.0e-05
             # config["model"]["freeze_transformer_layers"] = "all"
             # config["augmenter"]["dropout"] = [0.8, 0.8]
             # config["model"]["contrastive"]["base_temperature"] = 0.3
             # config["model"]["contrastive"]["temperature"] = 0.3
-            output = config["model"]["output_path"]
-            updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
-            config["model"]["output_path"] = updated_output
+            # output = config["model"]["output_path"]
+            # updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
+            # config["model"]["output_path"] = updated_output
             # if updated_output.endswith("/"):
             #     updated_output = updated_output[:-1]
             # path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
@@ -458,8 +458,8 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/")
-    # writer = LatexTableWriter("./tables/tweeteval/exp2/sl/", TweetEvalResult, table=TweetEvalMainTable)
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/")
+    # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
     # writer = LatexTableWriter("./tables/tweeteval/0111/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])

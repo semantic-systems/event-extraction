@@ -13,7 +13,7 @@ data:
   validation: true
 early_stopping:
   delta: 0
-  tolerance: 25
+  tolerance: 5
 model:
   L2_normalize_encoded_feature: true
   L2_normalize_logits: true
