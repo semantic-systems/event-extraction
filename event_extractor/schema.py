@@ -12,7 +12,18 @@ class SingleLabelClassificationForwardOutput:
     prediction_logits: tensor = None
     encoded_features: Optional[tensor] = None
     attentions: Optional[Tuple[tensor]] = None
+    cross_entropy_loss: Optional[float] = None
+    contrastive_loss: Optional[float] = None
 
+
+@dataclass
+class MultiLabelClassificationForwardOutput:
+    loss: Optional[tensor] = None
+    prediction_logits: tensor = None
+    encoded_features: Optional[tensor] = None
+    attentions: Optional[Tuple[tensor]] = None
+    cross_entropy_loss: Optional[float] = None
+    contrastive_loss: Optional[float] = None
 
 @dataclass
 class TSNEFeature:
@@ -28,6 +39,8 @@ class AgentPolicyOutput:
     loss: float
     tsne_feature: Optional[TSNEFeature] = None
     test_input_text: Optional[List] = None
+    cross_entropy_loss: Optional[float] = 0
+    contrastive_loss: Optional[float] = 0
 
 
 @dataclass
@@ -78,6 +91,8 @@ class ClassificationResult:
     path_to_plot: str
     loss: Optional[float]
     other: Optional[float]
+    encoded_feature_silhouette: Optional[float]
+    final_output_silhouette: Optional[float]
 
 
 @dataclass

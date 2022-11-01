@@ -1,4 +1,7 @@
 augmenter:
+  dropout:
+  - 0.1
+  - 0.5
   name: dropout
   num_samples: 2
 data:
@@ -10,14 +13,15 @@ data:
   validation: true
 early_stopping:
   delta: 0
-  tolerance: 25
+  tolerance: 5
 model:
   L2_normalize_encoded_feature: true
+  L2_normalize_logits: true
   contrastive:
     base_temperature: 0.3
     contrast_mode: all
     contrastive_loss_ratio: 0.3
-    temperature: 0.3
+    temperature: 0.5
   dropout_rate: 0.5
   epochs: 100
   freeze_transformer_layers: none
@@ -30,6 +34,7 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/experiments/scl/contrastive_loss_ratio/03/
 name: emoji
-seed: 1
+seed:
+- 0
 visualizer:
 - tsne

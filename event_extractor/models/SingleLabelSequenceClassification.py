@@ -1,9 +1,10 @@
 from itertools import chain
 from omegaconf import DictConfig
-from torch.nn import Module, CrossEntropyLoss, Identity
-from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer
+from torch.nn import CrossEntropyLoss
+from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
+    get_linear_schedule_with_warmup
 from event_extractor.models import SequenceClassification
-from event_extractor.models.heads import DenseLayerHead, DenseLayerContrastiveHead
+from event_extractor.models.heads import DenseLayerHead
 from event_extractor.schema import SingleLabelClassificationForwardOutput, InputFeature, EncodedFeature
 from event_extractor.losses.supervised_contrastive_loss import SupervisedContrastiveLoss
 
@@ -14,13 +15,13 @@ class SingleLabelSequenceClassification(SequenceClassification):
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
         self.loss = CrossEntropyLoss()
 
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 
@@ -46,10 +47,6 @@ class SingleLabelSequenceClassification(SequenceClassification):
         encoder = self.freeze_encoder(encoder, self.cfg.model.freeze_transformer_layers)
         return encoder
 
-    def instantiate_feature_transformer(self) -> Module:
-        # this returns an empty Module
-        return Identity()
-
     def instantiate_classification_head(self) -> DenseLayerHead:
         return DenseLayerHead(self.cfg)
 
@@ -60,6 +57,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
         self.loss = CrossEntropyLoss()
         self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
                                                           base_temperature=cfg.model.contrastive.base_temperature,
@@ -69,8 +67,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
     def forward(self,
                 input_feature: InputFeature,
                 mode: str) -> SingleLabelClassificationForwardOutput:
-        output = self.encoder(input_ids=input_feature.input_ids,
-                              attention_mask=input_feature.attention_mask).pooler_output
+        output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
 
@@ -81,13 +78,20 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                 self.cfg.augmenter.num_samples+1,
                 head_output.output.shape[-1]
             )
+            # normalize logits for contrastive loss
+            # norm = head_output.output.norm(p=2, dim=1, keepdim=True)
+            # normalized_logits = head_output.output.div(norm.expand_as(head_output.output))
+            # head_output.output = normalized_logits
+            # reshape to compute the loss
             contrastive_features = head_output.output.reshape(new_shape)
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
             self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
-                                                          encoded_features=encoded_feature.encoded_feature)
+                                                          encoded_features=encoded_feature.encoded_feature,
+                                                          cross_entropy_loss=loss.item(),
+                                                          contrastive_loss=contrastive_loss.item())
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
             return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
@@ -98,5 +102,3 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
 
-    def instantiate_classification_head(self) -> DenseLayerContrastiveHead:
-        return DenseLayerContrastiveHead(self.cfg)

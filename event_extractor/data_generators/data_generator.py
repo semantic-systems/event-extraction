@@ -51,21 +51,40 @@ class DataGenerator(object):
     def __init__(self, cfg: DictConfig):
         self.cfg = cfg
         self.oos_generator = None
+        task = "multi-label" if cfg.data.classes else "multi-class"
         if cfg.data.include_oos:
             self.oos_generator = OOSDatasetGenerator(cfg, deepcopy(self.testing_dataset.features))
             self.num_labels = self.oos_generator.updated_features['label'].num_classes
             self.label_index_map: Dict = {label: self.oos_generator.updated_features['label'].str2int(label)
                                           for label in self.oos_generator.updated_features['label'].names}
         else:
-            self.num_labels = self.training_dataset.features['label'].num_classes
-            self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
-                                          for label in self.training_dataset.features['label'].names}
+            if task == "multi-label":
+                self.num_labels = len(cfg.data.classes)
+                self.label_index_map: Dict = {label: i
+                                              for i, label in enumerate(cfg.data.classes)}
+            elif task == "multi-class":
+                self.num_labels = self.training_dataset.features['label'].num_classes
+                self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
+                                              for label in self.training_dataset.features['label'].names}
+            else:
+                raise ValueError
+
+    def create_onehot_label(self, dataset):
+        def add_label(example):
+            example["label"] = list(map(int, [example[label] for label in self.cfg.data.classes]))
+            return example
+        updated_dataset = dataset.map(add_label)
+        return updated_dataset
 
     @property
     def training_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "train")
         return dataset
@@ -73,8 +92,12 @@ class DataGenerator(object):
     @property
     def validation_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "validation")
         return dataset
@@ -82,14 +105,18 @@ class DataGenerator(object):
     @property
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         if self.oos_generator:
             dataset = self.oos_generator.include_oos(dataset, "test")
         return dataset
 
     @staticmethod
-    def rename_label_column(dataset, original_label_name, new_label_name):
+    def rename_column(dataset, original_label_name, new_label_name):
         return dataset.rename_column(original_label_name, new_label_name)
 
     def __call__(self,
@@ -121,20 +148,32 @@ class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset
 
     @property
     def testing_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset
 
     @property
     def validation_dataset(self):
         dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.classes:
+            dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
-            dataset = self.rename_label_column(dataset, self.cfg.data.label_column, 'label')
+            dataset = self.rename_column(dataset, self.cfg.data.label_column, 'label')
+        if self.cfg.data.text_column != 'text':
+            dataset = self.rename_column(dataset, self.cfg.data.text_column, 'text')
         return dataset

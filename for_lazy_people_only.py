@@ -30,12 +30,15 @@ class Result(object):
         self.model = self.get_model()
         self.head_type = "linear" if len(self.config.get("model").get("layers")) == 1 else "mlp"
         self.learning_rate = self.config.get("model").get("learning_rate")
+        self.dropout = self.config.get("model").get("dropout")
         self.contrastive = self.is_contrastive()
         self.contrastive_loss_ratio = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("contrastive_loss_ratio")
+        self.base_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("base_temperature")
         self.contrastive_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("temperature")
         self.contrast_mode = np.nan if not self.contrastive else self.config.get("model").get("contrastive").get("contrast_mode")
         self.augmenter = self.get_augmenter()
         self.num_augmented_samples = self.config.get("augmenter").get("num_samples", None) if self.augmenter else np.nan
+        self.augmenter_dropout = str(self.config.get("augmenter").get("dropout", None)) if self.augmenter else np.nan
         self.metric_name = self.get_metric_name(self.task)
         self.metric = self.get_metric(self.metric_name)
 
@@ -97,7 +100,10 @@ class Result(object):
         if len(metric_name) == 1:
             metric = self.result[0].get(metric_name[0])
         elif len(metric_name) == 2:
-            metric = self.result[0].get(metric_name[0]).get(metric_name[1])
+            try:
+                metric = self.result[0].get(metric_name[0]).get(metric_name[1])
+            except AttributeError:
+                metric
         else:
             raise ValueError
         return metric
@@ -118,6 +124,14 @@ class SexismResult(Result):
         metric_dict = {"sexism_level_three": ["f1_macro"],
                        "sexism_level_two": ["f1_macro"],
                        "sexism_level_one": ["f1_macro"]}
+        return metric_dict[task]
+
+
+class SemevalResult(Result):
+
+    @staticmethod
+    def get_metric_name(task):
+        metric_dict = {"subtask5.english": ["f1_macro"]}
         return metric_dict[task]
 
 
@@ -151,6 +165,14 @@ class Table(object):
                 col = "ratio"
             if col == "head_type":
                 col = "cls"
+            if col == "contrastive_temperature":
+                col = "tmp"
+            if col == "contrast_mode":
+                col = "mode"
+            if col == "base_temperature":
+                col = "bs_temp"
+            if col == "augmenter_dropout":
+                col = "dropout"
             column_string += f"{col.replace('_', '-')}&"
 
             if i == len(session_to_include+task_list)-1:
@@ -224,6 +246,12 @@ class TweetEvalMainTable(Table):
                 col = "ratio"
             if col == "head_type":
                 col = "cls"
+            if col == "contrastive_temperature":
+                col = "tmp"
+            if col == "contrast_mode":
+                col = "mode"
+            if col == "base_temperature":
+                col = "bs_temp"
             column_string += f"{col.capitalize().replace('_', '-')}&"
             if i == len(session_to_include+col_list)-1:
                 table_alignment = table_alignment[:-1]
@@ -344,6 +372,7 @@ class LatexTableWriter(object):
                 'include_oos': [result.include_oos for result in result_instances],
                 'batch_size': [result.batch_size for result in result_instances],
                 'early_stopping_patience': [result.early_stopping_patience for result in result_instances],
+                'dropout': [result.dropout for result in result_instances],
                 'L2_normalize_encoded_feature': [result.l2_normalized_encoded_feature for result in result_instances],
                 'epochs': [result.epochs for result in result_instances],
                 'freeze_transformer_layers': [result.freeze_transformer_layers for result in result_instances],
@@ -352,9 +381,11 @@ class LatexTableWriter(object):
                 'contrastive': [result.contrastive for result in result_instances],
                 'contrastive_loss_ratio': [result.contrastive_loss_ratio for result in result_instances],
                 'contrastive_temperature': [result.contrastive_temperature for result in result_instances],
+                'base_temperature': [result.base_temperature for result in result_instances],
                 'contrast_mode': [result.contrast_mode for result in result_instances],
                 'augmenter': [result.augmenter for result in result_instances],
                 'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
+                'augmenter_dropout': [result.augmenter_dropout for result in result_instances],
                 'metric_name': metric_name,
                 'metric_score': [result.metric for result in result_instances]
                 }
@@ -398,26 +429,47 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = 1
+            config["seed"] = [0]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
-            # config["model"]["output_path"] = "./outputs/tweeteval/sl/lm/roberta_base/"
+            # output = config["model"]["output_path"]
+            # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
+            # config["model"]["output_path"] = updated_output
+            config["early_stopping"]["tolerance"] = 5
+            # config["model"]["epochs"] = 100
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            # if "augmenter" not in config:
-            #     config["augmenter"] = {"name": "dropout", "num_samples": 2}
-            # config["model"]["contrastive"]["temperature"] = 0.9
+            # config["model"]["L2_normalize_encoded_feature"] = True
+            # config["model"]["L2_normalize_logits"] = False
+            # config["model"]["learning_rate"] = 1.0e-05
+            # config["model"]["freeze_transformer_layers"] = "all"
+            # config["augmenter"]["dropout"] = [0.8, 0.8]
+            # config["model"]["contrastive"]["base_temperature"] = 0.3
+            # config["model"]["contrastive"]["temperature"] = 0.3
+            # output = config["model"]["output_path"]
+            # updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
+            # config["model"]["output_path"] = updated_output
+            # if updated_output.endswith("/"):
+            #     updated_output = updated_output[:-1]
+            # path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
+            # config["model"]["load_ckpt"] = path_to_ckpt
             updated_dicts.append(config)
             ConfigWriter.write_from_dict(config, file)
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/sl/lm/bertweet")
-    # writer = LatexTableWriter("./tables/tweeteval/experiments/", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "head_type"])
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/")
+    # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
+    # writer = LatexTableWriter("./tables/tweeteval/0111/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
     # writer.write_to_tex(name="sexism", session_to_include=["model", "contrastive"])
+    # writer = LatexTableWriter("./tables/semeval18/100epochs/sl/", SemevalResult)
+    # writer.write_to_tex(name="semeval18", session_to_include=["model"])
+    # writer.write_to_tex(name="semeval18", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature"])
 
 
 

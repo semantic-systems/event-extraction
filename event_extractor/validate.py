@@ -26,7 +26,9 @@ class ConfigValidator(object):
             raise
 
     def validate_model(self):
-        default = {"from_pretrained": "bert-base-uncased",
+        default = {"type": "single-label",
+                   "from_pretrained": "bert-base-uncased",
+                   "load_ckpt": None,
                    "layers": {"layer1": {
                         "n_in": 768,
                         "n_out": 20
@@ -44,7 +46,8 @@ class ConfigValidator(object):
                        "base_temperature": 0.07,
                        "contrast_mode": "all"
                    },
-                   "L2_normalize_encoded_feature": False
+                   "L2_normalize_encoded_feature": False,
+                   "L2_normalize_logits": False
                    }
         self.create_output_path()
         with open_dict(self.config):
@@ -63,6 +66,12 @@ class ConfigValidator(object):
         if "include_oos" not in self.config.data:
             with open_dict(self.config):
                 self.config.data.include_oos = False
+        if "classes" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.classes = None
+        if "text_column" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.text_column = "text"
 
     def validate_early_stopping(self):
         if "early_stopping" not in self.config:
@@ -89,7 +98,8 @@ class ConfigValidator(object):
                 with open_dict(self.config):
                     self.config.augmenter = {
                         "name": "dropout",
-                        "num_samples": 2
+                        "num_samples": 2,
+                        "dropout": [0.5, 0.9]
                        }
             else:
                 with open_dict(self.config):

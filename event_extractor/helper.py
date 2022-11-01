@@ -52,7 +52,10 @@ def log_metrics(func):
         mlflow.log_metric(f"{mode}_recall_macro", result.recall_macro, step=1)
         for key, value in result.f1_per_class.items():
             mlflow.log_metric(f"{mode}_f1_for_class_{key}", value, step=1)
-        mlflow.log_artifact(result.path_to_plot)
+        try:
+            mlflow.log_artifact(result.path_to_plot)
+        except FileNotFoundError:
+            pass
         return result
     return run
 

@@ -8,6 +8,7 @@ from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
 from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet
+from event_extractor.schema import InputFeature
 
 
 class SequenceClassification(Module):
@@ -15,15 +16,16 @@ class SequenceClassification(Module):
         super(SequenceClassification, self).__init__()
         self.cfg = cfg
         self.encoder = self.instantiate_encoder()
-        self.feature_transformer = self.instantiate_feature_transformer()
         self.classification_head = self.instantiate_classification_head()
+        if cfg.model.load_ckpt is not None:
+            checkpoint = torch.load(cfg.model.load_ckpt, map_location=self.device)
+            self.load_state_dict(checkpoint['model_state_dict'])
 
     @abc.abstractmethod
     def forward(self, **kwargs):
         """
         steps:
         x = self.encoder(x)
-        x = self.feature_transformer(x)
         x = self.classification_head(x)
 
         """
@@ -31,10 +33,6 @@ class SequenceClassification(Module):
 
     @abc.abstractmethod
     def instantiate_encoder(self):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def instantiate_feature_transformer(self):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -101,3 +99,23 @@ class SequenceClassification(Module):
             return torch.device("cuda:0")
         else:
             return torch.device("cpu")
+
+    def inference(self, input_feature: InputFeature, mode: str):
+        if self.cfg.augmenter.name == "dropout" and mode == "train":
+            num_instances = int(input_feature.input_ids.shape[0] / (self.cfg.augmenter.num_samples + 1))
+            output = self.encoder(input_ids=input_feature.input_ids[:num_instances],
+                                  attention_mask=input_feature.attention_mask[:num_instances]).pooler_output
+            original_dropout_rate = self.encoder.encoder.layer[0].output.dropout.p
+            for i, dropout_rate in enumerate(self.cfg.augmenter.dropout):
+                for n in range(len(self.encoder.encoder.layer)):
+                    self.encoder.encoder.layer[n].output.dropout.p = dropout_rate
+                augmented_output = self.encoder(input_ids=input_feature.input_ids[(i+1)*num_instances:(i+2)*num_instances],
+                                                attention_mask=input_feature.attention_mask[
+                                                                 (i+1)*num_instances:(i+2)*num_instances]).pooler_output
+                output = torch.cat((output, augmented_output), dim=0)
+            for n in range(len(self.encoder.encoder.layer)):
+                self.encoder.encoder.layer[n].output.dropout.p = original_dropout_rate
+        else:
+            output = self.encoder(input_ids=input_feature.input_ids,
+                                  attention_mask=input_feature.attention_mask).pooler_output
+        return output
