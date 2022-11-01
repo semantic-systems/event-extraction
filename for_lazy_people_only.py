@@ -38,6 +38,7 @@ class Result(object):
         self.contrast_mode = np.nan if not self.contrastive else self.config.get("model").get("contrastive").get("contrast_mode")
         self.augmenter = self.get_augmenter()
         self.num_augmented_samples = self.config.get("augmenter").get("num_samples", None) if self.augmenter else np.nan
+        self.augmenter_dropout = str(self.config.get("augmenter").get("dropout", None)) if self.augmenter else np.nan
         self.metric_name = self.get_metric_name(self.task)
         self.metric = self.get_metric(self.metric_name)
 
@@ -170,6 +171,8 @@ class Table(object):
                 col = "mode"
             if col == "base_temperature":
                 col = "bs_temp"
+            if col == "augmenter_dropout":
+                col = "dropout"
             column_string += f"{col.replace('_', '-')}&"
 
             if i == len(session_to_include+task_list)-1:
@@ -247,6 +250,8 @@ class TweetEvalMainTable(Table):
                 col = "tmp"
             if col == "contrast_mode":
                 col = "mode"
+            if col == "base_temperature":
+                col = "bs_temp"
             column_string += f"{col.capitalize().replace('_', '-')}&"
             if i == len(session_to_include+col_list)-1:
                 table_alignment = table_alignment[:-1]
@@ -380,6 +385,7 @@ class LatexTableWriter(object):
                 'contrast_mode': [result.contrast_mode for result in result_instances],
                 'augmenter': [result.augmenter for result in result_instances],
                 'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
+                'augmenter_dropout': [result.augmenter_dropout for result in result_instances],
                 'metric_name': metric_name,
                 'metric_score': [result.metric for result in result_instances]
                 }
@@ -423,24 +429,26 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            # config["seed"] = [0]
+            config["seed"] = [0]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            # config["early_stopping"]["tolerance"] = 15
+            config["early_stopping"]["tolerance"] = 5
             # config["model"]["epochs"] = 100
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/base_temp/07/"
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            # config["model"]["L2_normalize_encoded_feature"] = False
+            # config["model"]["L2_normalize_encoded_feature"] = True
+            # config["model"]["L2_normalize_logits"] = False
             # config["model"]["learning_rate"] = 1.0e-05
             # config["model"]["freeze_transformer_layers"] = "all"
-            config["augmenter"]["dropout"] = [0.1, 0.5]
-            # config["model"]["contrastive"]["base_temperature"] = 0.7
+            # config["augmenter"]["dropout"] = [0.8, 0.8]
+            # config["model"]["contrastive"]["base_temperature"] = 0.3
             # config["model"]["contrastive"]["temperature"] = 0.3
             # output = config["model"]["output_path"]
-            # updated_output = output.replace("/scl_second_training/", "/scl/")
+            # updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
+            # config["model"]["output_path"] = updated_output
             # if updated_output.endswith("/"):
             #     updated_output = updated_output[:-1]
             # path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
@@ -450,11 +458,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/event_detection/experiments/scl/")
-    # writer = LatexTableWriter("./tables/tweeteval/exp2/contrastive_loss_ratio/", TweetEvalResult, table=TweetEvalMainTable)
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/")
+    # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
+    # writer = LatexTableWriter("./tables/tweeteval/0111/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
-    # writer = LatexTableWriter("./outputs/tweeteval/experiments/scl/mlp_dropout", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)

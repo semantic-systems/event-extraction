@@ -9,7 +9,7 @@ early_stopping:
   delta: 0
   tolerance: 5
 model:
-  L2_normalize_encoded_feature: false
+  L2_normalize_encoded_feature: true
   L2_normalize_logits: false
   dropout_rate: 0.5
   epochs: 50
@@ -21,10 +21,9 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/sl/lm/roberta_base/
+  output_path: ./outputs/tweeteval/experiments/sl/lm/roberta_base/
 name: emotion
 seed:
 - 0
-- 2
 visualizer:
 - tsne
