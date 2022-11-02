@@ -429,19 +429,19 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = [0]
+            # config["seed"] = [0]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            config["early_stopping"]["tolerance"] = 5
+            # config["early_stopping"]["tolerance"] = 5
             # config["model"]["epochs"] = 100
             # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
             # config["model"]["from_pretrained"] = "vinai/bertweet-base"
             # config["model"]["L2_normalize_encoded_feature"] = True
             # config["model"]["L2_normalize_logits"] = False
-            # config["model"]["learning_rate"] = 1.0e-05
+            config["model"]["learning_rate"] = 1.0e-04
             # config["model"]["freeze_transformer_layers"] = "all"
             # config["augmenter"]["dropout"] = [0.8, 0.8]
             # config["model"]["contrastive"]["base_temperature"] = 0.3
@@ -458,11 +458,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/cohort2")
     # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
-    # writer = LatexTableWriter("./tables/tweeteval/0111/", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    # writer = LatexTableWriter("./tables/tweeteval/0211/dropout/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)
