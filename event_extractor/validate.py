@@ -72,6 +72,9 @@ class ConfigValidator(object):
         if "text_column" not in self.config.data:
             with open_dict(self.config):
                 self.config.data.text_column = "text"
+        if "gradient_accu_step" not in self.config.data:
+            with open_dict(self.config):
+                self.config.data.gradient_accu_step = 1
 
     def validate_early_stopping(self):
         if "early_stopping" not in self.config:

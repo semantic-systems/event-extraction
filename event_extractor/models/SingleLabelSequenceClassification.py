@@ -1,4 +1,6 @@
 from itertools import chain
+from typing import Optional
+
 from omegaconf import DictConfig
 from torch.nn import CrossEntropyLoss
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
@@ -57,7 +59,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)
         self.loss = CrossEntropyLoss()
         self.contrastive_loss = SupervisedContrastiveLoss(temperature=cfg.model.contrastive.temperature,
                                                           base_temperature=cfg.model.contrastive.base_temperature,
@@ -66,7 +68,8 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
 
     def forward(self,
                 input_feature: InputFeature,
-                mode: str) -> SingleLabelClassificationForwardOutput:
+                mode: str,
+                backward: Optional[bool] = False) -> SingleLabelClassificationForwardOutput:
         output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
@@ -87,7 +90,8 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss.backward()
-            self.optimizer.step()
+            if backward:
+                self.optimizer.step()
             return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
                                                           encoded_features=encoded_feature.encoded_feature,
                                                           cross_entropy_loss=loss.item(),

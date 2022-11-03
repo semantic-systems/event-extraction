@@ -7,13 +7,14 @@ augmenter:
 data:
   batch_size: 32
   config: emoji
+  gradient_accu_step: 4
   include_oos: false
   label_column: label
   name: tweet_eval
   validation: true
 early_stopping:
   delta: 0
-  tolerance: 5
+  tolerance: 10
 model:
   L2_normalize_encoded_feature: true
   L2_normalize_logits: true

@@ -1,4 +1,6 @@
 from itertools import chain
+from typing import Optional
+
 from omegaconf import DictConfig
 from torch.nn import BCEWithLogitsLoss, Sigmoid
 from transformers import AutoModel, AdamW, PreTrainedModel, PreTrainedTokenizer, AutoTokenizer, \
@@ -15,13 +17,14 @@ class MultiLabelSequenceClassification(SequenceClassification):
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)
         self.loss = BCEWithLogitsLoss()
         self.sigmoid = Sigmoid()
 
     def forward(self,
                 input_feature: InputFeature,
-                mode: str) -> MultiLabelClassificationForwardOutput:
+                mode: str,
+                backward: Optional[bool] = False) -> MultiLabelClassificationForwardOutput:
         output = self.inference(input_feature, mode)
         encoded_feature: EncodedFeature = EncodedFeature(encoded_feature=output, labels=input_feature.labels)
         head_output = self.classification_head(encoded_feature, mode=mode)
@@ -29,7 +32,8 @@ class MultiLabelSequenceClassification(SequenceClassification):
         if mode == "train":
             loss = self.loss(head_output.output, input_feature.labels)
             loss.backward()
-            self.optimizer.step()
+            if backward:
+                self.optimizer.step()
             return MultiLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=self.sigmoid(head_output.output),
                                                          encoded_features=encoded_feature.encoded_feature)
         elif mode == "validation":

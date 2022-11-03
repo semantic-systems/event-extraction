@@ -96,6 +96,7 @@ class BatchLearningAgent(Agent):
         test_input: List = []
 
         for i, batch in enumerate(tqdm(data_loader)):
+            backward = False
             batch["text"] = self.policy.normalize(batch["text"])
             if mode == "train":
                 self.policy.optimizer.zero_grad()
@@ -113,7 +114,9 @@ class BatchLearningAgent(Agent):
             # convert labels to None if in testing mode.
             labels = None if mode == "test" else labels
             input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode)
+            if ((i + 1) % self.config.data.gradient_accu_step == 0) or (i + 1 == len(data_loader)):
+                backward = True
+            outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode, backward=backward)
             prediction = self.get_prediction(outputs)
             y_predict.extend(prediction)
             if mode == "train":
