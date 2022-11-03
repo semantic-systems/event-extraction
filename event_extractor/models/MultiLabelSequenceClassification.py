@@ -31,7 +31,7 @@ class MultiLabelSequenceClassification(SequenceClassification):
 
         if mode == "train":
             loss = self.loss(head_output.output, input_feature.labels)
-            loss = loss / self.config.data.gradient_accu_step
+            loss = loss / self.cfg.data.gradient_accu_step
             loss.backward()
             if backward:
                 self.optimizer.step()
@@ -93,7 +93,7 @@ class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassificati
             contrastive_features = head_output.output.reshape(new_shape)
             contrastive_loss = self.contrastive_loss(contrastive_features, input_feature.labels[:int(head_output.output.shape[0]/(self.cfg.augmenter.num_samples+1))])
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
-            total_loss = total_loss / self.config.data.gradient_accu_step
+            total_loss = total_loss / self.cfg.data.gradient_accu_step
             total_loss.backward()
             self.optimizer.step()
             return MultiLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=self.sigmoid(head_output.output),

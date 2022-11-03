@@ -206,7 +206,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
         # start new run
         for n in range(self.config.model.epochs):
             # training
-            # self.agent.policy.lr_scheduler.step()
+            self.agent.policy.lr_scheduler.step()
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="train")
             y_predict, y_true, train_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
             ce_loss, contrastive_loss = agent_output.cross_entropy_loss, agent_output.contrastive_loss
