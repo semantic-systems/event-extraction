@@ -1,4 +1,4 @@
-baseline:
+cohort2:
 - loss type: CE + SCL
 - aug: no aug
 - lm: roberta and bertweet

@@ -1,8 +1,10 @@
-batch_size: 96
-gradient_accu_step: 1
-tolerance: 10
-learning_rate: 1.0e-05
-lr_warmup: 10
-cl_ratio: 0.1
-temp: 0.5
+cohort4:
+- loss type: CE + SCL
+- aug: dropout 01 01
+- lm: roberta and bertweet
+- bz: 32
+- CL ratio: 0.1, 0.3, 0.5
+- CL temp: 0.3
+- CL base temp: 0.3
+
 

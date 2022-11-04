@@ -1,8 +1,8 @@
-baseline:
+cohort3:
 - loss type: CE + SCL
-- aug: no aug
+- aug: dropout 01 01
 - lm: roberta and bertweet
-- bz: 96
-- CL ratio: 01, 03, 05, 07, 09
+- bz: 32
+- CL ratio: 0x
 - CL temp: 0.3
 - CL base temp: 0.3
