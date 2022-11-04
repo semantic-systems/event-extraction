@@ -119,3 +119,18 @@ class SequenceClassification(Module):
             output = self.encoder(input_ids=input_feature.input_ids,
                                   attention_mask=input_feature.attention_mask).pooler_output
         return output
+
+    def get_multiview_batch(self, features, labels):
+        # no augmentation
+        if self.cfg.augmenter.name is None and self.cfg.model.contrastive.contrastive_loss_ratio > 0:
+            features = features[:, None, :]
+            labels = labels
+        elif self.cfg.augmenter.name is not None:
+            multiview_shape = (
+                int(features.shape[0] / (self.cfg.augmenter.num_samples + 1)),
+                self.cfg.augmenter.num_samples + 1,
+                features.shape[-1]
+            )
+            features = features.reshape(multiview_shape)
+            labels = labels[:int(features.shape[0]/(self.cfg.augmenter.num_samples+1))]
+        return features, labels

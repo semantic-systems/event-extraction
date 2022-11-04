@@ -460,11 +460,11 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/")
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/scl/dropout/")
     # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
-    # writer = LatexTableWriter("./tables/tweeteval/0311/lr4/", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
+    writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)

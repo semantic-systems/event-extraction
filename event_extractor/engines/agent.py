@@ -144,7 +144,11 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(name: str, **kwargs):
-        if name == "dropout":
+        print(name)
+        print(type(name))
+        if name is None:
+            augmenter = None
+        elif name == "dropout":
             augmenter = DropoutAugmenter()
         elif name == "random":
             augmenter = RandomAugmenter()
