@@ -12,13 +12,13 @@ from event_extractor.losses.supervised_contrastive_loss import HMLC
 
 
 class MultiLabelSequenceClassification(SequenceClassification):
-    def __init__(self, cfg: DictConfig):
-        super(MultiLabelSequenceClassification, self).__init__(cfg)
+    def __init__(self, cfg: DictConfig, class_weights: Optional[list] = None):
+        super(MultiLabelSequenceClassification, self).__init__(cfg, class_weights)
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)
-        self.loss = BCEWithLogitsLoss()
+        self.loss = BCEWithLogitsLoss(weight=self.class_weights, reduction="mean")
         self.sigmoid = Sigmoid()
 
     def forward(self,
@@ -58,13 +58,13 @@ class MultiLabelSequenceClassification(SequenceClassification):
 
 
 class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassification):
-    def __init__(self, cfg: DictConfig):
-        super(MultiLabelContrastiveSequenceClassification, self).__init__(cfg)
+    def __init__(self, cfg: DictConfig, class_weights: Optional[list] = None):
+        super(MultiLabelContrastiveSequenceClassification, self).__init__(cfg, class_weights)
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)
-        self.loss = BCEWithLogitsLoss()
+        self.loss = BCEWithLogitsLoss(weight=self.class_weights, reduction="mean")
         self.contrastive_loss = HMLC(temperature=cfg.model.contrastive.temperature,
                                       base_temperature=cfg.model.contrastive.base_temperature,
                                       contrast_mode=cfg.model.contrastive.contrast_mode)

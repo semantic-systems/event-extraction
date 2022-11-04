@@ -429,26 +429,26 @@ class ConfigWriter(object):
         updated_dicts: List[Dict] = []
         for file in files:
             config = ConfigWriter.read_yaml(file)
-            config["seed"] = [0, 1, 2]
+            config["seed"] = [1]
             # config["model"]["layers"] = {"layer1": {"n_in": 768, "n_out": 768}, "layer2": {"n_in": 768, "n_out": 20}}
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            config["early_stopping"]["tolerance"] = 10
-            config["model"]["epochs"] = 100
-            config["data"]["gradient_accu_step"] = 1
-            config["data"]["batch_size"] = 32
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort4/01/bertweet/"
+            # config["early_stopping"]["tolerance"] = 10
+            # config["model"]["epochs"] = 100
+            # config["data"]["gradient_accu_step"] = 1
+            # config["data"]["batch_size"] = 32
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort4/01/bertweet/"
             # config["model"]["from_pretrained"] = "roberta-base"
-            config["model"]["L2_normalize_encoded_feature"] = True
-            config["model"]["L2_normalize_logits"] = True
-            config["model"]["learning_rate"] = 1.0e-05
-            config["augmenter"]["name"] = "dropout"
-            config["augmenter"]["dropout"] = [0.1, 0.1]
-            config["augmenter"]["num_samples"] = 2
-            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.1
-            config["model"]["contrastive"]["base_temperature"] = 0.3
-            config["model"]["contrastive"]["temperature"] = 0.3
+            # config["model"]["L2_normalize_encoded_feature"] = True
+            # config["model"]["L2_normalize_logits"] = True
+            # config["model"]["learning_rate"] = 1.0e-05
+            # config["augmenter"]["name"] = "dropout"
+            # config["augmenter"]["dropout"] = [0.1, 0.1]
+            # config["augmenter"]["num_samples"] = 2
+            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.1
+            # config["model"]["contrastive"]["base_temperature"] = 0.3
+            # config["model"]["contrastive"]["temperature"] = 0.3
             # config["model"]["freeze_transformer_layers"] = "all"
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
@@ -462,7 +462,7 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/cohort4/01/bertweet/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
     # writer = LatexTableWriter("./tables/tweeteval/0411/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)

@@ -3,7 +3,7 @@ import copy
 from pathlib import Path
 
 import torch
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional
 from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
@@ -12,9 +12,10 @@ from event_extractor.schema import InputFeature
 
 
 class SequenceClassification(Module):
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, class_weights: Optional[list] = None):
         super(SequenceClassification, self).__init__()
         self.cfg = cfg
+        self.class_weights = torch.tensor(class_weights, dtype=torch.float)
         self.encoder = self.instantiate_encoder()
         self.classification_head = self.instantiate_classification_head()
         if cfg.model.load_ckpt is not None:

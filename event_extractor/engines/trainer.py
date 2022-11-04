@@ -187,7 +187,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
         return StaticEnvironment(self.config)
 
     def instantiate_agent(self) -> Agent:
-        return BatchLearningAgent(self.config, self.device)
+        return BatchLearningAgent(self.config, self.device, self.environment.class_weights)
 
     @set_run_training
     def train(self):

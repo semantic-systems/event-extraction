@@ -1,8 +1,10 @@
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Dict, Union, List, Optional
 from abc import abstractmethod
 
+import numpy as np
 import pandas as pd
 import torch
 import emoji
@@ -12,6 +14,7 @@ from dataclasses import dataclass, asdict
 
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score, recall_score, \
     precision_score, accuracy_score, silhouette_score
+from sklearn.utils import class_weight
 from torch.utils.data import DataLoader, Sampler
 
 from event_extractor.data_generators import DataGenerator, DataGeneratorSubSample
@@ -78,6 +81,9 @@ class StaticEnvironment(Environment):
         self.label_index_map = self.environment.label_index_map
         self.index_label_map = {str(value): key for key, value in self.label_index_map.items()}
         self.tsne_visualizer = self.instantiate_tsne_visualizer()
+        labels = [row["label"] for row in self.environment.training_dataset]
+        self.class_weights = class_weight.compute_class_weight(class_weight='balanced', classes=np.unique(labels),
+                                                               y=labels)
 
     def instantiate_environment(self) -> DataGenerator:
         if "subset" in self.config.data:
