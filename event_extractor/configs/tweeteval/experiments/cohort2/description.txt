@@ -1,0 +1,8 @@
+baseline:
+- loss type: CE + SCL
+- aug: no aug
+- lm: roberta and bertweet
+- bz: 32, 64, 96
+- CL ratio: 0.1
+- CL temp: 0.3
+- CL base temp: 0.3
