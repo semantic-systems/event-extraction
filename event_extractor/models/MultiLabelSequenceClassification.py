@@ -63,7 +63,7 @@ class MultiLabelContrastiveSequenceClassification(MultiLabelSequenceClassificati
         self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
-        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, cfg.model.epochs)
+        self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)
         self.loss = BCEWithLogitsLoss()
         self.contrastive_loss = HMLC(temperature=cfg.model.contrastive.temperature,
                                       base_temperature=cfg.model.contrastive.base_temperature,
