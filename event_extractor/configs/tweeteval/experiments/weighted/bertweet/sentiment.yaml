@@ -22,7 +22,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort1/bs96/bertweet/
+  output_path: ./outputs/tweeteval/experiments/weighted/bertweet/
 name: sentiment
 seed:
 - 1

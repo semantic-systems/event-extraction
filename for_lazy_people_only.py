@@ -438,7 +438,7 @@ class ConfigWriter(object):
             # config["model"]["epochs"] = 100
             # config["data"]["gradient_accu_step"] = 1
             # config["data"]["batch_size"] = 32
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort4/01/bertweet/"
+            config["model"]["output_path"] = "./outputs/tweeteval/experiments/weighted/bertweet/"
             # config["model"]["from_pretrained"] = "roberta-base"
             # config["model"]["L2_normalize_encoded_feature"] = True
             # config["model"]["L2_normalize_logits"] = True
