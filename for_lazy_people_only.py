@@ -438,7 +438,7 @@ class ConfigWriter(object):
             # config["model"]["epochs"] = 100
             # config["data"]["gradient_accu_step"] = 1
             # config["data"]["batch_size"] = 32
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/weighted/bertweet/"
+            config["model"]["output_path"] = "./outputs/tweeteval/experiments/weighted_tweeteval_preprocessing/bertweet/"
             # config["model"]["from_pretrained"] = "roberta-base"
             # config["model"]["L2_normalize_encoded_feature"] = True
             # config["model"]["L2_normalize_logits"] = True
@@ -463,7 +463,7 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
-    # writer = LatexTableWriter("./tables/tweeteval/0411/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer = LatexTableWriter("./tables/tweeteval/final/weighted", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])

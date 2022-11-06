@@ -79,6 +79,16 @@ def clean_up_tokenization(out_string: str) -> str:
     return out_string.lower()
 
 
+def tweeteval_preprocess(text):
+    new_text = []
+    for t in text.split(" "):
+        t = '@user' if t.startswith('@') and len(t) > 1 else t
+        t = 'http' if t.startswith('http') else t
+        t = ' ' if t == "\n" else t
+        new_text.append(t)
+    return " ".join(new_text)
+
+
 if __name__ == "__main__":
     print(
         normalizeTweet(

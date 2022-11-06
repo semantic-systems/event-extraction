@@ -22,7 +22,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/weighted/bertweet/
+  output_path: ./outputs/tweeteval/experiments/weighted_tweeteval_preprocessing/bertweet/
 name: stance_abortion
 seed:
 - 1

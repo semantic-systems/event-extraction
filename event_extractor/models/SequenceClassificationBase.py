@@ -7,7 +7,7 @@ from typing import Union, Dict, List, Optional
 from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
-from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet
+from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet, tweeteval_preprocess
 from event_extractor.schema import InputFeature
 
 
@@ -78,8 +78,8 @@ class SequenceClassification(Module):
     def normalize(self, text: List[str]) -> List[str]:
         normalized_text = text
         if self.cfg.data.name in ["tweet_eval"]:
-            normalized_text: List[str] = [normalizeTweet(tweet) for tweet in text]
-            normalized_text = [clean_up_tokenization(tweet) for tweet in normalized_text]
+            normalized_text: List[str] = [tweeteval_preprocess(tweet) for tweet in text]
+            # normalized_text = [clean_up_tokenization(tweet) for tweet in normalized_text]
         return normalized_text
 
     def preprocess(self, batch):
