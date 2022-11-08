@@ -14,7 +14,7 @@ from event_extractor.losses.supervised_contrastive_loss import SupervisedContras
 class SingleLabelSequenceClassification(SequenceClassification):
     def __init__(self, cfg: DictConfig, class_weights: Optional[list] = None):
         super(SingleLabelSequenceClassification, self).__init__(cfg, class_weights)
-        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=True)
+        self.tokenizer: PreTrainedTokenizer = AutoTokenizer.from_pretrained(cfg.model.from_pretrained, normalization=False)
         params = chain(self.encoder.parameters(), self.classification_head.parameters())
         self.optimizer = AdamW(params, lr=cfg.model.learning_rate)
         self.lr_scheduler = get_linear_schedule_with_warmup(self.optimizer, 10, 2*cfg.model.epochs)

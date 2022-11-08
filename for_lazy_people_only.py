@@ -270,6 +270,9 @@ class TweetEvalMainTable(Table):
                      f"Rob-Tw{empty_grids} 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n " \
                      f"XLM-R{empty_grids} 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n " \
                      f"XLM-Tw{empty_grids} 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n" \
+                     "\\hline\n" \
+                     f"Bertweet{empty_grids} 33.4&79.3&56.4&82.1&79.5&73.4&71.2&67.9\\\ \n" \
+                     f"TimeLMs-2021{empty_grids} 34.0&80.2&55.1	&64.5&82.2&73.7&72.9&66.2\\\ \n" \
                      "\\hline\n"
         return top_string
 
@@ -462,9 +465,10 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
-    # writer = LatexTableWriter("./tables/tweeteval/final/weighted", TweetEvalResult, table=TweetEvalMainTable)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
+    writer = LatexTableWriter("./tables/tweeteval/lowercased/cohort3", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "batch_size"])
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)

@@ -135,8 +135,10 @@ class DataGenerator(object):
             dataset = self.training_dataset
         elif mode == "test":
             dataset = self.testing_dataset
+            batch_size = batch_size * 3 if batch_size == 32 else batch_size
         elif mode == "validation":
             dataset = self.validation_dataset
+            batch_size = batch_size * 3 if batch_size == 32 else batch_size
         else:
             raise AttributeError(f"{mode} is not a valid attribute in Data Generator class.")
         # default sampler is a random sampler over all entries in the dataset.
