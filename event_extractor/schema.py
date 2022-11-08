@@ -25,6 +25,7 @@ class MultiLabelClassificationForwardOutput:
     cross_entropy_loss: Optional[float] = None
     contrastive_loss: Optional[float] = None
 
+
 @dataclass
 class TSNEFeature:
     final_hidden_states: List
