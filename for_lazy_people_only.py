@@ -282,11 +282,11 @@ class TweetEvalMainTable(Table):
         coefict = 100 if col_to_write == "metric_score" else 1
         decimal = 1 if col_to_write == "metric_score" else 3
         tex = ""
-        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
-        col_list = [task for task in task_list if not task.startswith("stance_")]
+        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list }
+        col_list = [task for task in task_list]
         col_order = {'emoji': 0, 'emotion': 1, 'hate': 2, 'irony': 3, 'offensive': 4, 'sentiment': 5, 'stance': 6}
         col_list.sort(key=lambda col: col_order[col])
-        col_list.extend(["stance", "all"])
+        col_list.extend(["all"])
         stance_avg_score = {}
         for element in row:
             tex += f"{list(element)[1]}&"
@@ -294,18 +294,10 @@ class TweetEvalMainTable(Table):
             df = self.get_target_df(row)
             if df.empty:
                 return ""
-            if "stance" in task:
-                for seed in df['seed'].unique():
-                    stance_avg_score.update({seed: df.loc[df['seed'] == seed, col_to_write].mean()})
             else:
                 scores[task]["avg"] = df[(df["task"] == task)][col_to_write].mean()
                 scores[task]["std"] = df[(df["task"] == task)][col_to_write].std()
                 scores[task]["max"] = df[(df["task"] == task)][col_to_write].max()
-        scores["stance"] = {"avg": 0, "std": 0, "max": 0}
-        a = list(stance_avg_score.values())
-        scores["stance"]["avg"] = np.mean(list(stance_avg_score.values()))
-        scores["stance"]["std"] = np.std(list(stance_avg_score.values()))
-        scores["stance"]["max"] = np.max(list(stance_avg_score.values()))
         scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
         scores = {k: v for k, v in scores.items()}
         for i, task in enumerate(col_list):
@@ -485,7 +477,7 @@ if __name__ == "__main__":
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "batch_size"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
-    writer = LatexTableWriter("./tables/tweeteval/final/cohort1/bs64/roberta_base/", TweetEvalResult)
+    writer = LatexTableWriter("./tables/tweeteval/paper/cohort3/01/bertweet/", TweetEvalResult, table=TweetEvalMainTable)
     writer.write_to_tex(name="tweeteval", session_to_include=["model"])
 
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
