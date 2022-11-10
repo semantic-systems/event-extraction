@@ -78,7 +78,7 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
         else:
@@ -95,7 +95,7 @@ class DataGenerator(object):
 
     @property
     def validation_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
         else:
@@ -112,7 +112,7 @@ class DataGenerator(object):
 
     @property
     def testing_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
         else:
@@ -161,7 +161,7 @@ class DataGenerator(object):
 class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
         else:
@@ -177,7 +177,7 @@ class DataGeneratorSubSample(DataGenerator):
 
     @property
     def testing_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
         else:
@@ -193,7 +193,7 @@ class DataGeneratorSubSample(DataGenerator):
 
     @property
     def validation_dataset(self):
-        if self.cfg.data.config.startswith("stance_"):
+        if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
         else:
