@@ -78,7 +78,11 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
@@ -91,7 +95,11 @@ class DataGenerator(object):
 
     @property
     def validation_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
@@ -104,7 +112,11 @@ class DataGenerator(object):
 
     @property
     def testing_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
@@ -149,7 +161,12 @@ class DataGenerator(object):
 class DataGeneratorSubSample(DataGenerator):
     @property
     def training_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='train')
+        dataset = dataset.train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
@@ -160,7 +177,12 @@ class DataGeneratorSubSample(DataGenerator):
 
     @property
     def testing_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='test')
+        dataset = dataset.train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':
@@ -171,7 +193,12 @@ class DataGeneratorSubSample(DataGenerator):
 
     @property
     def validation_dataset(self):
-        dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation').train_test_split(test_size=self.cfg.data.subset)["test"]
+        if self.cfg.data.config.startswith("stance_"):
+            stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
+            dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
+        else:
+            dataset = load_dataset(self.cfg.data.name, self.cfg.data.config, split='validation')
+        dataset = dataset.train_test_split(test_size=self.cfg.data.subset)["test"]
         if self.cfg.data.classes:
             dataset = self.create_onehot_label(dataset)
         if self.cfg.data.label_column != 'label':

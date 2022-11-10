@@ -16,6 +16,8 @@ class Result(object):
         self.root = root
         self.path = path
         self.result = self.read_json(path)
+        self.encoded_feature_silhouette = self.result[0].get("encoded_feature_silhouette", 0)
+        self.final_output_silhouette = self.result[0].get("final_output_silhouette", 0)
         config_path = path.replace("test_result.json", "config.yaml")
         self.config = self.read_yaml(config_path)
         self.task = self.get_task()
@@ -192,16 +194,16 @@ class Table(object):
             df = df[(df[key] == value)]
         return df
 
-    def write_row(self, row: Tuple, task_list: List):
+    def write_row(self, row: Tuple, task_list: List, col_to_write: Optional[str]="metric_score"):
         tex = ""
         scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list}
         for element in row:
             tex += f"{list(element)[1]}&"
         for i, task in enumerate(task_list):
             df = self.get_target_df(row)
-            scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
-            scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
-            scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
+            scores[task]["avg"] = df[(df["task"] == task)][col_to_write].mean()
+            scores[task]["std"] = df[(df["task"] == task)][col_to_write].std()
+            scores[task]["max"] = df[(df["task"] == task)][col_to_write].max()
         for i, task in enumerate(task_list):
             tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&"
             if i == len(task_list)-1:
@@ -276,7 +278,9 @@ class TweetEvalMainTable(Table):
                      "\\hline\n"
         return top_string
 
-    def write_row(self, row: Tuple, task_list: List):
+    def write_row(self, row: Tuple, task_list: List, col_to_write: Optional[str]="metric_score"):
+        coefict = 100 if col_to_write == "metric_score" else 1
+        decimal = 1 if col_to_write == "metric_score" else 3
         tex = ""
         scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
         col_list = [task for task in task_list if not task.startswith("stance_")]
@@ -292,11 +296,11 @@ class TweetEvalMainTable(Table):
                 return ""
             if "stance" in task:
                 for seed in df['seed'].unique():
-                    stance_avg_score.update({seed: df.loc[df['seed'] == seed, 'metric_score'].mean()})
+                    stance_avg_score.update({seed: df.loc[df['seed'] == seed, col_to_write].mean()})
             else:
-                scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
-                scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
-                scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
+                scores[task]["avg"] = df[(df["task"] == task)][col_to_write].mean()
+                scores[task]["std"] = df[(df["task"] == task)][col_to_write].std()
+                scores[task]["max"] = df[(df["task"] == task)][col_to_write].max()
         scores["stance"] = {"avg": 0, "std": 0, "max": 0}
         a = list(stance_avg_score.values())
         scores["stance"]["avg"] = np.mean(list(stance_avg_score.values()))
@@ -306,9 +310,9 @@ class TweetEvalMainTable(Table):
         scores = {k: v for k, v in scores.items()}
         for i, task in enumerate(col_list):
             if i < len(col_list) - 1:
-                tex += f"{round(100 * scores[task]['avg'], 1)}\small$\pm${round(100 * scores[task]['std'], 1)}\\thinspace({round(100 * scores[task]['max'], 1)})&\n"
+                tex += f"{round(coefict * scores[task]['avg'], decimal)}\small$\pm${round(coefict * scores[task]['std'], decimal)}\\thinspace({round(coefict * scores[task]['max'], decimal)})&\n"
             else:
-                tex += str(round(100 * scores[task], 1))
+                tex += str(round(coefict * scores[task], decimal))
                 tex += "\\\ \n"
         return tex
 
@@ -388,18 +392,28 @@ class LatexTableWriter(object):
                 'contrast_mode': [result.contrast_mode for result in result_instances],
                 'augmenter': [result.augmenter for result in result_instances],
                 'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
+                'encoded_feature_silhouette': [result.encoded_feature_silhouette for result in result_instances],
+                'final_output_silhouette': [result.final_output_silhouette for result in result_instances],
                 'augmenter_dropout': [result.augmenter_dropout for result in result_instances],
                 'metric_name': metric_name,
                 'metric_score': [result.metric for result in result_instances]
                 }
         return pd.DataFrame(data)
 
-    def write_to_tex(self, name: str, session_to_include: List):
+    def write_to_tex(self, name: str, session_to_include: List, col_to_write: Optional[str]="metric_score"):
         rows = self.get_rows(session_to_include)
         with open(str(Path(self.output_path, f"{name}_latex_table.tex").absolute()), "w") as f:
             f.write(self.table.write_top(session_to_include=session_to_include, task_list=self.task_list))
             for row in rows:
-                f.write(self.table.write_row(row=row, task_list=self.task_list))
+                f.write(self.table.write_row(row=row, task_list=self.task_list, col_to_write=col_to_write))
+            f.write(self.table.write_end(session_to_include=session_to_include, task_list=self.task_list, result=self.result_instances[0]))
+
+    def write_silhouette_to_tex(self, name: str, session_to_include: List):
+        rows = self.get_rows(session_to_include)
+        with open(str(Path(self.output_path, f"{name}_latex_table.tex").absolute()), "w") as f:
+            f.write(self.table.write_top(session_to_include=session_to_include, task_list=self.task_list))
+            for row in rows:
+                f.write(self.table.write_row(row=row, task_list=self.task_list, col_to_write="encoded_feature_silhouette"))
             f.write(self.table.write_end(session_to_include=session_to_include, task_list=self.task_list, result=self.result_instances[0]))
 
     def get_rows(self, session_to_include: List):
@@ -466,7 +480,9 @@ class ConfigWriter(object):
 
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
-    writer = LatexTableWriter("./tables/tweeteval/lowercased/cohort3", TweetEvalResult, table=TweetEvalMainTable)
+    writer = LatexTableWriter("./tables/tweeteval/final/cohort4", TweetEvalResult, table=TweetEvalMainTable)
+    writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
+    writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "batch_size"])
     writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
