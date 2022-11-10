@@ -451,11 +451,11 @@ class ConfigWriter(object):
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            # config["early_stopping"]["tolerance"] = 10
+            config["early_stopping"]["tolerance"] = 5
             # config["model"]["epochs"] = 100
             # config["data"]["gradient_accu_step"] = 1
             # config["data"]["batch_size"] = 32
-            config["model"]["output_path"] = "./outputs/tweeteval/experiments/weighted_tweeteval_preprocessing/bertweet/"
+            config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort5/no_aug/bertweet/"
             # config["model"]["from_pretrained"] = "roberta-base"
             # config["model"]["L2_normalize_encoded_feature"] = True
             # config["model"]["L2_normalize_logits"] = True
@@ -479,14 +479,14 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/weighted/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/cohort5/no_aug/bertweet")
     # writer = LatexTableWriter("./tables/tweeteval/final/cohort4", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "batch_size"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
-    writer = LatexTableWriter("./tables/tweeteval/final/cohort1/bs64/roberta_base/", TweetEvalResult)
-    writer.write_to_tex(name="tweeteval", session_to_include=["model"])
+    # writer = LatexTableWriter("./tables/tweeteval/final/cohort1/bs64/roberta_base/", TweetEvalResult)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
 
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
