@@ -1,6 +1,12 @@
+augmenter:
+  dropout:
+  - 0.1
+  - 0.1
+  name: dropout
+  num_samples: 2
 data:
   batch_size: 32
-  config: stance
+  config: sentiment
   gradient_accu_step: 1
   include_oos: false
   label_column: label
@@ -11,7 +17,12 @@ early_stopping:
   tolerance: 10
 model:
   L2_normalize_encoded_feature: true
-  L2_normalize_logits: false
+  L2_normalize_logits: true
+  contrastive:
+    base_temperature: 0.3
+    contrast_mode: all
+    contrastive_loss_ratio: 0.9
+    temperature: 0.3
   dropout_rate: 0.5
   epochs: 100
   freeze_transformer_layers: none
@@ -22,8 +33,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort1/bs32/roberta_base/
-name: stance
+  output_path: ./outputs/tweeteval/experiments/cohort4/09/roberta_base/
+name: sentiment
 seed:
 - 0
 - 1
