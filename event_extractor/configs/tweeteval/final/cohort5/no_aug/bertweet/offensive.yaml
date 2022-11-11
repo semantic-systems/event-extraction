@@ -34,6 +34,8 @@ model:
   output_path: ./outputs/tweeteval/experiments/cohort5/no_aug/bertweet/
 name: offensive
 seed:
+- 0
 - 1
+- 2
 visualizer:
 - tsne

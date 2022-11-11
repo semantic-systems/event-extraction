@@ -34,6 +34,8 @@ model:
   output_path: ./outputs/tweeteval/experiments/cohort5/no_aug/roberta/
 name: sentiment
 seed:
+- 0
 - 1
+- 2
 visualizer:
 - tsne
