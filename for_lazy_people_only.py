@@ -16,6 +16,8 @@ class Result(object):
         self.root = root
         self.path = path
         self.result = self.read_json(path)
+        self.encoded_feature_silhouette = self.result[0].get("encoded_feature_silhouette", 0)
+        self.final_output_silhouette = self.result[0].get("final_output_silhouette", 0)
         config_path = path.replace("test_result.json", "config.yaml")
         self.config = self.read_yaml(config_path)
         self.task = self.get_task()
@@ -192,16 +194,16 @@ class Table(object):
             df = df[(df[key] == value)]
         return df
 
-    def write_row(self, row: Tuple, task_list: List):
+    def write_row(self, row: Tuple, task_list: List, col_to_write: Optional[str]="metric_score"):
         tex = ""
         scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list}
         for element in row:
             tex += f"{list(element)[1]}&"
         for i, task in enumerate(task_list):
             df = self.get_target_df(row)
-            scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
-            scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
-            scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
+            scores[task]["avg"] = df[(df["task"] == task)][col_to_write].mean()
+            scores[task]["std"] = df[(df["task"] == task)][col_to_write].std()
+            scores[task]["max"] = df[(df["task"] == task)][col_to_write].max()
         for i, task in enumerate(task_list):
             tex += f"{round(100*scores[task]['avg'], 1)}\small$\pm${round(100*scores[task]['std'], 1)}\\thinspace({round(100*scores[task]['max'], 1)})&"
             if i == len(task_list)-1:
@@ -270,16 +272,21 @@ class TweetEvalMainTable(Table):
                      f"Rob-Tw{empty_grids} 29.3\small$\pm$0.4\\thinspace(29.5)& 72.0\small$\pm$0.9\\thinspace(71.7)& 46.9\small$\pm$2.9\\thinspace(45.1)&65.4\small$\pm$3.1\\thinspace(65.1)&77.1\small$\pm$1.3\\thinspace(78.6)&69.1\small$\pm$1.2\\thinspace(69.3)&66.7\small$\pm$1.0\\thinspace(67.9)&61.0\\\ \n " \
                      f"XLM-R{empty_grids} 28.6\small$\pm$0.7\\thinspace(27.7)& 72.3\small$\pm$3.6\\thinspace(68.5)& 44.4\small$\pm$0.7\\thinspace(43.9)&57.4\small$\pm$4.7\\thinspace(54.2)&75.7\small$\pm$1.9\\thinspace(73.6)&68.6\small$\pm$1.2\\thinspace(69.6)&65.4\small$\pm$0.8\\thinspace(66.0)&57.6\\\ \n " \
                      f"XLM-Tw{empty_grids} 30.9\small$\pm$0.5\\thinspace(30.8)& 77.0\small$\pm$1.5\\thinspace(78.3)& 50.8\small$\pm$0.6\\thinspace(51.5)&69.9\small$\pm$1.0\\thinspace(70.0)&79.9\small$\pm$0.8\\thinspace(79.3)&72.3\small$\pm$0.2\\thinspace(72.3)&67.1\small$\pm$1.4\\thinspace(68.7)&64.4\\\ \n" \
+                     "\\hline\n" \
+                     f"Bertweet{empty_grids} 33.4&79.3&56.4&82.1&79.5&73.4&71.2&67.9\\\ \n" \
+                     f"TimeLMs-2021{empty_grids} 34.0&80.2&55.1	&64.5&82.2&73.7&72.9&66.2\\\ \n" \
                      "\\hline\n"
         return top_string
 
-    def write_row(self, row: Tuple, task_list: List):
+    def write_row(self, row: Tuple, task_list: List, col_to_write: Optional[str]="metric_score"):
+        coefict = 100 if col_to_write == "metric_score" else 1
+        decimal = 1 if col_to_write == "metric_score" else 3
         tex = ""
-        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list if "stance" not in task}
-        col_list = [task for task in task_list if not task.startswith("stance_")]
+        scores = {task: {"avg": 0, "std": 0, "max": 0} for task in task_list }
+        col_list = [task for task in task_list]
         col_order = {'emoji': 0, 'emotion': 1, 'hate': 2, 'irony': 3, 'offensive': 4, 'sentiment': 5, 'stance': 6}
         col_list.sort(key=lambda col: col_order[col])
-        col_list.extend(["stance", "all"])
+        col_list.extend(["all"])
         stance_avg_score = {}
         for element in row:
             tex += f"{list(element)[1]}&"
@@ -287,25 +294,17 @@ class TweetEvalMainTable(Table):
             df = self.get_target_df(row)
             if df.empty:
                 return ""
-            if "stance" in task:
-                for seed in df['seed'].unique():
-                    stance_avg_score.update({seed: df.loc[df['seed'] == seed, 'metric_score'].mean()})
             else:
-                scores[task]["avg"] = df[(df["task"] == task)]['metric_score'].mean()
-                scores[task]["std"] = df[(df["task"] == task)]['metric_score'].std()
-                scores[task]["max"] = df[(df["task"] == task)]['metric_score'].max()
-        scores["stance"] = {"avg": 0, "std": 0, "max": 0}
-        a = list(stance_avg_score.values())
-        scores["stance"]["avg"] = np.mean(list(stance_avg_score.values()))
-        scores["stance"]["std"] = np.std(list(stance_avg_score.values()))
-        scores["stance"]["max"] = np.max(list(stance_avg_score.values()))
+                scores[task]["avg"] = df[(df["task"] == task)][col_to_write].mean()
+                scores[task]["std"] = df[(df["task"] == task)][col_to_write].std()
+                scores[task]["max"] = df[(df["task"] == task)][col_to_write].max()
         scores["all"] = np.mean([task_dict["avg"] for task_dict in scores.values()])
         scores = {k: v for k, v in scores.items()}
         for i, task in enumerate(col_list):
             if i < len(col_list) - 1:
-                tex += f"{round(100 * scores[task]['avg'], 1)}\small$\pm${round(100 * scores[task]['std'], 1)}\\thinspace({round(100 * scores[task]['max'], 1)})&\n"
+                tex += f"{round(coefict * scores[task]['avg'], decimal)}\small$\pm${round(coefict * scores[task]['std'], decimal)}\\thinspace({round(coefict * scores[task]['max'], decimal)})&\n"
             else:
-                tex += str(round(100 * scores[task], 1))
+                tex += str(round(coefict * scores[task], decimal))
                 tex += "\\\ \n"
         return tex
 
@@ -385,18 +384,28 @@ class LatexTableWriter(object):
                 'contrast_mode': [result.contrast_mode for result in result_instances],
                 'augmenter': [result.augmenter for result in result_instances],
                 'num_augmented_samples': [result.num_augmented_samples for result in result_instances],
+                'encoded_feature_silhouette': [result.encoded_feature_silhouette for result in result_instances],
+                'final_output_silhouette': [result.final_output_silhouette for result in result_instances],
                 'augmenter_dropout': [result.augmenter_dropout for result in result_instances],
                 'metric_name': metric_name,
                 'metric_score': [result.metric for result in result_instances]
                 }
         return pd.DataFrame(data)
 
-    def write_to_tex(self, name: str, session_to_include: List):
+    def write_to_tex(self, name: str, session_to_include: List, col_to_write: Optional[str]="metric_score"):
         rows = self.get_rows(session_to_include)
         with open(str(Path(self.output_path, f"{name}_latex_table.tex").absolute()), "w") as f:
             f.write(self.table.write_top(session_to_include=session_to_include, task_list=self.task_list))
             for row in rows:
-                f.write(self.table.write_row(row=row, task_list=self.task_list))
+                f.write(self.table.write_row(row=row, task_list=self.task_list, col_to_write=col_to_write))
+            f.write(self.table.write_end(session_to_include=session_to_include, task_list=self.task_list, result=self.result_instances[0]))
+
+    def write_silhouette_to_tex(self, name: str, session_to_include: List):
+        rows = self.get_rows(session_to_include)
+        with open(str(Path(self.output_path, f"{name}_latex_table.tex").absolute()), "w") as f:
+            f.write(self.table.write_top(session_to_include=session_to_include, task_list=self.task_list))
+            for row in rows:
+                f.write(self.table.write_row(row=row, task_list=self.task_list, col_to_write="encoded_feature_silhouette"))
             f.write(self.table.write_end(session_to_include=session_to_include, task_list=self.task_list, result=self.result_instances[0]))
 
     def get_rows(self, session_to_include: List):
@@ -434,21 +443,25 @@ class ConfigWriter(object):
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            config["early_stopping"]["tolerance"] = 5
+            # config["early_stopping"]["tolerance"] = 10
             # config["model"]["epochs"] = 100
-            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/scl/dropout/"
-            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.3
-            # config["model"]["from_pretrained"] = "vinai/bertweet-base"
-            # config["model"]["L2_normalize_encoded_feature"] = True
-            # config["model"]["L2_normalize_logits"] = False
+            # config["data"]["gradient_accu_step"] = 1
+            # config["data"]["batch_size"] = 32
+            # config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort7/09/bertweet/"
+            # config["model"]["from_pretrained"] = "roberta-base"
+            config["model"]["L2_normalize_encoded_feature"] = True
+            config["model"]["L2_normalize_logits"] = False
             # config["model"]["learning_rate"] = 1.0e-05
-            # config["model"]["freeze_transformer_layers"] = "all"
-            # config["augmenter"]["dropout"] = [0.8, 0.8]
+            # config["augmenter"]["name"] = "dropout"
+            # config["augmenter"]["dropout"] = [0.1, 0.1]
+            # config["augmenter"]["num_samples"] = 2
+            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.1
             # config["model"]["contrastive"]["base_temperature"] = 0.3
-            # config["model"]["contrastive"]["temperature"] = 0.3
-            # output = config["model"]["output_path"]
-            # updated_output = output.replace("/tweeteval/", "/tweeteval/experiments/")
-            # config["model"]["output_path"] = updated_output
+            # config["model"]["contrastive"]["temperature"] = 0.9
+            # config["model"]["freeze_transformer_layers"] = "all"
+            output = config["model"]["output_path"]
+            updated_output = output.replace("/cohort3/", "/cohort8/")
+            config["model"]["output_path"] = updated_output
             # if updated_output.endswith("/"):
             #     updated_output = updated_output[:-1]
             # path_to_ckpt = f"{updated_output}/{config['name']}/seed_{config['seed'][0]}/pretrained_models/{config['name']}_best_model.pt"
@@ -458,11 +471,16 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/experiments/")
-    # writer = LatexTableWriter("./tables/tweeteval/0111/sl/l2norm_logits", TweetEvalResult, table=TweetEvalMainTable)
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort8/")
+    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort5/no_aug", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
+    # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
-    # writer = LatexTableWriter("./tables/tweeteval/0111/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    # writer = LatexTableWriter("./tables/tweeteval/paper/cohort2", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
+    # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
     # writer = LatexTableWriter("./tables/crisis/experiments/", CrisisResult)
     # writer.write_to_tex(name="crisis", session_to_include=["model", "contrastive", "head_type"])
     # writer = LatexTableWriter("./tables/sexism/", SexismResult)

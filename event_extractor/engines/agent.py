@@ -1,4 +1,4 @@
-from typing import Dict, Union, Type, List
+from typing import Dict, Union, Type, List, Optional
 
 import numpy as np
 import torch
@@ -29,10 +29,11 @@ class AgentState(object):
 
 
 class Agent(object):
-    def __init__(self, config: DictConfig, device: torch.device):
+    def __init__(self, config: DictConfig, device: torch.device, class_weights: Optional[list] = None):
         self.config = config
         self.state = AgentState()
         self.device = device
+        self.class_weights = class_weights
 
     def act(self, **kwargs) -> AgentPolicyOutput:
         raise NotImplementedError
@@ -51,8 +52,8 @@ class Agent(object):
 
 
 class BatchLearningAgent(Agent):
-    def __init__(self, config: DictConfig, device: torch.device):
-        super(BatchLearningAgent, self).__init__(config, device)
+    def __init__(self, config: DictConfig, device: torch.device, class_weights: Optional[list] = None):
+        super(BatchLearningAgent, self).__init__(config, device, class_weights)
         self.policy = self.instantiate_policy()
         self.Augmenter = self.instantiate_augmenter(config.augmenter.name) if self.is_contrastive else None
 
@@ -75,7 +76,7 @@ class BatchLearningAgent(Agent):
         return self.config.model.contrastive.contrastive_loss_ratio > 0
 
     def instantiate_policy(self):
-        return self.policy_class(self.config)
+        return self.policy_class(self.config, class_weights=self.class_weights)
 
     def log_something(self):
         raise NotImplementedError
@@ -96,6 +97,7 @@ class BatchLearningAgent(Agent):
         test_input: List = []
 
         for i, batch in enumerate(tqdm(data_loader)):
+            backward = False
             batch["text"] = self.policy.normalize(batch["text"])
             if mode == "train":
                 self.policy.optimizer.zero_grad()
@@ -113,7 +115,9 @@ class BatchLearningAgent(Agent):
             # convert labels to None if in testing mode.
             labels = None if mode == "test" else labels
             input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
-            outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode)
+            if ((i + 1) % self.config.data.gradient_accu_step == 0) or (i + 1 == len(data_loader)):
+                backward = True
+            outputs: ClassificationForwardOutput = self.policy(input_feature, mode=mode, backward=backward)
             prediction = self.get_prediction(outputs)
             y_predict.extend(prediction)
             if mode == "train":
@@ -141,7 +145,9 @@ class BatchLearningAgent(Agent):
 
     @staticmethod
     def instantiate_augmenter(name: str, **kwargs):
-        if name == "dropout":
+        if name is None:
+            augmenter = None
+        elif name == "dropout":
             augmenter = DropoutAugmenter()
         elif name == "random":
             augmenter = RandomAugmenter()
