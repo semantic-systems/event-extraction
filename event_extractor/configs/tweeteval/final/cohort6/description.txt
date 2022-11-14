@@ -1,0 +1,8 @@
+cohort3:
+- loss type: CE + SCL
+- aug: null
+- lm: roberta and bertweet
+- bz: 32
+- CL ratio: 01, 03, 05, 07, 09
+- CL temp: 0.3
+- CL base temp: 0.3

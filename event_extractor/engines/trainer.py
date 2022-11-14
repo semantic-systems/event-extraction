@@ -1,5 +1,6 @@
 import json
 import logging
+import pickle
 from copy import deepcopy
 from pathlib import Path
 from typing import List, Optional, Dict
@@ -187,7 +188,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
         return StaticEnvironment(self.config)
 
     def instantiate_agent(self) -> Agent:
-        return BatchLearningAgent(self.config, self.device)
+        return BatchLearningAgent(self.config, self.device, self.environment.class_weights)
 
     @set_run_training
     def train(self):
@@ -231,14 +232,20 @@ class BatchLearningTrainer(SingleAgentTrainer):
             if self.config.data.validation:
                 agent_output: AgentPolicyOutput = self.agent.act(validation_data_loader, mode="validation")
                 y_predict, y_true, validation_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
-                if "tsne" in self.config.visualizer:
-                    tsne_feature = agent_output.tsne_feature
-                    tsne_feature.labels = self.convert_tensor_index_to_label(y_true)
-                    self.environment.visualize_embedding(tsne_feature=tsne_feature, epoch=n)
-                    encoded_feature_silhouette = self.environment.clustering_score(tsne_feature.encoded_features,
-                                                                                   y_true)
-                    final_output_silhouette = self.environment.clustering_score(tsne_feature.final_hidden_states,
-                                                                                y_true)
+                # if "tsne" in self.config.visualizer:
+                #     tsne_feature = agent_output.tsne_feature
+                #     tsne_feature.labels = self.convert_tensor_index_to_label(y_true)
+                #     feature_to_store = tsne_feature.__dict__
+                #     feature_to_store.update({"epoch": n})
+                #     feature_to_store.update({"y_true": y_true})
+                #     with open(Path(self.config.model.output_path, self.config.name, f"seed_{self.config.seed}",
+                #                    "pretrained_models", "validation_encoded_features.pkl").absolute(), 'ab') as f:
+                #         pickle.dump(feature_to_store, f)
+                    # self.environment.visualize_embedding(tsne_feature=tsne_feature, epoch=n)
+                    # encoded_feature_silhouette = self.environment.clustering_score(tsne_feature.encoded_features,
+                    #                                                                y_true)
+                    # final_output_silhouette = self.environment.clustering_score(tsne_feature.final_hidden_states,
+                    #                                                             y_true)
 
                 validation_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
                                                                                               y_true,
@@ -255,7 +262,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                     f"F1 per class: {validation_result_per_epoch.f1_per_class}, "
                     f"Precision macro: {validation_result_per_epoch.precision_macro}, "
                     f"Recall macro: {validation_result_per_epoch.recall_macro}, "
-                    f"Other: {validation_result_per_epoch.other}, "
+                    f"Other: {validation_result_per_epoch.other}"
                     f"encoded_feature_silhouette: {validation_result_per_epoch.encoded_feature_silhouette}, "
                     f"final_output_silhouette: {validation_result_per_epoch.final_output_silhouette}")
                 self.log_result(result_per_epoch=validation_result_per_epoch, final_result=validation_result, epoch=n)

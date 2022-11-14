@@ -3,18 +3,19 @@ import copy
 from pathlib import Path
 
 import torch
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional
 from omegaconf import DictConfig
 from torch.nn import Module, ModuleList
 from transformers import PreTrainedModel
-from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet
+from data_augmenters.tweet_normalizer import clean_up_tokenization, normalizeTweet, tweeteval_preprocess
 from event_extractor.schema import InputFeature
 
 
 class SequenceClassification(Module):
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, cfg: DictConfig, class_weights: Optional[list] = None):
         super(SequenceClassification, self).__init__()
         self.cfg = cfg
+        self.class_weights = torch.tensor(class_weights, dtype=torch.float)
         self.encoder = self.instantiate_encoder()
         self.classification_head = self.instantiate_classification_head()
         if cfg.model.load_ckpt is not None:
@@ -77,8 +78,8 @@ class SequenceClassification(Module):
     def normalize(self, text: List[str]) -> List[str]:
         normalized_text = text
         if self.cfg.data.name in ["tweet_eval"]:
-            normalized_text: List[str] = [normalizeTweet(tweet) for tweet in text]
-            normalized_text = [clean_up_tokenization(tweet) for tweet in normalized_text]
+            normalized_text: List[str] = [tweeteval_preprocess(tweet) for tweet in text]
+            # normalized_text = [clean_up_tokenization(tweet) for tweet in normalized_text]
         return normalized_text
 
     def preprocess(self, batch):
@@ -119,3 +120,20 @@ class SequenceClassification(Module):
             output = self.encoder(input_ids=input_feature.input_ids,
                                   attention_mask=input_feature.attention_mask).pooler_output
         return output
+
+    def get_multiview_batch(self, features, labels):
+        # no augmentation
+        if self.cfg.augmenter.name is None and self.cfg.model.contrastive.contrastive_loss_ratio > 0:
+            contrastive_features = features[:, None, :]
+            contrastive_labels = labels
+        elif self.cfg.augmenter.name is not None:
+            multiview_shape = (
+                int(features.shape[0] / (self.cfg.augmenter.num_samples + 1)),
+                self.cfg.augmenter.num_samples + 1,
+                features.shape[-1]
+            )
+            contrastive_features = features.reshape(multiview_shape)
+            contrastive_labels = labels[:int(features.shape[0]/(self.cfg.augmenter.num_samples+1))]
+        else:
+            raise ValueError
+        return contrastive_features, contrastive_labels
