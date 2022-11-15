@@ -236,10 +236,10 @@ class TweetEvalMainTable(Table):
         table_alignment = ""
         column_string = ""
         empty_grids = "&"*len(session_to_include)
-        col_list = [task for task in task_list if not task.startswith("stance_")]
+        col_list = [task for task in task_list]
         col_order = {'emoji': 0, 'emotion': 1, 'hate': 2, 'irony': 3, 'offensive': 4, 'sentiment': 5, 'stance': 6}
         col_list.sort(key=lambda col: col_order[col])
-        col_list.extend(["Stance", "All"])
+        col_list.extend(["All"])
         for i, col in enumerate(session_to_include+col_list):
             table_alignment += "c|"
             if i == len(session_to_include+col_list)-2:
@@ -449,18 +449,18 @@ class ConfigWriter(object):
             # config["data"]["batch_size"] = 32
             # config["model"]["output_path"] = "./outputs/tweeteval/experiments/cohort7/09/bertweet/"
             # config["model"]["from_pretrained"] = "roberta-base"
-            config["model"]["L2_normalize_encoded_feature"] = True
-            config["model"]["L2_normalize_logits"] = False
+            # config["model"]["L2_normalize_encoded_feature"] = True
+            # config["model"]["L2_normalize_logits"] = False
             # config["model"]["learning_rate"] = 1.0e-05
             # config["augmenter"]["name"] = "dropout"
             # config["augmenter"]["dropout"] = [0.1, 0.1]
             # config["augmenter"]["num_samples"] = 2
-            # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.1
+            config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.9
             # config["model"]["contrastive"]["base_temperature"] = 0.3
             # config["model"]["contrastive"]["temperature"] = 0.9
             # config["model"]["freeze_transformer_layers"] = "all"
             output = config["model"]["output_path"]
-            updated_output = output.replace("/cohort3/", "/cohort8/")
+            updated_output = output.replace("/cohort7/", "/cohort7/09/")
             config["model"]["output_path"] = updated_output
             # if updated_output.endswith("/"):
             #     updated_output = updated_output[:-1]
@@ -471,8 +471,8 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort8/")
-    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort5/no_aug", TweetEvalResult, table=TweetEvalMainTable)
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort7/09/")
+    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort7/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
