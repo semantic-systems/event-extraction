@@ -31,7 +31,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort3/03/bertweet/
+  output_path: ./outputs/tweet_topic_single/experiments/cohort2/bertweet/
 name: tweet_topic_single_cohort_2_bertweet
 seed:
 - 0
