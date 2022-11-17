@@ -78,6 +78,10 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, "train_coling2022_random")
+            dataset = dataset.train_test_split(test_size=0.1)["train"]
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
@@ -95,6 +99,10 @@ class DataGenerator(object):
 
     @property
     def validation_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, "train_coling2022_random")
+            dataset = dataset.train_test_split(test_size=0.1)["test"]
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
@@ -112,6 +120,9 @@ class DataGenerator(object):
 
     @property
     def testing_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, "test_coling2022_random")
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
