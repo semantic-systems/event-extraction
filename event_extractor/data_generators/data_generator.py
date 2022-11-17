@@ -63,9 +63,13 @@ class DataGenerator(object):
                 self.label_index_map: Dict = {label: i
                                               for i, label in enumerate(cfg.data.classes)}
             elif task == "multi-class":
-                self.num_labels = self.training_dataset.features['label'].num_classes
-                self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
-                                              for label in self.training_dataset.features['label'].names}
+                if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+                    self.num_labels = 5
+                    self.label_index_map = {"arts&culture": 0, "pop_culture":2, "sports_&_gaming":4, "science_&_technology":5, "business_&_entrepreneurs":1}
+                else:
+                    self.num_labels = self.training_dataset.features['label'].num_classes
+                    self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
+                                                  for label in self.training_dataset.features['label'].names}
             else:
                 raise ValueError
 
