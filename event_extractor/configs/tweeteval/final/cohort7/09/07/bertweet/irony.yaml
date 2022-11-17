@@ -34,6 +34,7 @@ model:
   output_path: ./outputs/tweeteval/experiments/cohort7/09/07/bertweet/
 name: irony
 seed:
-- 0
+- 1
+- 2
 visualizer:
 - tsne

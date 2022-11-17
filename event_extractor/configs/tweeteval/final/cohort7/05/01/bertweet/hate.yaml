@@ -34,6 +34,7 @@ model:
   output_path: ./outputs/tweeteval/experiments/cohort7/05/01/bertweet/
 name: hate
 seed:
-- 0
+- 1
+- 2
 visualizer:
 - tsne

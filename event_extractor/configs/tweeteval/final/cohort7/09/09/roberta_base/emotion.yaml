@@ -34,6 +34,7 @@ model:
   output_path: ./outputs/tweeteval/experiments/cohort7/09/09/roberta_base/
 name: emotion
 seed:
-- 0
+- 1
+- 2
 visualizer:
 - tsne

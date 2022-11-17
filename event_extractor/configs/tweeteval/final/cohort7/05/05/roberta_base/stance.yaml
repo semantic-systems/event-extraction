@@ -4,7 +4,7 @@ augmenter:
   num_samples: null
 data:
   batch_size: 32
-  config: stance_abortion
+  config: stance
   gradient_accu_step: 1
   include_oos: false
   label_column: label
@@ -32,8 +32,9 @@ model:
   learning_rate: 1.0e-05
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/experiments/cohort7/05/05/roberta_base/
-name: stance_abortion
+name: stance
 seed:
-- 0
+- 1
+- 2
 visualizer:
 - tsne
