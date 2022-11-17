@@ -65,7 +65,7 @@ class DataGenerator(object):
             elif task == "multi-class":
                 if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
                     self.num_labels = 6
-                    self.label_index_map = {"arts&culture": 0, "pop_culture":2, "sports_&_gaming":4, "science_&_technology":5, "business_&_entrepreneurs":1, "daily_life":3}
+                    self.label_index_map = {"arts_culture": 0, "pop_culture":2, "sports_gaming":4, "science_technology":5, "business_entrepreneurs":1, "daily_life":3}
                 else:
                     self.num_labels = self.training_dataset.features['label'].num_classes
                     self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
