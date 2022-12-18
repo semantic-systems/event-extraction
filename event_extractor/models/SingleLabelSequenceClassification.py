@@ -82,7 +82,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
 
             # reshape to compute the loss
             contrastive_features, contrastive_labels = self.get_multiview_batch(head_output.output, input_feature.labels)
-            contrastive_loss = self.contrastive_loss(contrastive_features, contrastive_labels)
+            contrastive_loss = self.contrastive_loss(contrastive_features)#, contrastive_labels)
             total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss
             total_loss = total_loss / self.cfg.data.gradient_accu_step
             total_loss.backward()
