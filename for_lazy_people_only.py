@@ -455,7 +455,7 @@ class ConfigWriter(object):
             # output = config["model"]["output_path"]
             # updated_output = output.replace("/contrastive_loss_ratio/", "/base_temp/")
             # config["model"]["output_path"] = updated_output
-            config["early_stopping"]["tolerance"] = 6
+            config["early_stopping"]["tolerance"] = 5
             # config["model"]["epochs"] = 100
             # config["data"]["gradient_accu_step"] = 1
             config["data"]["batch_size"] = 32
@@ -464,15 +464,15 @@ class ConfigWriter(object):
             # config["model"]["L2_normalize_encoded_feature"] = True
             # config["model"]["L2_normalize_logits"] = False
             # config["model"]["learning_rate"] = 1.0e-05
-            config["augmenter"]["name"] = "dropout"
-            config["augmenter"]["dropout"] = [0.1, 0.1]
-            config["augmenter"]["num_samples"] = 2
+            # config["augmenter"]["name"] = "dropout"
+            # config["augmenter"]["dropout"] = [0.1, 0.1]
+            # config["augmenter"]["num_samples"] = 2
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.9
             # config["model"]["contrastive"]["base_temperature"] = 0.3
-            # config["model"]["contrastive"]["temperature"] = 0.3
+            config["model"]["contrastive"]["temperature"] = 0.7
             # config["model"]["freeze_transformer_layers"] = "all"
             output = config["model"]["output_path"]
-            updated_output = output.replace("cohort7", "cohort9")
+            updated_output = output.replace("cohort6/05", "cohort10/05/07")
             config["model"]["output_path"] = updated_output
             # if updated_output.endswith("/"):
             #     updated_output = updated_output[:-1]
@@ -483,9 +483,9 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort9/")
+    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort10/no_augmentation/")
     # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort7/")
-    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort7/", TweetEvalResult, table=TweetEvalMainTable)
+    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort9/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature"])
