@@ -33,7 +33,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort10/aug/05/003/roberta_base/
+  output_path: ./outputs/tweeteval/experiments/cohort10/ablation_aug/05/003/roberta_base/
 name: irony
 seed:
 - 0

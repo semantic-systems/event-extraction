@@ -6,7 +6,7 @@ augmenter:
   num_samples: 2
 data:
   batch_size: 32
-  config: stance
+  config: emotion
   gradient_accu_step: 1
   include_oos: false
   label_column: label
@@ -33,8 +33,8 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort10/aug/05/07/roberta_base/
-name: stance
+  output_path: ./outputs/tweeteval/experiments/cohort10/ablation_aug/05/07/roberta_base/
+name: emotion
 seed:
 - 0
 - 1
