@@ -33,7 +33,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweet_topic_single/experiments/cohort4/05/07/
+  output_path: ./outputs/tweet_topic_single/experiments/cohort4/ablation/05/07/
 name: tweet_topic_single_cohort_4_roberta
 seed:
 - 0
