@@ -1,7 +1,9 @@
 augmenter:
+  dropout:
+  - 0.1
+  - 0.1
   name: dropout
   num_samples: 2
-  dropout: [0.1, 0.1]
 data:
   batch_size: 32
   gradient_accu_step: 1
