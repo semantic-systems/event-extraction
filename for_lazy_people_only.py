@@ -468,7 +468,7 @@ class ConfigWriter(object):
             # config["augmenter"]["dropout"] = [0.1, 0.1]
             # config["augmenter"]["num_samples"] = 2
             config["loss"] = {"var_cov_loss": {"margin": 5,
-                                               "coef": 1}
+                                               "coef": 10}
                               }
             # config["model"]["contrastive"]["contrastive_loss_ratio"] = 0.9
             # config["model"]["contrastive"]["base_temperature"] = 0.3
