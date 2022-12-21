@@ -14,6 +14,7 @@ class SingleLabelClassificationForwardOutput:
     attentions: Optional[Tuple[tensor]] = None
     cross_entropy_loss: Optional[float] = None
     contrastive_loss: Optional[float] = None
+    var_cov_loss: Optional[float] = None
 
 
 @dataclass
@@ -42,6 +43,7 @@ class AgentPolicyOutput:
     test_input_text: Optional[List] = None
     cross_entropy_loss: Optional[float] = 0
     contrastive_loss: Optional[float] = 0
+    var_cov_loss: Optional[float] = 0
 
 
 @dataclass

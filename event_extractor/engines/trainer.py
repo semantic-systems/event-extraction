@@ -210,7 +210,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
             self.agent.policy.lr_scheduler.step()
             agent_output: AgentPolicyOutput = self.agent.act(data_loader, mode="train")
             y_predict, y_true, train_loss = agent_output.y_predict, agent_output.y_true, agent_output.loss
-            ce_loss, contrastive_loss = agent_output.cross_entropy_loss, agent_output.contrastive_loss
+            ce_loss, contrastive_loss, var_cov_loss = agent_output.cross_entropy_loss, agent_output.contrastive_loss, agent_output.var_cov_loss
             train_result_per_epoch: ClassificationResult = self.environment.evaluate(y_predict,
                                                                                      y_true,
                                                                                      train_loss,
@@ -218,6 +218,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
                                                                                      num_epoch=n)
             logger.warning(f"Training results:")
             logger.warning(f"Epoch: {n}, Average loss: {train_loss}, CE loss: {ce_loss}, Contrastive loss: {contrastive_loss}, "
+                           f"Var-Cov loss: {var_cov_loss}, "
                            f"Average acc: {train_result_per_epoch.acc}, "
                            f"F1 macro: {train_result_per_epoch.f1_macro},"
                            f"F1 micro: {train_result_per_epoch.f1_micro}, "

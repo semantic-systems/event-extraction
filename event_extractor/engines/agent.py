@@ -93,6 +93,7 @@ class BatchLearningAgent(Agent):
         loss = 0
         ce_loss = 0
         contrastive_loss = 0
+        var_cov_loss = 0
         tsne_features: Dict = {"final_hidden_states": [], "encoded_features": [], "labels": []}
         test_input: List = []
 
@@ -125,6 +126,7 @@ class BatchLearningAgent(Agent):
                 if self.is_contrastive:
                     ce_loss = (ce_loss + outputs.cross_entropy_loss) / (i + 1)
                     contrastive_loss = (contrastive_loss + outputs.contrastive_loss) / (i + 1)
+                    var_cov_loss = (var_cov_loss + outputs.var_cov_loss) / (i + 1)
             if mode == "validation":
                 loss = (loss + outputs.loss)/(i+1)
             if "tsne" in self.config.visualizer and mode in ["validation", "test"]:
@@ -132,7 +134,8 @@ class BatchLearningAgent(Agent):
                 tsne_features["final_hidden_states"].extend(outputs.prediction_logits.tolist())
         return AgentPolicyOutput(**{"y_predict": y_predict, "y_true": y_true, "loss": loss,
                                     "tsne_feature": TSNEFeature(**tsne_features), "test_input_text": test_input,
-                                    "cross_entropy_loss": ce_loss, "contrastive_loss": contrastive_loss})
+                                    "cross_entropy_loss": ce_loss, "contrastive_loss": contrastive_loss,
+                                    "var_cov_loss": var_cov_loss})
 
     def get_prediction(self, outputs: ClassificationForwardOutput):
         if self.config.model.type == "single-label":

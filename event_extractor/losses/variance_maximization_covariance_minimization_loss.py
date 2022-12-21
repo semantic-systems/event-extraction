@@ -5,7 +5,9 @@ import torch.nn.functional as F
 
 class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
     # from the Yann LeCun VicReg paper
-    # this loss maximizes the variance of each sample within the batch.
+    # this loss maximizes the variance of each sample within the batch,
+    # and minimizes the covariance of the batch.
+    # the goal is to push the energy up / free-energy minimization.
     def __init__(self, margin: float):
         super(VarianceMaximizationCovarianceMinimizationLoss, self).__init__()
         self.margin = margin
@@ -24,7 +26,7 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
 
         std_x = torch.sqrt(x.var(dim=0) + 0.0001)
         std_y = torch.sqrt(y.var(dim=0) + 0.0001)
-        std_loss = torch.mean(F.relu(1 - std_x)) / 2 + torch.mean(F.relu(1 - std_y)) / 2
+        std_loss = torch.mean(F.relu(self.margin - std_x)) / 2 + torch.mean(F.relu(self.margin - std_y)) / 2
 
         cov_x = (x.T @ x) / (batch_size - 1)
         cov_y = (y.T @ y) / (batch_size - 1)

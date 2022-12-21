@@ -69,7 +69,7 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
                                                           base_temperature=cfg.model.contrastive.base_temperature,
                                                           contrast_mode=cfg.model.contrastive.contrast_mode)
         self.contrastive_loss_ratio = cfg.model.contrastive.contrastive_loss_ratio
-        self.var_cov_loss = VarianceMaximizationCovarianceMinimizationLoss(margin=1)
+        self.var_cov_loss = VarianceMaximizationCovarianceMinimizationLoss(margin=self.cfg.loss.var_cov_loss.margin)
 
     def forward(self,
                 input_feature: InputFeature,
@@ -86,7 +86,8 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             contrastive_features, contrastive_labels = self.get_multiview_batch(head_output.output, input_feature.labels)
             contrastive_loss = self.contrastive_loss(contrastive_features, contrastive_labels)
             var_cov_loss = self.var_cov_loss(contrastive_features[:, 1], contrastive_features[:, 2])
-            total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss + var_cov_loss
+            total_loss = (1 - self.contrastive_loss_ratio) * loss + self.contrastive_loss_ratio * contrastive_loss + \
+                         self.cfg.loss.var_cov_loss.coef * var_cov_loss
             total_loss = total_loss / self.cfg.data.gradient_accu_step
             total_loss.backward()
             if backward:
@@ -94,7 +95,8 @@ class SingleLabelContrastiveSequenceClassification(SingleLabelSequenceClassifica
             return SingleLabelClassificationForwardOutput(loss=total_loss.item(), prediction_logits=head_output.output,
                                                           encoded_features=encoded_feature.encoded_feature,
                                                           cross_entropy_loss=loss.item(),
-                                                          contrastive_loss=contrastive_loss.item())
+                                                          contrastive_loss=contrastive_loss.item(),
+                                                          var_cov_loss=var_cov_loss.item())
         elif mode == "validation":
             loss = self.loss(head_output.output, input_feature.labels)
             return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,

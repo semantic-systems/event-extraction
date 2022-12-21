@@ -20,6 +20,7 @@ class ConfigValidator(object):
             self.validate_visualizer()
             self.validate_early_stopping()
             self.validate_augmenter()
+            self.validate_loss()
             return self.config
         except ValueError:
             logger.error(f"Validation of config failed.")
@@ -109,6 +110,17 @@ class ConfigValidator(object):
                     self.config.augmenter = {
                         "name": None,
                         "num_samples": None
+                       }
+
+    def validate_loss(self):
+        if "loss" not in self.config:
+            with open_dict(self.config):
+                self.config.loss = {}
+            if "var_cov_loss" not in self.config.loss:
+                with open_dict(self.config):
+                    self.config.loss.var_cov_loss = {
+                        "margin": 5,
+                        "coef": 0
                        }
 
     def create_output_path(self):
