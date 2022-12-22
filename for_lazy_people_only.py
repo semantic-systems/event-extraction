@@ -145,7 +145,7 @@ class TweetTopicResult(Result):
 
     @staticmethod
     def get_metric_name(task):
-        metric_dict = {"tweet_topic_single": ["f1_macro"]}
+        metric_dict = {"tweet_topic_single": ["acc"]}
         return metric_dict[task]
 
 
@@ -486,17 +486,17 @@ class ConfigWriter(object):
 
 
 if __name__ == "__main__":
-    ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort11/")
+    # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort11/")
     # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort7/")
-    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort10/aug", TweetEvalResult, table=TweetEvalMainTable)
+    # writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort11/lecun", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio" , "contrastive_temperature"])
+    # writer.write_to_tex(name="tweeteval", session_to_include=["model" , "contrastive_temperature"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/tweeteval/paper/cohort2", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])
-    # writer = LatexTableWriter("./tables/tweet_topic_single/experiments/", TweetTopicResult)
-    # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
+    writer = LatexTableWriter("./tables/tweet_topic_single/experiments/cohort4", TweetTopicResult)
+    writer.write_to_tex(name="tweettopic_acc", session_to_include=["model", "contrastive_loss_ratio", "contrastive_temperature"])
 
     # writer = LatexTableWriter("./tables/tweeteval/0311/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "augmenter_dropout"])
