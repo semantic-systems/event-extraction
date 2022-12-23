@@ -37,27 +37,31 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
                 chunks[v][c.item()] = torch.index_select(features[:, v], 0, indices)
         return chunks
 
-    def std_loss(self, multiview_features_per_class):
+    def std_loss(self, multiview_features_per_class, device):
         views = list(multiview_features_per_class.keys())
         classes = list(multiview_features_per_class[0].keys())
         loss = 0
         for view in views:
             for c in classes:
-                std_per_class_in_view = torch.var(multiview_features_per_class[view][c], unbiased=True)
+                std_per_class_in_view = torch.var(multiview_features_per_class[view][c], unbiased=True).to(device)
                 loss += torch.mean(F.relu(self.margin - std_per_class_in_view)) / (len(views) * len(classes))
         return loss
 
-    def cov_loss(self, multiview_features_per_class):
+    def cov_loss(self, multiview_features_per_class, device):
         views = list(multiview_features_per_class.keys())
         classes = list(multiview_features_per_class[0].keys())
         loss = 0
         for view in views:
             for c in classes:
-                cov_per_class_in_view = torch.cov(multiview_features_per_class[view][c])
+                print(multiview_features_per_class[view][c].shape[-1])
+                cov_per_class_in_view = torch.cov(multiview_features_per_class[view][c]).to(device)
                 loss += self.off_diagonal(cov_per_class_in_view).pow_(2).sum().div(
-                    multiview_features_per_class[view][c].shape[-1])
+                    multiview_features_per_class[view][c].shape[-1].to(device))
         return loss
 
     def forward(self, features, labels):
+        device = (torch.device('cuda')
+                  if features.is_cuda
+                  else torch.device('cpu'))
         multiview_features_per_class = self.construct_multiview_features_per_class(features, labels)
-        return self.std_loss(multiview_features_per_class) + self.cov_loss(multiview_features_per_class)
+        return self.std_loss(multiview_features_per_class, device) + self.cov_loss(multiview_features_per_class, device)
