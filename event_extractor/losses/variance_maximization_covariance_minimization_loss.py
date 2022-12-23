@@ -44,7 +44,7 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
         for view in views:
             for c in classes:
                 std_per_class_in_view = torch.var(multiview_features_per_class[view][c], unbiased=True)
-                loss += torch.mean(F.relu(1 - std_per_class_in_view)) / (len(views) * len(classes))
+                loss += torch.mean(F.relu(self.margin - std_per_class_in_view)) / (len(views) * len(classes))
         return loss
 
     def cov_loss(self, multiview_features_per_class):
