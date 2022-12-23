@@ -14,22 +14,50 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
 
     @staticmethod
     def off_diagonal(x):
-        n, m = x.shape
-        assert n == m
-        return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
+        if x.shape == torch.Size([]):
+            return torch.tensor([1e-4])
+        else:
+            n, m = x.shape
+            assert n == m
+            return x.flatten()[:-1].view(n - 1, n + 1)[:, 1:].flatten()
 
-    def forward(self, x, y):
-        batch_size = x.shape[0]
-        num_features = x.shape[1]
-        x = x - x.mean(dim=0)
-        y = y - y.mean(dim=0)
+    @staticmethod
+    def construct_multiview_features_per_class(features, labels):
+        """
+        construct multiview features per class as a dict
+        :param features: batch_size * num_views * num_features
+        :param labels: batch_size
+        :return:
+        """
+        classes = torch.unique(labels)
+        chunks = {v: {c.item(): 0 for c in classes} for v in range(features.shape[1])}
+        for v in range(features.shape[1]):
+            for c in classes:
+                indices = (labels == c).nonzero(as_tuple=True)[0]
+                chunks[v][c.item()] = torch.index_select(features[:, v], 0, indices)
+        return chunks
 
-        std_x = torch.sqrt(x.var(dim=0) + 0.0001)
-        std_y = torch.sqrt(y.var(dim=0) + 0.0001)
-        std_loss = torch.mean(F.relu(self.margin - std_x)) / 2 + torch.mean(F.relu(self.margin - std_y)) / 2
+    def std_loss(self, multiview_features_per_class):
+        views = list(multiview_features_per_class.keys())
+        classes = list(multiview_features_per_class[0].keys())
+        loss = 0
+        for view in views:
+            for c in classes:
+                std_per_class_in_view = torch.var(multiview_features_per_class[view][c], unbiased=True)
+                loss += torch.mean(F.relu(1 - std_per_class_in_view)) / (len(views) * len(classes))
+        return loss
 
-        cov_x = (x.T @ x) / (batch_size - 1)
-        cov_y = (y.T @ y) / (batch_size - 1)
-        cov_loss = self.off_diagonal(cov_x).pow_(2).sum().div(num_features) + \
-                   self.off_diagonal(cov_y).pow_(2).sum().div(num_features)
-        return std_loss+ cov_loss
+    def cov_loss(self, multiview_features_per_class):
+        views = list(multiview_features_per_class.keys())
+        classes = list(multiview_features_per_class[0].keys())
+        loss = 0
+        for view in views:
+            for c in classes:
+                cov_per_class_in_view = torch.cov(multiview_features_per_class[view][c])
+                loss += self.off_diagonal(cov_per_class_in_view).pow_(2).sum().div(
+                    multiview_features_per_class[view][c].shape[-1])
+        return loss
+
+    def forward(self, features, labels):
+        multiview_features_per_class = self.construct_multiview_features_per_class(features, labels)
+        return self.std_loss(multiview_features_per_class) + self.cov_loss(multiview_features_per_class)
