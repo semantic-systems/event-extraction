@@ -30,33 +30,27 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
         :return:
         """
         classes = torch.unique(labels)
-        chunks = {v: {c.item(): 0 for c in classes} for v in range(features.shape[1])}
-        for v in range(features.shape[1]):
-            for c in classes:
-                indices = (labels == c).nonzero(as_tuple=True)[0]
-                chunks[v][c.item()] = torch.index_select(features[:, v], 0, indices)
+        chunks = {c.item(): 0 for c in classes}
+        for c in classes:
+            indices = (labels == c).nonzero(as_tuple=True)[0]
+            chunks[c.item()] = torch.cat(torch.index_select(features[:, :], 0, indices).unbind(0))
         return chunks
 
     def std_loss(self, multiview_features_per_class, device):
-        views = list(multiview_features_per_class.keys())
-        classes = list(multiview_features_per_class[0].keys())
+        classes = list(multiview_features_per_class.keys())
         loss = 0
-        for view in views:
-            for c in classes:
-                std_per_class_in_view = torch.var(multiview_features_per_class[view][c], unbiased=True).to(device)
-                loss += torch.mean(F.relu(self.margin - std_per_class_in_view)) / (len(views) * len(classes))
+        for c in classes:
+            std_per_class_in_view = torch.var(multiview_features_per_class[c], unbiased=True)
+            loss += torch.mean(F.relu(1 - std_per_class_in_view))
         return loss
 
     def cov_loss(self, multiview_features_per_class, device):
-        views = list(multiview_features_per_class.keys())
-        classes = list(multiview_features_per_class[0].keys())
+        classes = list(multiview_features_per_class.keys())
         loss = 0
-        for view in views:
-            for c in classes:
-                print(multiview_features_per_class[view][c].shape[-1])
-                cov_per_class_in_view = torch.cov(multiview_features_per_class[view][c]).to(device)
-                loss += self.off_diagonal(cov_per_class_in_view).pow_(2).sum().div(
-                    multiview_features_per_class[view][c].shape[-1].to(device))
+        for c in classes:
+            cov_per_class_in_view = torch.cov(multiview_features_per_class[c]).to(device)
+            loss += self.off_diagonal(cov_per_class_in_view).pow_(2).sum().div(
+                multiview_features_per_class[c].shape[-1])
         return loss
 
     def forward(self, features, labels):
