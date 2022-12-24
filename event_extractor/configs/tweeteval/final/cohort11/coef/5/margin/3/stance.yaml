@@ -18,7 +18,7 @@ early_stopping:
 loss:
   var_cov_loss:
     coef: 5
-    margin: 3
+    margin: 0.01
 model:
   L2_normalize_encoded_feature: true
   L2_normalize_logits: true
@@ -37,7 +37,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort11/coef/5/margin/3/roberta_base/
+  output_path: ./outputs/tweeteval/experiments/cohort11/coef/5/margin/0.01/roberta_base/
 name: stance
 seed:
 - 0

@@ -18,7 +18,7 @@ early_stopping:
 loss:
   var_cov_loss:
     coef: 7
-    margin: 4
+    margin: 0.001
 model:
   L2_normalize_encoded_feature: true
   L2_normalize_logits: true
@@ -37,7 +37,7 @@ model:
       n_out: 20
   learning_rate: 1.0e-05
   num_transformer_layers: full
-  output_path: ./outputs/tweeteval/experiments/cohort11/coef/7/margin/4/roberta_base/
+  output_path: ./outputs/tweeteval/experiments/cohort11/coef/7/margin/0.001/roberta_base/
 name: emoji
 seed:
 - 0
