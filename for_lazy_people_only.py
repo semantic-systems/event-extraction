@@ -37,6 +37,8 @@ class Result(object):
         self.contrastive_loss_ratio = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("contrastive_loss_ratio")
         self.base_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("base_temperature")
         self.contrastive_temperature = 0 if not self.contrastive else self.config.get("model").get("contrastive").get("temperature")
+        self.margin = self.config.get("loss").get("var_cov_loss").get("margin")
+        self.coeff = self.config.get("loss").get("var_cov_loss").get("coef")
         self.contrast_mode = np.nan if not self.contrastive else self.config.get("model").get("contrastive").get("contrast_mode")
         self.augmenter = self.get_augmenter()
         self.num_augmented_samples = self.config.get("augmenter").get("num_samples", None) if self.augmenter else np.nan
@@ -400,7 +402,9 @@ class LatexTableWriter(object):
                 'final_output_silhouette': [result.final_output_silhouette for result in result_instances],
                 'augmenter_dropout': [result.augmenter_dropout for result in result_instances],
                 'metric_name': metric_name,
-                'metric_score': [result.metric for result in result_instances]
+                'metric_score': [result.metric for result in result_instances],
+                'margin': [result.margin for result in result_instances],
+                'coeff': [result.coeff for result in result_instances]
                 }
         return pd.DataFrame(data)
 
@@ -486,10 +490,10 @@ class ConfigWriter(object):
 if __name__ == "__main__":
     # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort11/coef/9/")
     # ConfigWriter.change_field_of_all("event_extractor/configs/tweeteval/final/cohort7/")
-    writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort11/lecun", TweetEvalResult, table=TweetEvalMainTable)
+    writer = LatexTableWriter("./tables/tweeteval/contrastive_learning_tweeteval/cohort11/", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="encoded_feature_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="encoded_feature_silhouette")
     # writer.write_to_tex(name="final_output_silhouette", session_to_include=["model", "contrastive_loss_ratio"], col_to_write="final_output_silhouette")
-    writer.write_to_tex(name="tweeteval", session_to_include=["model" , "contrastive_temperature"])
+    writer.write_to_tex(name="tweeteval", session_to_include=["model", "margin", "coeff"])
     # writer.write_to_tex(name="tweeteval", session_to_include=["model", "contrastive_loss_ratio"])
     # writer = LatexTableWriter("./tables/tweeteval/paper/cohort2", TweetEvalResult, table=TweetEvalMainTable)
     # writer.write_to_tex(name="tweeteval", session_to_include=["model"])

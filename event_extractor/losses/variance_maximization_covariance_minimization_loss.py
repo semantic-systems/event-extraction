@@ -1,3 +1,5 @@
+from distutils import dist
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -40,17 +42,19 @@ class VarianceMaximizationCovarianceMinimizationLoss(nn.Module):
         classes = list(multiview_features_per_class.keys())
         loss = 0
         for c in classes:
-            std_per_class_in_view = torch.var(multiview_features_per_class[c], unbiased=True)
-            loss += torch.mean(F.relu(1 - std_per_class_in_view))
+            normalized_features_per_class = multiview_features_per_class[c] - multiview_features_per_class[c].mean(dim=0)
+            std_features_per_class = torch.sqrt(normalized_features_per_class.var(dim=0) + 0.0001)
+            loss += torch.mean(F.relu(1 - std_features_per_class))
         return loss
 
     def cov_loss(self, multiview_features_per_class, device):
         classes = list(multiview_features_per_class.keys())
         loss = 0
         for c in classes:
-            cov_per_class_in_view = torch.cov(multiview_features_per_class[c]).to(device)
-            loss += self.off_diagonal(cov_per_class_in_view).pow_(2).sum().div(
-                multiview_features_per_class[c].shape[-1])
+            normalized_features_per_class = multiview_features_per_class[c] - multiview_features_per_class[c].mean(dim=0)
+            size = normalized_features_per_class.shape[0]
+            cov = (normalized_features_per_class.T @ normalized_features_per_class) / (size - 1)
+            loss += self.off_diagonal(cov).pow_(2).sum().div(normalized_features_per_class.shape[-1])
         return loss
 
     def forward(self, features, labels):
