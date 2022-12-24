@@ -96,6 +96,8 @@ class ClassificationResult:
     other: Optional[float]
     encoded_feature_silhouette: Optional[float]
     final_output_silhouette: Optional[float]
+    contrastive_loss: Optional[float]
+    var_cov_loss: Optional[float]
 
 
 @dataclass

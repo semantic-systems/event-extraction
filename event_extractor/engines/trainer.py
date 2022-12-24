@@ -216,9 +216,11 @@ class BatchLearningTrainer(SingleAgentTrainer):
                                                                                      train_loss,
                                                                                      mode="train",
                                                                                      num_epoch=n)
+            train_result_per_epoch.contrastive_loss = contrastive_loss
+            train_result_per_epoch.var_cov_loss = var_cov_loss
             logger.warning(f"Training results:")
             logger.warning(f"Epoch: {n}, Average loss: {train_loss}, CE loss: {ce_loss}, Contrastive loss: {contrastive_loss}, "
-                           f"Var-Cov loss: {var_cov_loss}, "
+                           f"Var Cov loss: {var_cov_loss}, "
                            f"Average acc: {train_result_per_epoch.acc}, "
                            f"F1 macro: {train_result_per_epoch.f1_macro},"
                            f"F1 micro: {train_result_per_epoch.f1_micro}, "

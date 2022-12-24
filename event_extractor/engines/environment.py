@@ -228,7 +228,9 @@ class StaticEnvironment(Environment):
                                           "path_to_plot": path_to_plot,
                                           "other": other,
                                           "encoded_feature_silhouette": 0,
-                                          "final_output_silhouette": 0
+                                          "final_output_silhouette": 0,
+                                          "contrastive_loss": 0,
+                                          "var_cov_loss": 0
                                           }
                                        )
 
