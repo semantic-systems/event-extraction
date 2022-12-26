@@ -63,9 +63,13 @@ class DataGenerator(object):
                 self.label_index_map: Dict = {label: i
                                               for i, label in enumerate(cfg.data.classes)}
             elif task == "multi-class":
-                self.num_labels = self.training_dataset.features['label'].num_classes
-                self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
-                                              for label in self.training_dataset.features['label'].names}
+                if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+                    self.num_labels = 6
+                    self.label_index_map = {"arts_culture": 0, "pop_culture":2, "sports_gaming":4, "science_technology":5, "business_entrepreneurs":1, "daily_life":3}
+                else:
+                    self.num_labels = self.training_dataset.features['label'].num_classes
+                    self.label_index_map: Dict = {label: self.training_dataset.features['label'].str2int(label)
+                                                  for label in self.training_dataset.features['label'].names}
             else:
                 raise ValueError
 
@@ -78,6 +82,10 @@ class DataGenerator(object):
 
     @property
     def training_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, split="train_coling2022_random")
+            dataset = dataset.train_test_split(test_size=0.1)["train"]
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='train') for config in stance_configs])
@@ -95,6 +103,10 @@ class DataGenerator(object):
 
     @property
     def validation_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, split="train_coling2022_random")
+            dataset = dataset.train_test_split(test_size=0.1)["test"]
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='validation') for config in stance_configs])
@@ -112,6 +124,9 @@ class DataGenerator(object):
 
     @property
     def testing_dataset(self):
+        if self.cfg.data.name == "cardiffnlp/tweet_topic_single":
+            dataset = load_dataset(self.cfg.data.name, split="test_coling2022_random")
+            return dataset
         if self.cfg.data.config.startswith("stance"):
             stance_configs = ["stance_feminist", "stance_abortion", "stance_atheism", "stance_climate", "stance_hillary"]
             dataset = concatenate_datasets([load_dataset(self.cfg.data.name, config, split='test') for config in stance_configs])
