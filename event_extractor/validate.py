@@ -20,6 +20,7 @@ class ConfigValidator(object):
             self.validate_visualizer()
             self.validate_early_stopping()
             self.validate_augmenter()
+            self.validate_hyperparameters()
             return self.config
         except ValueError:
             logger.error(f"Validation of config failed.")
@@ -86,6 +87,11 @@ class ConfigValidator(object):
         if "delta" not in self.config.early_stopping:
             with open_dict(self.config):
                 self.config.early_stopping.delta = 0
+
+    def validate_hyperparameters(self):
+        if "hyperparameters" not in self.config:
+            with open_dict(self.config):
+                self.config.hyperparameters = {}
 
     def validate_episode(self):
         pass

@@ -307,7 +307,7 @@ class BatchLearningTrainer(SingleAgentTrainer):
             result = self.environment.evaluate(y_predict, y_true, loss, mode="test")
             result.encoded_feature_silhouette = encoded_feature_silhouette
             result.final_output_silhouette = final_output_silhouette
-            logger.warning(f"Testing Accuracy: {result.acc}, F1 micro: {result.f1_micro},"
+            logger.warning(f"Testing Accuracy: {result.acc}, Loss: {result.loss}, F1 micro: {result.f1_micro},"
                            f"F1 macro: {result.f1_macro}, F1 per class: {result.f1_per_class}, "
                            f"Precision macro: {result.precision_macro}, "
                            f"Recall macro: {result.recall_macro}, "

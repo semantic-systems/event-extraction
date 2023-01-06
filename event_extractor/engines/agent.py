@@ -125,7 +125,7 @@ class BatchLearningAgent(Agent):
                 if self.is_contrastive:
                     ce_loss = (ce_loss + outputs.cross_entropy_loss) / (i + 1)
                     contrastive_loss = (contrastive_loss + outputs.contrastive_loss) / (i + 1)
-            if mode == "validation":
+            if mode in ["validation", "test"]:
                 loss = (loss + outputs.loss)/(i+1)
             if "tsne" in self.config.visualizer and mode in ["validation", "test"]:
                 tsne_features["encoded_features"].extend(outputs.encoded_features.tolist())

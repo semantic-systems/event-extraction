@@ -2,6 +2,8 @@ import io
 import pickle
 import random
 import logging
+from typing import List, Dict
+
 import mlflow
 import numpy as np
 import torch
@@ -52,3 +54,25 @@ class CPU_Unpickler(pickle.Unpickler):
         if module == 'torch.storage' and name == '_load_from_bytes':
             return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
         else: return super().find_class(module, name)
+
+
+def get_hyperparameters(nested_dict) -> Dict:
+    hyperparameters = {}
+    contrastive_loss_ratio = nested_dict.hyperparameters.model.contrastive.contrastive_loss_ratio
+    temperature = nested_dict.hyperparameters.model.contrastive.temperature
+    contrastive_loss_ratio_list = list(np.arange(contrastive_loss_ratio[0], contrastive_loss_ratio[1], contrastive_loss_ratio[2]))
+    contrastive_loss_ratio_list.append(contrastive_loss_ratio[1])
+    temperature_list = list(np.arange(temperature[0], temperature[1], temperature[2]))
+    temperature_list.append(temperature[1])
+    hyperparameters["contrastive_loss_ratio"] = [float(c) for c in contrastive_loss_ratio_list]
+    hyperparameters["temperature"] = [float(c) for c in temperature_list]
+    return hyperparameters
+
+
+def config_generator(config, hyperparameters: Dict):
+    for ratio in hyperparameters["contrastive_loss_ratio"]:
+        for temp in hyperparameters["temperature"]:
+            config.model.contrastive.contrastive_loss_ratio = ratio
+            config.model.contrastive.temperature = temp
+            config.model.output_path = f"./outputs/tweeteval/experiments/cohort10/hyperparameters/{str(round(ratio, 2))}/{str(round(temp, 2))}/"
+            yield config

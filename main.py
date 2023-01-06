@@ -10,7 +10,7 @@ from omegaconf import DictConfig, ListConfig
 
 from event_extractor.engines.trainer import MetaLearningTrainer, BatchLearningTrainer
 from event_extractor.parsers.parser import parse
-from utils import instantiate_config
+from utils import instantiate_config, get_hyperparameters, config_generator
 
 
 def get_trainer(config_name: str):
@@ -32,20 +32,30 @@ def walk_through_files(path, file_extension='.csv'):
 
 
 def run(cfg: DictConfig):
-    if isinstance(cfg.seed, int):
-        trainer = trainer_class(cfg)
-        trainer.run()
-        torch.cuda.empty_cache()
-        sleep(10)
-    elif isinstance(cfg.seed, ListConfig):
-        for seed in cfg.seed:
-            cfg.seed = seed
+    if cfg.hyperparameters:
+        hyperparameters = get_hyperparameters(cfg)
+        configs = config_generator(cfg, hyperparameters)
+        for config in configs:
+            trainer = trainer_class(config)
+            trainer.run()
+            torch.cuda.empty_cache()
+            sleep(10)
+
+    else:
+        if isinstance(cfg.seed, int):
             trainer = trainer_class(cfg)
             trainer.run()
             torch.cuda.empty_cache()
             sleep(10)
-    else:
-        raise ValueError(f"Seed must be of type int or list of int.")
+        elif isinstance(cfg.seed, ListConfig):
+            for seed in cfg.seed:
+                cfg.seed = seed
+                trainer = trainer_class(cfg)
+                trainer.run()
+                torch.cuda.empty_cache()
+                sleep(10)
+        else:
+            raise ValueError(f"Seed must be of type int or list of int.")
 
 
 if __name__ == "__main__":
