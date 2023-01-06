@@ -35,10 +35,7 @@ model:
   num_transformer_layers: full
   output_path: ./outputs/tweeteval/experiments/cohort10/hyperparameters/
 name: emotion
-seed:
-- 0
-- 1
-- 2
+seed: 1
 visualizer:
 - tsne
 hyperparameters:
