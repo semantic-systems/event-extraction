@@ -41,7 +41,8 @@ class SingleLabelSequenceClassification(SequenceClassification):
             return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
                                                           encoded_features=encoded_feature.encoded_feature)
         elif mode == "test":
-            return SingleLabelClassificationForwardOutput(prediction_logits=head_output.output,
+            loss = self.loss(head_output.output, input_feature.labels)
+            return SingleLabelClassificationForwardOutput(loss=loss.item(), prediction_logits=head_output.output,
                                                           encoded_features=encoded_feature.encoded_feature)
         else:
             raise ValueError(f"mode {mode} is not one of train, validation or test.")
