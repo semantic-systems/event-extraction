@@ -113,7 +113,7 @@ class BatchLearningAgent(Agent):
             input_ids: tensor = batch["input_ids"].to(self.device)
             attention_masks: tensor = batch["attention_mask"].to(self.device)
             # convert labels to None if in testing mode.
-            labels = None if mode == "test" else labels
+            # labels = None if mode == "test" else labels
             input_feature: InputFeature = InputFeature(input_ids=input_ids, attention_mask=attention_masks, labels=labels)
             if ((i + 1) % self.config.data.gradient_accu_step == 0) or (i + 1 == len(data_loader)):
                 backward = True
