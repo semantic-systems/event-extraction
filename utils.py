@@ -64,8 +64,8 @@ def get_hyperparameters(nested_dict) -> Dict:
     contrastive_loss_ratio_list.append(contrastive_loss_ratio[1])
     temperature_list = list(np.arange(temperature[0], temperature[1], temperature[2]))
     temperature_list.append(temperature[1])
-    hyperparameters["contrastive_loss_ratio"] = [float(c) for c in contrastive_loss_ratio_list]
-    hyperparameters["temperature"] = [float(c) for c in temperature_list]
+    hyperparameters["contrastive_loss_ratio"] = [round(float(c), 3) for c in contrastive_loss_ratio_list]
+    hyperparameters["temperature"] = [round(float(c), 3) for c in temperature_list]
     return hyperparameters
 
 
