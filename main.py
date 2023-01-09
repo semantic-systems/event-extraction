@@ -32,7 +32,7 @@ def walk_through_files(path, file_extension='.csv'):
 
 
 def run(cfg: DictConfig):
-    if cfg.hyperparameters:
+    if "hyperparameters" in cfg:
         hyperparameters = get_hyperparameters(cfg)
         configs = config_generator(cfg, hyperparameters)
         for config in configs:
